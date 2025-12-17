@@ -40,6 +40,17 @@ ament_export_dependencies(rosidl_default_runtime)
 
 # source files
 file(GLOB SOURCE_FILES src/*.cpp)
+
+set(SOURCE_FILES 
+  src/main.cpp 
+  src/brain.cpp 
+  src/brain_config.cpp 
+  src/brain_data.cpp 
+  src/brain_tree.cpp 
+  src/robot_client.cpp 
+  src/walk.cpp
+)
+
 add_executable(brain_node ${SOURCE_FILES})
 
 # otherwise connot find msg in same pkg 

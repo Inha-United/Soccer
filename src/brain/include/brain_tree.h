@@ -44,47 +44,6 @@ private:
 };
 
 
-/**
- * @brief 设置机器人的速度
- *
- * @param x,y,theta double, 机器人在 x，y 方向上的速度（m/s）和逆时针转动的角速度（rad/s), 默认值为 0. 全为 0 时，即相当于给出站立不动指令
- *
- */
-class SetVelocity : public SyncActionNode
-{
-public:
-    SetVelocity(const string &name, const NodeConfig &config, Brain *_brain) : SyncActionNode(name, config), brain(_brain) {}
-
-    NodeStatus tick() override;
-    static PortsList providedPorts()
-    {
-        return {
-            InputPort<double>("x", 0, "Default x is 0"),
-            InputPort<double>("y", 0, "Default y is 0"),
-            InputPort<double>("theta", 0, "Default  theta is 0"),
-        };
-    }
-
-private:
-    Brain *brain;
-};
-
-// 原地踏步
-class StepOnSpot : public SyncActionNode
-{
-public:
-    StepOnSpot(const string &name, const NodeConfig &config, Brain *_brain) : SyncActionNode(name, config), brain(_brain) {}
-
-    NodeStatus tick() override;
-    static PortsList providedPorts()
-    {
-        return {};
-    }
-
-private:
-    Brain *brain;
-};
-
 class MoveHead : public SyncActionNode
 {
 public:

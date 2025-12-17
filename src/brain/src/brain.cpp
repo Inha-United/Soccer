@@ -48,7 +48,7 @@ Brain::~Brain(){}
 
 void Brain::init(){   
     config = std::make_shared<BrainConfig>();
-    loadConfig();
+    loadConfig(); // config 변수에 등록
 
     tree = std::make_shared<BrainTree>(this);
     client = std::make_shared<RobotClient>(this);
@@ -56,6 +56,10 @@ void Brain::init(){
    
     tree->init();
     client->init();
+
+    // ROS callback 연결
+    detectionsSubscription = create_subscription<vision_interface::msg::Detections>("/booster_vision/detection", SUB_STATE_QUEUE_SIZE, bind(&Brain::detectionsCallback, this, _1));
+
 }
 
 void Brain::tick(){
@@ -86,8 +90,7 @@ void Brain::loadConfig(){
     get_parameter("tree_file_path", config->treeFilePath);
 }
 
-void Brain::gameControlCallback(const game_controller_interface::msg::GameControlData &msg)
-{
+void Brain::gameControlCallback(const game_controller_interface::msg::GameControlData &msg){
 
     // 处理比赛的一级状态
     auto lastGameState = tree->getEntry<string>("gc_game_state"); // 比赛的一级状态
@@ -220,3 +223,4 @@ void Brain::gameControlCallback(const game_controller_interface::msg::GameContro
     data->score = static_cast<int>(myTeamInfo.score);
     data->oppoScore = static_cast<int>(oppoTeamInfo.score);
 }
+

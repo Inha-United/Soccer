@@ -36,6 +36,8 @@
 #include "brain_tree.h"
 #include "robot_client.h"
 #include "brain_config.h"
+#include "walk.h"
+
 
 using namespace std;
 
@@ -54,6 +56,9 @@ public:
     void tick();
     void gameControlCallback(const game_controller_interface::msg::GameControlData &msg);
     double msecsSince(rclcpp::Time time); // 특정 시간(timestamp) 이후 몇 밀리초가 지났는지 계산하는 유틸리티 함수
+
+    // walk관련 함수
+    void registerWalkNodes(BT::BehaviorTreeFactory &factory){RegisterWalkNodes(factory, this);}
 
 private:
     void loadConfig(); // config 불러오기

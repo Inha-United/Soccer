@@ -25,9 +25,9 @@ void BrainTree::init()
 {
     BehaviorTreeFactory factory;
 
-    REGISTER_BUILDER(SetVelocity)
-    REGISTER_BUILDER(StepOnSpot)
     REGISTER_BUILDER(MoveHead)
+
+    brain->registerWalkNodes(factory); // walk 관련 노드 등록
 
     factory.registerBehaviorTreeFromFile(brain->config->treeFilePath);
     tree = factory.createTree("MainTree");
@@ -54,26 +54,6 @@ void BrainTree::tick()
     tree.tickOnce();
 }
 
-NodeStatus SetVelocity::tick()
-{
-    double x, y, theta;
-    vector<double> targetVec;
-    getInput("x", x);
-    getInput("y", y);
-    getInput("theta", theta);
-
-    auto res = brain->client->setVelocity(x, y, theta);
-    return NodeStatus::SUCCESS;
-}
-
-NodeStatus StepOnSpot::tick()
-{
-    std::srand(std::time(0));
-    double vx = (std::rand() / (RAND_MAX / 0.02)) - 0.01;
-
-    auto res = brain->client->setVelocity(vx, 0, 0);
-    return NodeStatus::SUCCESS;
-}
 
 NodeStatus MoveHead::tick()
 {
