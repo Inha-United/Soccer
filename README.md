@@ -11,9 +11,11 @@ The Booster K1 Robocup official demo allows the robot to make autonomous decisio
 
 ##  Install extra dependency
 sudo apt-get install ros-humble-backward-ros
+test
 
 ## Note
 This repo support jetpack 6.2. Adapted to the default TRT model in src/vision/config/vision.yaml.
+
 
 vision.yaml for jetpack 6.2 machine
 
