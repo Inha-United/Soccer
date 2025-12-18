@@ -28,6 +28,11 @@ public:
     FieldDimensions fieldDimensions;
     vector<MapMarking> mapMarkings;   // locator 데이터
 
+    double camPixX = 1280;
+    double camPixY = 720;
+
+    double robotOdomFactor; 
+
     // BT 관련 변수 
     string treeFilePath; // behavior tree 파일 경로 -> 런치에서 지정
 

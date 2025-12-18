@@ -88,6 +88,16 @@ struct BrainData {
         _obstacles = newVec;
     }
 
+    TMStatus tmStatus[HL_MAX_NUM_PLAYERS]; 
+    int tmCmdId = 0; 
+    rclcpp::Time tmLastCmdChangeTime; 
+    int tmMyCmd = 0; 
+    int tmMyCmdId = 0; 
+    int tmReceivedCmd = 0; 
+    bool tmImLead = true; 
+    bool tmImAlive = true; 
+    double tmMyCost = 0.;
+
     rclcpp::Time timeLastDet; 
     bool camConnected = false; 
     rclcpp::Time timeLastLineDet; 
