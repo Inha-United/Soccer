@@ -597,7 +597,7 @@ void Brain::logDetection(const vector<GameObject> &gameObjects, bool logBounding
             // do nothing, use default
             // colors.push_back(rerun::Color(0xFFFFFFFF));
         }
-        if (label == "Ball" && detection_utils::isBallOut(0.2, 10.0))
+        if (label == "Ball" && detection_utils::isBallOut(0.2, 10.0, config, data))
             color = rerun::Color(0x000000FF);
         if (label == "Ball" && obj.confidence < config->ballConfidenceThreshold)
             color = rerun::Color(0xAAAAAAFF);
