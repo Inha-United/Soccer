@@ -81,10 +81,16 @@ public:
     void recoveryStateCallback(const booster_interface::msg::RawBytesMsg &msg);
 
     void imageCallback(const sensor_msgs::msg::Image &msg);
+
+    /* ----------------------------- 변수 업데이트를 위한 함수들 ----------------------------- */
+    void updateRelativePos(GameObject &obj);
     
 private:
     void loadConfig(); // config 불러오기
+    /* ----------------------------- 변수 업데이트를 위한 함수들 ----------------------------- */
+    void updateBallMemory();
     
+
     // ROS subscription
     rclcpp::Subscription<game_controller_interface::msg::GameControlData>::SharedPtr gameControlSubscription;
     rclcpp::Subscription<vision_interface::msg::Detections>::SharedPtr detectionsSubscription;
