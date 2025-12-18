@@ -26,6 +26,7 @@ public:
 
     // 경기장 크기 저장 변수
     FieldDimensions fieldDimensions;
+    vector<MapMarking> mapMarkings;   // locator 데이터
 
     // BT 관련 변수 
     string treeFilePath; // behavior tree 파일 경로 -> 런치에서 지정

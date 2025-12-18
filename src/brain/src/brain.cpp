@@ -227,3 +227,119 @@ void Brain::gameControlCallback(const game_controller_interface::msg::GameContro
 void Brain::detectionsCallback(const vision_interface::msg::Detections::SharedPtr msg){
     
 }
+
+void Brain::calibrateOdom(double x, double y, double theta)
+{
+
+    double x_or, y_or, theta_or; // or = odom to robot
+    x_or = -cos(data->robotPoseToOdom.theta) * data->robotPoseToOdom.x - sin(data->robotPoseToOdom.theta) * data->robotPoseToOdom.y;
+    y_or = sin(data->robotPoseToOdom.theta) * data->robotPoseToOdom.x - cos(data->robotPoseToOdom.theta) * data->robotPoseToOdom.y;
+    theta_or = -data->robotPoseToOdom.theta;
+
+    
+    transCoord(x_or, y_or, theta_or,
+               x, y, theta,
+               data->odomToField.x, data->odomToField.y, data->odomToField.theta);
+
+
+    transCoord(
+        data->robotPoseToOdom.x, data->robotPoseToOdom.y, data->robotPoseToOdom.theta,
+        data->odomToField.x, data->odomToField.y, data->odomToField.theta,
+        data->robotPoseToField.x, data->robotPoseToField.y, data->robotPoseToField.theta);
+
+
+    double placeHolder;
+    // ball
+    transCoord(
+        data->ball.posToRobot.x, data->ball.posToRobot.y, 0,
+        data->robotPoseToField.x, data->robotPoseToField.y, data->robotPoseToField.theta,
+        data->ball.posToField.x, data->ball.posToField.y, placeHolder 
+    );
+
+    // robots
+    auto robots = data->getRobots();
+    for (int i = 0; i < robots.size(); i++) {
+        updateFieldPos(robots[i]);
+    }
+    data->setRobots(robots);
+
+    // goalposts
+    auto goalposts = data->getGoalposts();
+    for (int i = 0; i < goalposts.size(); i++) {
+        updateFieldPos(goalposts[i]);
+    }
+    
+    // markers
+    auto markings = data->getMarkings();
+    for (int i = 0; i < markings.size(); i++) {
+        updateFieldPos(markings[i]);
+    }
+
+    // relog
+    log->setTimeNow();
+    // logVisionBox(get_clock()->now());
+    vector<GameObject> gameObjects = {};
+    if(data->ballDetected) gameObjects.push_back(data->ball);
+    for (int i = 0; i < markings.size(); i++) gameObjects.push_back(markings[i]);
+    for (int i = 0; i < robots.size(); i++) gameObjects.push_back(robots[i]);
+    for (int i = 0; i < goalposts.size(); i++) gameObjects.push_back(goalposts[i]);
+    logDetection(gameObjects);
+}
+
+void Brain::odometerCallback(const booster_interface::msg::Odometer &msg)
+{
+
+    data->robotPoseToOdom.x = msg.x * config->robotOdomFactor;
+    data->robotPoseToOdom.y = msg.y * config->robotOdomFactor;
+    data->robotPoseToOdom.theta = msg.theta;
+
+    // Odom 정보를 기반으로 Field 좌표계에서 로봇 위치 업데이트
+    transCoord(
+        data->robotPoseToOdom.x, data->robotPoseToOdom.y, data->robotPoseToOdom.theta,
+        data->odomToField.x, data->odomToField.y, data->odomToField.theta,
+        data->robotPoseToField.x, data->robotPoseToField.y, data->robotPoseToField.theta);
+
+    // tf 변환을 퍼블리시
+    geometry_msgs::msg::TransformStamped transform;
+    transform.header.stamp = this->get_clock()->now();
+    transform.header.frame_id = "odom";
+    transform.child_frame_id = "base_link";
+    
+    // 평행 이동(translation) 설정
+    transform.transform.translation.x = data->robotPoseToOdom.x;
+    transform.transform.translation.y = data->robotPoseToOdom.y;
+    transform.transform.translation.z = 0.0;
+    
+    // 회전(rotation) 설정 (오일러 각을 쿼터니언으로 변환)
+    tf2::Quaternion q;
+    q.setRPY(0, 0, data->robotPoseToOdom.theta);
+    transform.transform.rotation.x = q.x();
+    transform.transform.rotation.y = q.y();
+    transform.transform.rotation.z = q.z();
+    transform.transform.rotation.w = q.w();
+
+    log->setTimeNow();
+    log->log("debug/odom_callback", rerun::TextLog(format("x: %.1f, y: %.1f, z: %.1f", data->robotPoseToOdom.x, data->robotPoseToOdom.y, data->robotPoseToOdom.theta)));
+    
+    // tf 변환 브로드캐스트
+    tf_broadcaster_->sendTransform(transform);
+
+    // Odom 정보 로그 출력
+
+    log->setTimeNow();
+    auto color = 0x00FF00FF;
+    if (!data->tmImAlive) color = 0x006600FF;
+    else if (!data->tmImLead) color = 0x00CC00FF;
+    string label = format("Cost: %.1f", data->tmMyCost);
+    log->logRobot("field/robot", data->robotPoseToField, color, label, true);
+}
+
+bool Brain::isBoundingBoxInCenter(BoundingBox boundingBox, double xRatio, double yRatio) {
+    double x = (boundingBox.xmin + boundingBox.xmax) / 2.0;
+    double y = (boundingBox.ymin + boundingBox.ymax) / 2.0;
+
+    return (x  > config->camPixX * (1 - xRatio) / 2)
+        && (x < config->camPixX * (1 + xRatio) / 2)
+        && (y > config->camPixY * (1 - yRatio) / 2)
+        && (y < config->camPixY * (1 + yRatio) / 2);
+}

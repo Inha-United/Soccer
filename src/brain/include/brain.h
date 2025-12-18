@@ -38,6 +38,7 @@
 #include "brain_config.h"
 #include "walk.h"
 #include "movehead.h"
+#include "locator.h"
 
 
 using namespace std;
@@ -50,6 +51,8 @@ public:
     std::shared_ptr<BrainTree> tree;
     std::shared_ptr<BrainConfig> config;
     std::shared_ptr<BrainData> data;
+
+    std::shared_ptr<Locator> locator;
     
     Brain();
     ~Brain();
@@ -63,6 +66,8 @@ public:
     void registerMoveHeadNodes(BT::BehaviorTreeFactory &factory){RegisterMoveHeadNodes(factory, this);}
     // ROS callback 함수
     void detectionsCallback(const vision_interface::msg::Detections::SharedPtr msg);
+
+    void registerLocatorNodes(BT::BehaviorTreeFactory &factory){RegisterLocatorNodes(factory, this);}
 
     
 private:
