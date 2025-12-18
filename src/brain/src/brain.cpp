@@ -49,7 +49,18 @@ Brain::Brain() : rclcpp::Node("brain_node"){
     declare_parameter<double>("vision.cam_pixel_height", 720);  // 카메라 세로 해상도
     declare_parameter<double>("vision.cam_fov_x", 90);  // 카메라 FOV X (도)
     declare_parameter<double>("vision.cam_fov_y", 65);  // 카메라 FOV Y (도)
+
+    // rerun 관련 파라미터 
+    declare_parameter<bool>("rerunLog.enable_tcp", false);  // TCP 로그 전송 활성화 여부
+    declare_parameter<string>("rerunLog.server_ip", "");  // 로그 서버 IP
+    declare_parameter<bool>("rerunLog.enable_file", false);  // 파일 로그 활성화 여부
+    declare_parameter<string>("rerunLog.log_dir", "");  // 로그 디렉터리
+    declare_parameter<double>("rerunLog.max_log_file_mins", 5.0);  // 로그 파일 최대 길이 (분)
+    declare_parameter<int>("rerunLog.img_interval", 10);  // 이미지 저장 간격
     
+    // locator 관련 파라미터
+    declare_parameter<int>("locator.min_marker_count", 5);  // 로컬라이저 최소 마커 수
+    declare_parameter<double>("locator.max_residual", 0.3);  // 최대 잔차 (오차 허용값)
     
     // BT
     declare_parameter<string>("tree_file_path", "");
@@ -66,9 +77,18 @@ void Brain::init(){
     tree = std::make_shared<BrainTree>(this);
     client = std::make_shared<RobotClient>(this);
     data = std::make_shared<BrainData>();
+    locator = std::make_shared<Locator>();
    
     tree->init();
     client->init();
+    locator->init(config->fieldDimensions, config->pfMinMarkerCnt, config->pfMaxResidual);
+    
+    // 초기 시간 스탬프 설정
+    data->lastSuccessfulLocalizeTime = get_clock()->now();  // 마지막 위치추정 성공 시각
+    data->timeLastDet = get_clock()->now();  // 마지막 객체 인식 시각
+    data->timeLastLineDet = get_clock()->now();  // 마지막 필드라인 감지 시각
+    data->timeLastGamecontrolMsg = get_clock()->now();  // 마지막 게임컨트롤 메시지 수신 시각
+    data->ball.timePoint = get_clock()->now();  // 마지막 공 위치 업데이트 시각
 
     // ROS callback 연결
     detectionsSubscription = create_subscription<vision_interface::msg::Detections>("/booster_vision/detection", SUB_STATE_QUEUE_SIZE, bind(&Brain::detectionsCallback, this, _1));
@@ -97,6 +117,18 @@ void Brain::loadConfig(){
 
     // 전략 관련 파라미터 
     get_parameter("strategy.ball_confidence_threshold", config->ballConfidenceThreshold);  // 공 탐지 신뢰도 임계값
+
+    // locator 관련 파리미터
+    get_parameter("locator.min_marker_count", config->pfMinMarkerCnt);  // 최소 마커 수
+    get_parameter("locator.max_residual", config->pfMaxResidual);  // 최대 허용 잔차 (PF 재샘플 기준)
+
+    // rerun 관련 파라미터 
+    get_parameter("rerunLog.enable_tcp", config->rerunLogEnableTCP);  // TCP 로그 활성화
+    get_parameter("rerunLog.server_ip", config->rerunLogServerIP);  // 로그 서버 IP
+    get_parameter("rerunLog.enable_file", config->rerunLogEnableFile);  // 파일 로그 활성화 여부
+    get_parameter("rerunLog.log_dir", config->rerunLogLogDir);  // 로그 저장 디렉토리
+    get_parameter("rerunLog.max_log_file_mins", config->rerunLogMaxFileMins);  // 최대 로그 파일 시간
+    get_parameter("rerunLog.img_interval", config->rerunLogImgInterval);  // 이미지 로그 주기
 
     // 카메라 관련 파라미터
     get_parameter("vision.cam_pixel_width", config->camPixX);  // 카메라 해상도 X
