@@ -511,8 +511,7 @@ void identifyMarking(GameObject& marking, const std::shared_ptr<BrainConfig> &co
     }
 }
 
-
-void Brain::identifyGoalpost(GameObject& goalpost) {
+void identifyGoalpost(GameObject& goalpost) {
     string side = "NA";
     string half = "NA";
     if (goalpost.posToField.x > 0) half = "O";

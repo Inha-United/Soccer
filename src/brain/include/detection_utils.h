@@ -43,4 +43,8 @@ void detectProcessGoalposts(const vector<GameObject> &goalpostObjs, const std::s
 void detectProcessVisionBox(const vision_interface::msg::Detections &msg, const std::shared_ptr<BrainData> &data);
 void detectProcessRobots(const vector<GameObject> &robotObjs, const std::shared_ptr<BrainData> &data);
 
+void identifyGoalpost(GameObject& goalpost);
+void identifyMarking(GameObject& marking, const std::shared_ptr<BrainConfig> &config);
+
+
 }
