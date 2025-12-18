@@ -17,4 +17,15 @@ brain_node:
         vy_limit: 0.4
         vtheta_limit: 1.2 
 
+      strategy:
+        ball_confidence_threshold: 50.0 
+
+      vision:
+        image_topic: "/booster_camera_bridge/StereoNetNode/rectified_image" # d-robotics
+        depth_image_topic: "/booster_camera_bridge/StereoNetNode/stereonet_depth" # d-robotics
+        cam_pixel_width: 544. # 相机像素宽度, d-robotics
+        cam_pixel_height: 448. # 相机像素高度, d-robotics
+        cam_fov_x: 69.4 # 相机视场角, 单位: 度, d-robotics
+        cam_fov_y: 42.5 # 相机视场角, 单位: 度, d-robotics
+
       game_control_ip: "192.168.50.221"

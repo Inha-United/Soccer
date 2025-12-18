@@ -15,8 +15,7 @@
         #Name,                     \
         [this](const string &name, const NodeConfig &config) { return make_unique<Name>(name, config, brain); });
 
-void BrainTree::init()
-{
+void BrainTree::init(){
     BehaviorTreeFactory factory;
 
     brain->registerWalkNodes(factory); // walk 관련 노드 등록
@@ -40,6 +39,11 @@ void BrainTree::initEntry()
     setEntry<bool>("gc_is_sub_state_kickoff_side", false);
     setEntry<bool>("gc_is_under_penalty", false);
     setEntry<int>("control_state", 1); // control_state == 1 이면 단순 걷기로 
+
+    // 실제 경기 중 상황 
+    // 공 
+    setEntry<bool>("ball_location_known", false);
+    setEntry<bool>("ball_out", false); // 공이 밖으로 나갔는지 확인
 }
 
 void BrainTree::tick()

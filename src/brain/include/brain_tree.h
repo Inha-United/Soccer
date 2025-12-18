@@ -22,8 +22,7 @@ public:
 
     // 블랙보드 접근 함수
     template <typename T>
-    inline T getEntry(const string &key)
-    {
+    inline T getEntry(const string &key){
         T value;
         [[maybe_unused]] auto res = tree.rootBlackboard()->get<T>(key, value);
         return value;
@@ -31,8 +30,7 @@ public:
 
     // set entry on blackboard
     template <typename T>
-    inline void setEntry(const string &key, const T &value)
-    {
+    inline void setEntry(const string &key, const T &value){
         tree.rootBlackboard()->set<T>(key, value);
     }
 
