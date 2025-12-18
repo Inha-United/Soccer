@@ -275,3 +275,46 @@ void BrainConfig::handle(){
     calcMapMarkings();
 }
 
+void BrainConfig::print(ostream &os){
+    os << "Configs:" << endl;
+    os << "----------------------------------------" << endl;
+    os << "Game:" << endl;
+    os << "    teamId = " << teamId << endl;
+    os << "    playerId = " << playerId << endl;
+    os << "    fieldType = " << fieldType << endl;
+    os << "    playerRole = " << playerRole << endl;
+    os << "    treatPersonAsRobot = " << treatPersonAsRobot << endl;
+    os << "    numOfPlayers = " << numOfPlayers << endl;
+    os << "----------------------------------------" << endl;
+    os << "Robot:" << endl;
+    os << "    robotHeight = " << robotHeight << endl;
+    os << "    robotOdomFactor = " << robotOdomFactor << endl;
+    os << "    vxFactor = " << vxFactor << endl;
+    os << "    yawOffset = " << yawOffset << endl;
+    os << "    vxLimit = " << vxLimit << endl;
+    os << "    vyLimit = " << vyLimit << endl;
+    os << "    vthetaLimit = " << vthetaLimit << endl;
+    os << "----------------------------------------" << endl;
+    os << "Strategy:" << endl;
+    os << "    ballConfidenceThreshold = " << ballConfidenceThreshold << endl;
+    os << "----------------------------------------" << endl;
+    os << "Locator:" << endl;
+    os << "    pfMinMarkerCnt = " << pfMinMarkerCnt << endl;
+    os << "    pfMaxResidual = " << pfMaxResidual << endl;
+    os << "----------------------------------------" << endl;
+    // os << "Communication:" << endl;
+    // os << "    enableCom = " << enableCom << endl;
+    // os << "----------------------------------------" << endl;
+    os << "RerunLog:" << endl;
+    os << "    enableTCP = " << rerunLogEnableTCP << endl;
+    os << "    serverIP = " << rerunLogServerIP << endl;
+    os << "    enableFile = " << rerunLogEnableFile << endl;
+    os << "    logDir = " << rerunLogLogDir << endl;
+    os << "    maxFileMinutes = " << rerunLogMaxFileMins << endl;
+    os << "    imgInterval = " << rerunLogImgInterval << endl;
+    os << "----------------------------------------" << endl;
+    // os << "Sound:" << endl;
+    // os << "    enable = " << soundEnable << endl;
+    // os << "    soundPack = " << soundPack << endl;
+    // os << "----------------------------------------" << endl;
+}

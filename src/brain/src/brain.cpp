@@ -1,7 +1,10 @@
 #include <iostream>
 #include <string>
-#include <fstream>
+#include <fstream> 
 #include <yaml-cpp/yaml.h>
+
+#include "brain.h"
+#include "detection_utils.h"
 
 #include "utils/print.h"
 #include "utils/math.h"
@@ -9,10 +12,6 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-
-#include "brain.h"
-#include "detection_utils.h"
-
 using namespace std;
 using std::placeholders::_1;
 
@@ -187,6 +186,10 @@ void Brain::loadConfig(){
     get_parameter("tree_file_path", config->treeFilePath);
 
     config->handle(); // 맵 관련 정보들 초기화
+
+    ostringstream oss;
+    config->print(oss);
+    prtDebug(oss.str());
 }
 
 

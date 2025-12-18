@@ -32,15 +32,14 @@
 #include <stdexcept>
 #include "brain/msg/kick.hpp"
 
-#include "brain_data.h"
-#include "brain_tree.h"
-#include "robot_client.h"
 #include "brain_config.h"
+#include "brain_data.h"
+#include "brain_log.h"
+#include "brain_tree.h"
+#include "locator.h"
+#include "robot_client.h"
 #include "walk.h"
 #include "movehead.h"
-#include "locator.h"
-#include "brain_log.h"
-
 
 using namespace std;
 
