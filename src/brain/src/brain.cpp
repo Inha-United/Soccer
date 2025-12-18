@@ -582,7 +582,7 @@ void Brain::imageCallback(const sensor_msgs::msg::Image &msg){ // rerun 시각�
 
 /* ----------------------------------------- 변수 업데이트를 위한 함수들 ----------------------------------------- */
 
-void updateRelativePos(GameObject &obj) {
+void Brain::updateRelativePos(GameObject &obj) {
     Pose2D pf;
     pf.x = obj.posToField.x;
     pf.y = obj.posToField.y;
@@ -597,7 +597,7 @@ void updateRelativePos(GameObject &obj) {
 
 // 공의 위치를 얼마나 많은 시간동안 기억할지 정하는 함수 
 // 팀원 정보를 처리하는 부분 주석 처리됨 -> 나중에 고도화 필요
-void updateBallMemory(){
+void Brain::updateBallMemory(){
 
     double secs = msecsSince(data->ball.timePoint) / 1000; 
     
