@@ -8,8 +8,7 @@ using namespace BT;
 
 void RegisterMoveHeadNodes(BT::BehaviorTreeFactory &factory, Brain* brain);
 
-class MoveHead : public SyncActionNode
-{
+class MoveHead : public SyncActionNode{
 public:
     MoveHead(const std::string &name, const NodeConfig &config, Brain *_brain) : SyncActionNode(name, config), brain(_brain){}
 
@@ -41,4 +40,15 @@ private:
 
     Brain *brain;
 
+};
+
+class CamTrackBall : public SyncActionNode{
+public:
+    CamTrackBall(const string &name, const NodeConfig &config, Brain *_brain) : SyncActionNode(name, config), brain(_brain) {}
+
+    static PortsList providedPorts(){ return {}; }
+    NodeStatus tick() override;
+
+private:
+    Brain *brain;
 };
