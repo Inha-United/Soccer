@@ -40,6 +40,7 @@
 #include "robot_client.h"
 #include "walk.h"
 #include "movehead.h"
+#include "dribble.h"
 
 using namespace std;
 
@@ -79,6 +80,8 @@ public:
     void registerWalkNodes(BT::BehaviorTreeFactory &factory){RegisterWalkNodes(factory, this);}
     void registerMoveHeadNodes(BT::BehaviorTreeFactory &factory){RegisterMoveHeadNodes(factory, this);}
     void registerLocatorNodes(BT::BehaviorTreeFactory &factory){RegisterLocatorNodes(factory, this);}
+    void registerDribbleNodes(BT::BehaviorTreeFactory &factory){RegisterDribbleNodes(factory, this);}
+    
     
     // ROS callback 함수
     void gameControlCallback(const game_controller_interface::msg::GameControlData &msg);
