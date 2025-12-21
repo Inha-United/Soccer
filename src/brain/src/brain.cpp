@@ -1174,18 +1174,18 @@ vector<double> Brain::getGoalPostAngles(const double margin){ // 공(ball) 위�
     // }
 
     // 반코트로 수정 
-    for (int i = 0; i < goalposts.size(); i++){
-        auto post = goalposts[i];
+    // for (int i = 0; i < goalposts.size(); i++){
+    //     auto post = goalposts[i];
 
-        if (post.name == "SL"){ // SL은 self goal의 left를 의미
-            leftX = post.posToField.x;
-            leftY = post.posToField.y;
-        }
-        else if (post.name == "SR"){ // SR은 self goal의 right를 의미
-            rightX = post.posToField.x;
-            rightY = post.posToField.y;
-        }
-    }
+    //     if (post.name == "SL"){ // SL은 self goal의 left를 의미
+    //         leftX = post.posToField.x;
+    //         leftY = post.posToField.y;
+    //     }
+    //     else if (post.name == "SR"){ // SR은 self goal의 right를 의미
+    //         rightX = post.posToField.x;
+    //         rightY = post.posToField.y;
+    //     }
+    // }
 
     // 공 기준에서 골대 방향 각도 계산
     // 결과 : 공 -> 골대 방향
