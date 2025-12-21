@@ -214,6 +214,9 @@ NodeStatus Kick::onRunning(){
     
     if (brain->msecsSince(_startTime) > msecs) { 
         brain->client->setVelocity(0, 0, 0);
+
+        // 승재욱 추가
+        brain->tree->setEntry("striker_state", "chase");
         
         return NodeStatus::SUCCESS;
     }

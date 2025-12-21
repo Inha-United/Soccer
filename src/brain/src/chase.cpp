@@ -62,6 +62,8 @@ NodeStatus Chase::tick()
         brain->log->log("debug/Chase4", rerun::TextLog(msg));
     };
     log("ticked");
+
+    if (brain->tree->getEntry<string>("striker_state") != "chase") return NodeStatus::SUCCESS;
     
     double vxLimit, vyLimit, vthetaLimit, dist, safeDist;
     getInput("vx_limit", vxLimit);
@@ -148,6 +150,14 @@ NodeStatus Chase::tick()
     smoothVx = smoothVx * 0.7 + vx * 0.3;
     smoothVy = smoothVy * 0.7 + vy * 0.3;
     smoothVtheta = smoothVtheta * 0.7 + vtheta * 0.3;
+
+    // chase 멈춤 조건
+    bool chaseDone = brain->data->ball.range < dist * 1.2 && fabs(toPInPI(kickDir - theta_rb)) < M_PI / 3;
+    if (chaseDone){
+        brain->tree->setEntry("striker_state", "adjust");
+        log("chase -> adjust")
+    }
+
 
     // brain->client->setVelocity(smoothVx, smoothVy, smoothVtheta, false, false, false);
     brain->client->setVelocity(vx, vy, vtheta, false, false, false);
