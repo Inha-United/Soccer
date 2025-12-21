@@ -123,6 +123,7 @@ NodeStatus Chase::tick(){
     brain->log->logBall("field/chase_target", Point({target_f.x, target_f.y, 0}), 0xFFFFFFFF, false, false);
             
     double targetDir = atan2(target_r.y, target_r.x);
+    double distToTarget = norm(target_r.x, target_r.y); // 목표까지의 거리 계산
     double distToObstacle = brain->distToObstacle(targetDir);
     // 장애물을 회피할 때
     if (avoidObstacle && distToObstacle < oaSafeDist) {
