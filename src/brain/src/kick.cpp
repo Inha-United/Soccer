@@ -92,3 +92,173 @@ NodeStatus CalcKickDir::tick(){
     return NodeStatus::SUCCESS;
 }
 
+// 승재욱 - 직접 만든 Kick
+tuple<double, double, double> Kick::_calcSpeed() {
+    double vx, vy, msecKick;
+
+
+    double vxLimit, vyLimit;
+    getInput("vx_limit", vxLimit);
+    getInput("vy_limit", vyLimit);
+    int minMSecKick;
+    getInput("min_msec_kick", minMSecKick);
+    double vxFactor = brain->config->vxFactor;   
+    double yawOffset = brain->config->yawOffset; 
+
+
+    double adjustedYaw = brain->data->ball.yawToRobot + yawOffset;
+    double tx = cos(adjustedYaw) * brain->data->ball.range; 
+    double ty = sin(adjustedYaw) * brain->data->ball.range;
+
+    if (fabs(ty) < 0.01 && fabs(adjustedYaw) < 0.01){ 
+        vx = vxLimit;
+        vy = 0.0;
+    }
+    else{ 
+        vy = ty > 0 ? vyLimit : -vyLimit;
+        vx = vy / ty * tx * vxFactor;
+        if (fabs(vx) > vxLimit){
+            vy *= vxLimit / vx;
+            vx = vxLimit;
+        }
+    }
+
+    double speed = norm(vx, vy);
+    msecKick = speed > 1e-5 ? minMSecKick + static_cast<int>(brain->data->ball.range / speed * 1000) : minMSecKick;
+    
+    return make_tuple(vx, vy, msecKick);
+}
+
+NodeStatus Kick::onStart()
+{
+    // =========================================================================
+    // [추가됨] 1. 블랙보드 신호 확인 (안전장치)
+    // =========================================================================
+    bool isReady = false;
+    // Chase 노드에서 true로 바꿔주지 않았다면, 킥을 실행하지 않고 실패 처리
+    if (!brain->getEntry("ready_to_kick", isReady) || !isReady) {
+        // 아직 준비 안 됨 -> FAILURE 리턴하여 다시 Chase로 돌아가게 함
+        return NodeStatus::SUCCESS; 
+    }
+    // =========================================================================
+
+    _minRange = brain->data->ball.range;
+    _speed = 0.5;
+    _startTime = brain->get_clock()->now();
+
+    // 장애물 회피 로직
+    bool avoidPushing;
+    double kickAoSafeDist;
+    brain->get_parameter("obstacle_avoidance.avoid_during_kick", avoidPushing);
+    brain->get_parameter("obstacle_avoidance.kick_ao_safe_dist", kickAoSafeDist);
+    // string role = brain->tree->getEntry<string>("player_role");
+    
+    if (
+        avoidPushing
+        // && (role != "goal_keeper")
+        && brain->data->robotPoseToField.x < brain->config->fieldDimensions.length / 2 - brain->config->fieldDimensions.goalAreaLength
+        && brain->distToObstacle(brain->data->ball.yawToRobot) < kickAoSafeDist
+    ) {
+        brain->client->setVelocity(-0.1, 0, 0);
+        
+        // [추가됨] 킥 시도했으나 장애물 때문에 중단했으므로 플래그 초기화
+        brain->setEntry("ready_to_kick", false);
+        
+        return NodeStatus::SUCCESS;
+    }
+
+    // [원본 그대로] 운동 지령 (게걸음 시작)
+    double angle = brain->data->ball.yawToRobot;
+    brain->client->crabWalk(angle, _speed);
+    
+    return NodeStatus::RUNNING;
+}
+
+NodeStatus Kick::onRunning()
+{
+    auto log = [=](string msg) {
+        brain->log->setTimeNow();
+        brain->log->log("debug/Kick", rerun::TextLog(msg));
+    };
+
+    // [원본 그대로] 킥 중단 조건 (공이 너무 많이 움직였거나 놓쳤을 때)
+    bool enableAbort;
+    brain->get_parameter("strategy.abort_kick_when_ball_moved", enableAbort);
+    auto ballRange = brain->data->ball.range;
+    const double MOVE_RANGE_THRESHOLD = 0.3;
+    const double BALL_LOST_THRESHOLD = 1000;  
+    
+    if (
+        enableAbort 
+        && (
+            (brain->data->ballDetected && ballRange - _minRange > MOVE_RANGE_THRESHOLD) 
+            || brain->msecsSince(brain->data->ball.timePoint) > BALL_LOST_THRESHOLD 
+        )
+    ) {
+        log("ball moved, abort kick");
+        
+        // [추가됨] 중단 시 플래그 초기화 (다시 Chase부터 하도록)
+        brain->setEntry("ready_to_kick", false);
+        
+        return NodeStatus::SUCCESS;
+    }
+
+    if (ballRange < _minRange) _minRange = ballRange;    
+
+    // [원본 그대로] 킥 도중 장애물 감지 시 회피
+    bool avoidPushing;
+    brain->get_parameter("obstacle_avoidance.avoid_during_kick", avoidPushing);
+    double kickAoSafeDist;
+    brain->get_parameter("obstacle_avoidance.kick_ao_safe_dist", kickAoSafeDist);
+    
+    if (
+        avoidPushing
+        && brain->data->robotPoseToField.x < brain->config->fieldDimensions.length / 2 - brain->config->fieldDimensions.goalAreaLength
+        && brain->distToObstacle(brain->data->ball.yawToRobot) < kickAoSafeDist
+    ) {
+        brain->client->setVelocity(-0.1, 0, 0);
+        
+        // [추가됨] 중단 시 플래그 초기화
+        brain->blackboard->set("is_ready_to_kick", false);
+        
+        return NodeStatus::SUCCESS;
+    }
+
+    // [원본 그대로] 시간 체크 및 종료 처리
+    double msecs = getInput<double>("min_msec_kick").value();
+    double speedLimit = getInput<double>("speed_limit").value(); // speed 변수명 겹침 주의해서 speedLimit으로 변경 권장하나 원본 유지
+    
+    // 원본 로직: 시간에 거리/속도 항을 더함
+    msecs = msecs + brain->data->ball.range / speedLimit * 1000;
+    
+    if (brain->msecsSince(_startTime) > msecs) { 
+        brain->client->setVelocity(0, 0, 0);
+        
+        // [추가됨] 킥 완료! 플래그 초기화 (중요)
+        brain->setEntry("ready_to_kick", false);
+        
+        return NodeStatus::SUCCESS;
+    }
+
+    // [원본 그대로] 가속 로직 (점점 빨라짐)
+    if (brain->data->ballDetected) { 
+        double angle = brain->data->ball.yawToRobot;
+        // _speed는 멤버 변수
+        _speed += 0.1; 
+        
+        // 입력받은 제한 속도와 비교
+        double currentCmdSpeed = min(speedLimit, _speed);
+        brain->client->crabWalk(angle, currentCmdSpeed);
+    }
+
+    return NodeStatus::RUNNING;
+}
+
+void Kick::onHalted()
+{
+    // [추가됨] 강제 중단 시에도 플래그 초기화 안전장치
+    brain->setEntry("ready_to_kick", false);
+    
+    // [원본]
+    _startTime -= rclcpp::Duration(100, 0);
+}

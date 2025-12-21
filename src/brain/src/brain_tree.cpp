@@ -51,6 +51,9 @@ void BrainTree::initEntry(){
     setEntry<bool>("ball_location_known", false); // 공 위치를 알고 있는지
     setEntry<bool>("ball_out", false); // 공이 밖으로 나갔는지 확인
     setEntry<double>("ball_range", 0); // 공과의 거리
+
+    // 승재욱 추가 -> 킥
+    setEntry<bool>("ready_to_kick", false); // 킥을 할지 
 }
 
 void BrainTree::tick(){ tree.tickOnce(); }

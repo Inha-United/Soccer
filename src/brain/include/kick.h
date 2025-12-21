@@ -29,3 +29,34 @@ public:
 private:
     Brain *brain;
 };
+
+class Kick : public StatefulActionNode
+{
+public:
+    Kick(const string &name, const NodeConfig &config, Brain *_brain) : StatefulActionNode(name, config), brain(_brain) {}
+
+    static PortsList providedPorts()
+    {
+        return {
+            InputPort<double>("min_msec_kick", 500, "踢球动作最少执行多少毫秒"),
+            InputPort<double>("msecs_stablize", 1000, "稳定多少毫秒"),
+            InputPort<double>("speed_limit", 0.8, "速度最大值"),
+        };
+    }
+
+    NodeStatus onStart() override;
+
+    NodeStatus onRunning() override;
+
+    // callback to execute if the action was aborted by another node
+    void onHalted() override;
+
+private:
+    Brain *brain;
+    rclcpp::Time _startTime; 
+    string _state = "kick"; // stablize | kick
+    int _msecKick = 1000;    
+    double _speed; 
+    double _minRange; 
+    tuple<double, double, double> _calcSpeed();
+};

@@ -54,6 +54,7 @@ NodeStatus SimpleChase::tick(){
     return NodeStatus::SUCCESS;
 }
 
+// 원본 Chase에 조금 수정함
 // NodeStatus Chase::tick(){
 //     auto log = [=](string msg) {
 //         brain->log->setTimeNow();
@@ -177,6 +178,8 @@ NodeStatus SimpleChase::tick(){
 //     return NodeStatus::SUCCESS;
 // }
 
+
+// 승재욱 - 직접 만든 Chase
 NodeStatus Chase::tick(){
     auto log = [=](string msg) {
         brain->log->setTimeNow();
@@ -192,6 +195,9 @@ NodeStatus Chase::tick(){
     getInput("dist", dist);          // 목표: 공 뒤쪽 거리 (예: 30cm)
     getInput("safe_dist", safeDist); // 회전 접근 시 안전 거리
 
+    // 승재욱 추가 -> 킥 준비 false로 초기화
+    brain->setEntry("ready_to_kick", false);
+    
     // [장애물 회피 파라미터]
     bool avoidObstacle;
     brain->get_parameter("obstacle_avoidance.avoid_during_chase", avoidObstacle); 
@@ -324,6 +330,12 @@ NodeStatus Chase::tick(){
             // 도착했으면 이동 방향(targetDir)이 아니라, 공 방향(ballYaw)을 바라봄
             // 이미 lockedKickDir로 정렬해서 들어왔으므로 ballYaw를 보면 킥 각이 나옴
             vtheta = ballYaw; 
+            // 각도 오차가 5도(약 0.09 rad) 이내면 회전 모터를 끔 -> 제자리 떨림 방지 핵심
+            if (fabs(vtheta) < 0.2) {
+                vtheta = 0.0;
+                // 승재욱 추가 -> 킥 준비
+                brain->setEntry("ready_to_kick", true);
+            }
         }
         // [이동 처리] 아직 가는 중이면
         else {
@@ -344,10 +356,10 @@ NodeStatus Chase::tick(){
     // [4. 안정화: 데드존 (Deadzone)]
     // =========================================================================
     
-    // 각도 오차가 5도(약 0.09 rad) 이내면 회전 모터를 끔 -> 제자리 떨림 방지 핵심
-    if (fabs(vtheta) < 0.2) {
-        vtheta = 0.0;
-    }
+    // // 각도 오차가 5도(약 0.09 rad) 이내면 회전 모터를 끔 -> 제자리 떨림 방지 핵심
+    // if (fabs(vtheta) < 0.2) {
+    //     vtheta = 0.0;
+    // }
 
     // [5. 리미트 적용]
     vx = cap(vx, vxLimit, -vxLimit);
@@ -359,3 +371,4 @@ NodeStatus Chase::tick(){
     
     return NodeStatus::SUCCESS;
 }
+
