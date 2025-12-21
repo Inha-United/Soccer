@@ -193,23 +193,6 @@ NodeStatus Chase::tick()
     smoothVy = smoothVy * 0.7 + vy * 0.3;
     smoothVtheta = smoothVtheta * 0.7 + vtheta * 0.3;
 
-    // =====================
-    // Ready-to-kick 판단
-    // =====================
-    double distToTarget = hypot(target_r.x, target_r.y);
-    double angleError   = fabs(toPInPI(kickDir - theta_rb));
-
-    // 기본 false
-    brain->tree->setEntry("ready_to_kick", false);
-
-    if (
-        targetType == "direct" &&          // circle_back 중엔 킥 X
-        distToTarget < 0.10 &&              // 위치 충분히 근접
-        angleError   < 0.1                 // 킥 방향 정렬
-    ) {
-        brain->tree->setEntry("ready_to_kick", true);
-    }
-
     // brain->client->setVelocity(smoothVx, smoothVy, smoothVtheta, false, false, false);
     brain->client->setVelocity(vx, vy, vtheta, false, false, false);
     return NodeStatus::SUCCESS;
