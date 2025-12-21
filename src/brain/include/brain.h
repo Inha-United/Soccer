@@ -42,6 +42,7 @@
 #include "movehead.h"
 #include "chase.h"
 #include "kick.h"
+#include "adjust.h"
 
 using namespace std;
 

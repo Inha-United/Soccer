@@ -10,7 +10,7 @@
 
 
 void RegisterKickNodes(BT::BehaviorTreeFactory &factory, Brain* brain){
-    REGISTER_KICK_BUILDER(CalcKickDir) // obstacle 없이 chase만 
+    REGISTER_KICK_BUILDER(CalcKickDir)
     REGISTER_KICK_BUILDER(Kick)
 }
 
