@@ -136,7 +136,7 @@ NodeStatus Kick::onStart()
     // =========================================================================
     bool isReady = false;
     // Chase 노드에서 true로 바꿔주지 않았다면, 킥을 실행하지 않고 실패 처리
-    if (!brain->getEntry("ready_to_kick", isReady) || !isReady) {
+    if (!brain->tree->getEntry("ready_to_kick", isReady) || !isReady) {
         // 아직 준비 안 됨 -> FAILURE 리턴하여 다시 Chase로 돌아가게 함
         return NodeStatus::SUCCESS; 
     }
@@ -162,7 +162,7 @@ NodeStatus Kick::onStart()
         brain->client->setVelocity(-0.1, 0, 0);
         
         // [추가됨] 킥 시도했으나 장애물 때문에 중단했으므로 플래그 초기화
-        brain->setEntry("ready_to_kick", false);
+        brain->tree->setEntry("ready_to_kick", false);
         
         return NodeStatus::SUCCESS;
     }
@@ -198,7 +198,7 @@ NodeStatus Kick::onRunning()
         log("ball moved, abort kick");
         
         // [추가됨] 중단 시 플래그 초기화 (다시 Chase부터 하도록)
-        brain->setEntry("ready_to_kick", false);
+        brain->tree->setEntry("ready_to_kick", false);
         
         return NodeStatus::SUCCESS;
     }
@@ -235,7 +235,7 @@ NodeStatus Kick::onRunning()
         brain->client->setVelocity(0, 0, 0);
         
         // [추가됨] 킥 완료! 플래그 초기화 (중요)
-        brain->setEntry("ready_to_kick", false);
+        brain->tree->setEntry("ready_to_kick", false);
         
         return NodeStatus::SUCCESS;
     }
@@ -257,7 +257,7 @@ NodeStatus Kick::onRunning()
 void Kick::onHalted()
 {
     // [추가됨] 강제 중단 시에도 플래그 초기화 안전장치
-    brain->setEntry("ready_to_kick", false);
+    brain->tree->setEntry("ready_to_kick", false);
     
     // [원본]
     _startTime -= rclcpp::Duration(100, 0);

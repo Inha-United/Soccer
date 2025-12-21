@@ -196,7 +196,7 @@ NodeStatus Chase::tick(){
     getInput("safe_dist", safeDist); // 회전 접근 시 안전 거리
 
     // 승재욱 추가 -> 킥 준비 false로 초기화
-    brain->setEntry("ready_to_kick", false);
+    brain->tree->setEntry("ready_to_kick", false);
     
     // [장애물 회피 파라미터]
     bool avoidObstacle;
@@ -334,7 +334,7 @@ NodeStatus Chase::tick(){
             if (fabs(vtheta) < 0.2) {
                 vtheta = 0.0;
                 // 승재욱 추가 -> 킥 준비
-                brain->setEntry("ready_to_kick", true);
+                brain->tree->setEntry("ready_to_kick", true);
             }
         }
         // [이동 처리] 아직 가는 중이면
