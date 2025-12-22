@@ -141,6 +141,16 @@ struct BrainData {
         _obstacles = newVec;
     }
 
+    /* ---------------------------------------------------------------------------- person 관련 파라미터 -------------------------------------------------------------------- */
+    inline vector<GameObject> getPersons() const {
+        std::lock_guard<std::mutex> lock(_personsMutex);
+        return _persons;
+    }
+    inline void setPersons(const vector<GameObject>& newVec) {
+        std::lock_guard<std::mutex> lock(_personsMutex);
+        _persons = newVec;
+    }
+
 
 private:
     vector<GameObject> _robots = {}; 
@@ -157,5 +167,8 @@ private:
 
     vector<GameObject> _obstacles = {};
     mutable std::mutex _obstaclesMutex;
+
+    vector<GameObject> _persons = {};
+    mutable std::mutex _personsMutex;
 
 };

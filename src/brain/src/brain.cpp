@@ -436,6 +436,9 @@ void Brain::detectionsCallback(const vision_interface::msg::Detections &msg){
     detection_utils::detectProcessMarkings(markings, data, config, log);
     detection_utils::detectProcessRobots(robots, data);
 
+    // Store persons for avoidance even if not treated as robots
+    data->setPersons(persons);
+
     // 处理并记录视野信息
     detection_utils::detectProcessVisionBox(msg, data);
 
@@ -752,8 +755,10 @@ void Brain::depthImageCallback(const sensor_msgs::msg::Image &msg){
         data->setObstacles(obs_new); // note :여기서는 시간 초과된 오래된 장애물을 지우지 않고, 틱(tick)에서 정리
         
         log->setTimeSeconds(detection_utils::timePointFromHeader(msg.header).seconds());
-        // logDepth(grid_x_count, grid_y_count, grid_occupied, points_robot);
-        // logObstacles();
+        
+        // Log depth grid and obstacles
+        logDepth(grid_x_count, grid_y_count, grid_occupied, points_robot);
+        logObstacles();
 
     } 
     catch (const std::exception& e) {
@@ -1099,6 +1104,38 @@ double Brain::distToObstacle(double angle) {
             }
         }
     }
+    }
+
+    // Include Robots (Opponents) in avoidance
+    auto robots = data->getRobots();
+    for (const auto& r : robots) {
+        Line line = { 0, 0, cos(angle) * 100, sin(angle) * 100 };
+        double perpDist = fabs(pointPerpDistToLine(Point2D{r.posToRobot.x, r.posToRobot.y}, line));
+        
+        // Robots have 20cm radius approx, plus safety margin
+        if (perpDist < collisionThreshold + 0.2) { 
+             double dist = innerProduct(vector<double>{r.posToRobot.x, r.posToRobot.y}, vector<double>{cos(angle), sin(angle)});
+             if (dist > 0 && dist < minDist) {
+                 minDist = dist;
+             }
+        }
+    }
+
+    // Include Persons in avoidance
+    auto persons = data->getPersons();
+    for (const auto& p : persons) {
+        Line line = { 0, 0, cos(angle) * 100, sin(angle) * 100 };
+        double perpDist = fabs(pointPerpDistToLine(Point2D{p.posToRobot.x, p.posToRobot.y}, line));
+        
+        // Persons are larger, give them more margin
+        if (perpDist < collisionThreshold + 0.3) { 
+             double dist = innerProduct(vector<double>{p.posToRobot.x, p.posToRobot.y}, vector<double>{cos(angle), sin(angle)});
+             if (dist > 0 && dist < minDist) {
+                 minDist = dist;
+             }
+        }
+    }
+    
     return minDist;
 }
 
@@ -1201,4 +1238,123 @@ vector<double> Brain::getGoalPostAngles(const double margin){ // 공(ball) 위�
 
     vector<double> vec = {theta_l, theta_r};
     return vec;
+}
+
+/* ---------------------------------------------------------------------------- 로그 관련 함수 -------------------------------------------------------------------- */
+void Brain::logObstacles() {
+    // log->setTimeNow();
+    // time is set on the outside
+    
+    // 장애물(즉, 점유된 그리드)을 기록함
+    auto obs = data->getObstacles();
+    vector<rerun::Vec2D> points;
+    vector<rerun::Color> colors;
+    vector<rerun::Text> labels;
+    const int occThreshold = get_parameter("obstacle_avoidance.occupancy_threshold").as_int();
+    for (int i = 0; i < obs.size(); i++) {
+        auto o = obs[i];
+
+        if (o.confidence < occThreshold) continue; // 이 로직이 아래 로직을 덮어쓰기 때문에, 주석 처리하면 서로 다른 신뢰도(confidence)를 다른 색으로 로그할 수 있음
+
+        points.push_back(rerun::Vec2D{o.posToField.x, -o.posToField.y});
+        double mem_msecs = get_parameter("obstacle_avoidance.obstacle_memory_msecs").as_double();
+        auto age = msecsSince(o.timePoint);
+        uint8_t alpha = static_cast<uint8_t>(0xFF - 0xFF * age / mem_msecs);
+        uint32_t color = (o.confidence > occThreshold) ? (0xFF000000 | alpha) : (0xFFFF0000 | alpha);
+        colors.push_back(rerun::Color(color));
+
+        labels.push_back(rerun::Text(format("count: %.0f age: %.0fms", o.confidence, age)));
+    }
+    log->log(
+        "field/obstacles", 
+        rerun::Points2D(points)
+        .with_colors(colors)
+        .with_labels(labels)
+        .with_radii(0.1)
+    );
+}
+
+void Brain::logDepth(int grid_x_count, int grid_y_count, vector<vector<int>> &grid_occupied, vector<rerun::Vec3D> &points_robot) {
+    // time is set on the outside
+    const double grid_size = get_parameter("depth_obstacle_preprocessing.grid_size").as_double();  // 网格大小
+    const double x_min = 0.0, x_max = get_parameter("depth_obstacle_preprocessing.max_x").as_double();
+    const double y_min = -get_parameter("depth_obstacle_preprocessing.max_y").as_double();
+    const double y_max = -y_min;
+
+    // 记录原始点云和网格
+    vector<rerun::Position3D> vertices;
+    vector<rerun::Color> vertex_colors;
+    vector<array<uint32_t, 3>> triangle_indices;
+    const int OCCUPANCY_THRESHOLD = get_parameter("obstacle_avoidance.occupancy_threshold").as_int(); // 设置一个显示用的阈值
+
+    for (int i = 0; i < grid_x_count; i++) {
+        for (int j = 0; j < grid_y_count; j++) {
+            if (grid_occupied[i][j] > 0) {
+                // 计算有障碍网格的四个顶点坐标
+                double x0 = x_min + i * grid_size;
+                double y0 = y_min + j * grid_size;
+                double x1 = x0 + grid_size;
+                double y1 = y0 + grid_size;
+
+                // 添加四个顶点
+                uint32_t base_index = vertices.size();
+                vertices.push_back({x0, y0, 0.0});
+                vertices.push_back({x1, y0, 0.0});
+                vertices.push_back({x1, y1, 0.0});
+                vertices.push_back({x0, y1, 0.0});
+
+                // 设置颜色：根据占用情况设置不同的红色
+                rerun::Color color;
+                if (grid_occupied[i][j] > OCCUPANCY_THRESHOLD) {
+                    color = rerun::Color(255, 0, 0, 255);  // RGBA, 红色
+                } else {
+                    color = rerun::Color(255, 255, 0, 255);  // RGBA, 黄色
+                }
+                vertex_colors.push_back(color);
+                vertex_colors.push_back(color);
+                vertex_colors.push_back(color);
+                vertex_colors.push_back(color);
+
+                // 添加两个三角形面
+                triangle_indices.push_back({base_index, base_index + 1, base_index + 2});
+                triangle_indices.push_back({base_index, base_index + 2, base_index + 3});
+            }
+        }
+    }
+
+    vector<uint32_t> point_colors;
+    for (auto &point : points_robot) {
+        float z_val = std::clamp(point.z(), 0.0f, 1.0f);
+        const double obstacleMinHeight = get_parameter("depth_obstacle_preprocessing.obstacle_min_height").as_double();
+        if (z_val < obstacleMinHeight) {
+            point_colors.push_back(0x0000FFFF);
+        } else {
+            uint8_t r = static_cast<uint8_t>(z_val * 255);
+            uint8_t g = static_cast<uint8_t>((1 - z_val) * 255);
+            point_colors.push_back((r << 24) | (g << 16) | 0xFF);
+        }
+    }
+    
+    log->log("depth/depth_points",
+            rerun::Points3D(points_robot)
+                .with_radii(0.01)
+                .with_colors(point_colors)
+    );
+    
+    log->log("depth/grid_mesh",
+            rerun::Mesh3D(vertices)
+                .with_vertex_colors(vertex_colors)
+                .with_triangle_indices(triangle_indices)
+    );
+
+    // ball exclusion box
+    double r = get_parameter("depth_obstacle_preprocessing.ball_exclusion_radius").as_double();
+    double h = get_parameter("depth_obstacle_preprocessing.ball_exclusion_height").as_double();
+    log->log(
+        "depth/ball_exclusion_box",
+        rerun::Boxes3D::from_centers_and_half_sizes(
+            {{ data->ball.posToRobot.x, data->ball.posToRobot.y, h/2}},
+            {{ r, r, h/2}})
+        .with_colors(0x00FF0044)     // 半透明绿色 
+    );
 }
