@@ -131,7 +131,7 @@ NodeStatus Chase::tick()
     if (avoidObstacle && distToObstacle < oaSafeDist) {
         log("avoid obstacle");
         auto avoidDir = brain->calcAvoidDir(targetDir, oaSafeDist);
-        const double speed = 0.5;
+        const double speed = 0.3;
         vx = speed * cos(avoidDir);
         vy = speed * sin(avoidDir);
         vtheta = ballYaw;
