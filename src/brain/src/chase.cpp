@@ -63,7 +63,7 @@ NodeStatus Chase::tick()
     };
     log("ticked");
 
-    // if (brain->tree->getEntry<string>("striker_state") != "chase") return NodeStatus::SUCCESS;
+    if (brain->tree->getEntry<string>("striker_state") != "chase") return NodeStatus::SUCCESS;
     
     double vxLimit, vyLimit, vthetaLimit, dist, safeDist;
     getInput("vx_limit", vxLimit);
