@@ -3,7 +3,7 @@ brain_node:
     game:
       team_id: 100 
       player_id: 1 # 1 | 2 | 3 | 4 | 5
-      field_type: "kid_size" 
+      field_type: "inha_size" # kid_size | adult_size | inha_size
       player_role: "striker" # striker | goal_keeper
       treat_person_as_robot: false 
       number_of_players: 4

@@ -266,6 +266,10 @@ void BrainConfig::handle(){
     {
         fieldDimensions = FD_ROBOLEAGUE;
     }
+    else if (fieldType == "inha_size")
+    {
+        fieldDimensions = FD_INHA;
+    }
     else
     {
         throw invalid_argument("[Error] fieldType must be one of [adult_size, kid_size, robo_league]. Got: " + fieldType);
