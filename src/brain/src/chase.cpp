@@ -87,6 +87,7 @@ NodeStatus Chase::tick()
     double ballRange = brain->data->ball.range;
     double ballYaw = brain->data->ball.yawToRobot;
     double kickDir = brain->data->kickDir;
+
     double theta_br = atan2(
         brain->data->robotPoseToField.y - brain->data->ball.posToField.y,
         brain->data->robotPoseToField.x - brain->data->ball.posToField.x
@@ -132,7 +133,8 @@ NodeStatus Chase::tick()
         vx = speed * cos(avoidDir);
         vy = speed * sin(avoidDir);
         vtheta = ballYaw;
-    } else {
+    } 
+    else {
         vx = min(vxLimit, brain->data->ball.range);
         vy = 0;
         vtheta = targetDir;
