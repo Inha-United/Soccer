@@ -4,6 +4,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "brain.h"
+#include "brain_communication.h"
 #include "detection_utils.h"
 
 #include "utils/print.h"
@@ -97,6 +98,10 @@ Brain::Brain() : rclcpp::Node("brain_node"){
     // locator 관련 파라미터
     declare_parameter<int>("locator.min_marker_count", 5);  // 로컬라이저 최소 마커 수
     declare_parameter<double>("locator.max_residual", 0.3);  // 최대 잔차 (오차 허용값)
+
+    // Communication 관련 파라미터
+    declare_parameter<bool>("communication.enable", false);
+    
     
     // BT
     declare_parameter<string>("tree_file_path", "");
@@ -116,11 +121,13 @@ void Brain::init(){
     data = std::make_shared<BrainData>();
     locator = std::make_shared<Locator>();
     log = std::make_shared<BrainLog>(this);
+    communication = std::make_shared<BrainCommunication>(this);
    
     tree->init();
     client->init();
     locator->init(config->fieldDimensions, config->pfMinMarkerCnt, config->pfMaxResidual);
     log->prepare();
+    communication->initCommunication();
     
     // 초기 시간 스탬프 설정
     data->lastSuccessfulLocalizeTime = get_clock()->now();  // 마지막 위치추정 성공 시각
@@ -184,6 +191,9 @@ void Brain::loadConfig(){
     // locator 관련 파리미터
     get_parameter("locator.min_marker_count", config->pfMinMarkerCnt);  // 최소 마커 수
     get_parameter("locator.max_residual", config->pfMaxResidual);  // 최대 허용 잔차 (PF 재샘플 기준)
+
+    // Communication 관련 파라미터
+    get_parameter("communication.enable", config->enableCom);
 
     // rerun 관련 파라미터 
     get_parameter("rerunLog.enable_tcp", config->rerunLogEnableTCP);  // TCP 로그 활성화

@@ -44,6 +44,9 @@
 #include "kick.h"
 #include "adjust.h"
 
+// Forward declaration to avoid circular dependency
+class BrainCommunication;
+
 using namespace std;
 
 /*
@@ -63,6 +66,7 @@ public:
     std::shared_ptr<BrainData> data;
     std::shared_ptr<Locator> locator;
     std::shared_ptr<BrainLog> log;
+    std::shared_ptr<BrainCommunication> communication;
     
     // 생성자, 소멸자
     Brain();
@@ -99,6 +103,8 @@ public:
 
     void logObstacles();
     void logDepth(int grid_x_count, int grid_y_count, vector<vector<int>> &grid_occupied, vector<rerun::Vec3D> &points_robot);
+
+    
 
 
 

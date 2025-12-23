@@ -101,6 +101,15 @@ struct BrainData {
     bool tmImAlive = true; 
     double tmMyCost = 0.;
     
+    // Team Discovery 추적 (BrainCommunication 용)
+    int discoveryMsgId = 0;
+    rclcpp::Time discoveryMsgTime;
+    
+    // Team Communication 송수신 추적
+    string tmIP = "";
+    int sendId = 0;
+    rclcpp::Time sendTime;
+    
     
     /* ---------------------------------------------------------------------------- 필드 라인 관련 파라미터 -------------------------------------------------------------------- */
     
