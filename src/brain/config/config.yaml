@@ -48,7 +48,7 @@ brain_node:
       max_residual: 0.35 # 최대 잔차 (오차 허용값)
 
     communication:
-      enable: false # 팀 통신 활성화 여부 (default: false)
+      enable: true # 팀 통신 활성화 여부 (default: false)
 
     vision:
       image_topic: "/booster_camera_bridge/StereoNetNode/rectified_image" # d-robotics
