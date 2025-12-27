@@ -497,10 +497,10 @@ void BrainCommunication::spinCommunicationReceiver() {
         } 
 
 
-        // cout << GREEN_CODE <<  format(
-        //     "communicationId: %d, alive: %d, ballDetected: %d ballRange: %.2f playerId: %d",
-        //     msg.communicationId, msg.isAlive, msg.ballDetected, msg.ballRange, msg.playerId)
-        //     << RESET_CODE << endl;
+        cout << GREEN_CODE <<  format(
+            "communicationId: %d, alive: %d, ballDetected: %d ballRange: %.2f playerId: %d",
+            msg.communicationId, msg.isAlive, msg.ballDetected, msg.ballRange, msg.playerId)
+            << RESET_CODE << endl;
         auto tmIdx = msg.playerId - 1;
 
         if (tmIdx < 0 || tmIdx >= HL_MAX_NUM_PLAYERS) { 

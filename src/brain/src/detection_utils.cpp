@@ -486,7 +486,7 @@ void detectProcessRobots(const vector<GameObject> &robotObjs, const std::shared_
 void identifyTeammates(std::vector<GameObject>& robots, const std::shared_ptr<BrainData> &data) {
     // Communication data is in data->tmStatus[0...HL_MAX_NUM_PLAYERS-1]
     
-    double matchThreshold = 1.0; // 1 meter threshold
+    double matchThreshold = 3.0; // 3 meter threshold for easier testing
 
     for (auto &rbt : robots) {
         if (rbt.label != "Opponent") continue; // Only check Opponents (as vision defaults everything to Opponent)
