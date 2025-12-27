@@ -239,11 +239,11 @@ NodeStatus DefenderDecide::tick() {
         && !avoidKick
         && ball.range < 1.5
     ) {
-        newDecision = "kick";      
+        newDecision = "pass"; // 수비수는 킥을 "패스"라고 명명
         color = 0x00FF00FF;
         brain->data->isFreekickKickingOff = false; 
     }
-    // 4. 그 외 -> adjust
+    // 4. 그 외 -> 위치 조정 ("adjust")
     else
     {
         newDecision = "adjust";
