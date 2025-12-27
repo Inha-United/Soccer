@@ -27,6 +27,25 @@ public:
     NodeStatus tick() override;
 
 private:
+    NodeStatus tick() override;
+
+private:
+    Brain *brain;
+};
+
+class CalcPassDir : public SyncActionNode {
+public:
+    CalcPassDir(const string &name, const NodeConfig &config, Brain *_brain) : SyncActionNode(name, config), brain(_brain) {}
+
+    static PortsList providedPorts(){
+        return {
+            InputPort<double>("pass_threshold", 3.0, "팀원과의 최대 거리")
+        };
+    }
+
+    NodeStatus tick() override;
+
+private:
     Brain *brain;
 };
 

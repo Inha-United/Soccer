@@ -26,8 +26,8 @@
                   <!-- 공 추적 -->
                   <SubTree ID="CamFindAndTrackBall" _autoremap="true" />
                   
-                  <!-- 킥 방향 계산 -->
-                  <CalcKickDir cross_threshold="0.5" />
+                  <!-- 킥 방향 계산 (패스 방향) -->
+                  <CalcPassDir pass_threshold="5.0" />
                   
                   <Sequence>
                      <!-- 의사결정: DefenderDecide 사용 -->

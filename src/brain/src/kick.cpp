@@ -11,6 +11,7 @@
 
 void RegisterKickNodes(BT::BehaviorTreeFactory &factory, Brain* brain){
     REGISTER_KICK_BUILDER(CalcKickDir)
+    REGISTER_KICK_BUILDER(CalcPassDir)
     REGISTER_KICK_BUILDER(Kick)
 }
 
@@ -88,6 +89,61 @@ NodeStatus CalcKickDir::tick(){
             .with_colors({color})
             .with_radii(0.01)
             .with_draw_order(31)
+    );
+
+    return NodeStatus::SUCCESS;
+}
+
+NodeStatus CalcPassDir::tick(){
+    double passThreshold;
+    getInput("pass_threshold", passThreshold);
+
+    auto bPos = brain->data->ball.posToField; // 공 위치
+    int bestTeammateIdx = -1;
+    double minDist = 9999.0;
+
+    // 가장 가까운(혹은 적절한) 팀원 찾기
+    for(int i=0; i<HL_MAX_NUM_PLAYERS; i++){
+        // 나 자신 제외, 살아있는 팀원 확인
+        if(i + 1 == brain->config->playerId) continue;
+        if(!brain->data->tmStatus[i].isAlive) continue; 
+        
+        // 팀원 위치
+        auto tmPos = brain->data->tmStatus[i].robotPoseToField;
+        
+        // 거리 계산
+        double dist = norm(bPos.x - tmPos.x, bPos.y - tmPos.y);
+
+        // 유효 거리 내에 있고, 가장 가까운 팀원 선택 (단순 거리 기준)
+        if(dist < passThreshold && dist < minDist){
+            minDist = dist;
+            bestTeammateIdx = i;
+        }
+    }
+
+    if(bestTeammateIdx != -1){
+        brain->data->kickType = "pass"; // 킥 타입 설정
+        auto tmPos = brain->data->tmStatus[bestTeammateIdx].robotPoseToField;
+        
+        // 공에서 팀원 방향으로 킥 방향 설정
+        brain->data->kickDir = atan2(tmPos.y - bPos.y, tmPos.x - bPos.x);
+        
+        brain->log->logToScreen("debug/Pass", format("Passing to TM %d at Dist %.2f", bestTeammateIdx+1, minDist), 0x00FF00FF);
+    } else {
+        // 줄 사람 없으면 그냥 슛 (기존 로직 fallback)
+        brain->data->kickType = "shoot"; 
+        brain->data->kickDir = 0.0; // 정면
+        brain->log->logToScreen("debug/Pass", "No Teammate found, fallback to shoot", 0xFF0000FF);
+    }
+
+    // 시각화
+    brain->log->setTimeNow();
+    brain->log->log(
+        "field/pass_dir",
+        rerun::Arrows2D::from_vectors({{10 * cos(brain->data->kickDir), -10 * sin(brain->data->kickDir)}})
+            .with_origins({{brain->data->ball.posToField.x, -brain->data->ball.posToField.y}})
+            .with_colors({0x00FFFFFF}) // Cyan color for pass
+            .with_radii(0.01)
     );
 
     return NodeStatus::SUCCESS;

@@ -27,7 +27,7 @@ NodeStatus Adjust::tick(){
         return NodeStatus::SUCCESS;
     }
     // 승재욱 추가
-    if (brain->tree->getEntry<string>("striker_state") != "adjust") return NodeStatus::SUCCESS;
+    // if (brain->tree->getEntry<string>("striker_state") != "adjust") return NodeStatus::SUCCESS;
 
     double turnThreshold, vxLimit, vyLimit, vthetaLimit, range, st_far, st_near, vtheta_factor, NEAR_THRESHOLD;
     getInput("near_threshold", NEAR_THRESHOLD);
@@ -95,8 +95,8 @@ NodeStatus Adjust::tick(){
     // 승재욱 추가
     bool adjustDone = fabs(deltaDir) <= 0.1 && fabs(ballYaw) <= 0.1 && ballRange < range + 0.1;
     if (adjustDone){
-        brain->tree->setEntry("striker_state", "kick");
-        log("adjust -> kick");
+        // brain->tree->setEntry("striker_state", "kick");
+        log("adjust -> kick (ready)");
     }
     log(format("deltaDir = %.1f", deltaDir));
 
