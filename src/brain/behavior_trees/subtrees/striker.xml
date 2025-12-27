@@ -33,7 +33,7 @@
                   <!-- 공 추적 -->
                   <SubTree ID="CamFindAndTrackBall" _autoremap="true" />
                   
-                  <!-- 킥 방향 계산 (골키퍼 고려) -->
+                  <!-- 킥 방향 개선 (골키퍼 고려) -->
                   <!-- TODO 1 : CalcKickDirWithGoalkeeper 구현 후 교체 -->
                   <CalcKickDir cross_threshold="0.5" />
                   <!-- <CalcKickDirWithGoalkeeper cross_threshold="0.5" goalkeeper_margin="0.3" /> -->
@@ -48,7 +48,7 @@
                      </ReactiveSequence>
                      
                      <!-- 행동 실행 -->
-                     <!-- TODO 3 : Assist는 Communication 검증 후 -->
+                     <!-- TODO 3 : Assist는 Communication 검증 후 추가 -->
                      <!-- <Assist _while="decision == 'assist'" vx_limit="0.2" vy_limit="0.2" /> -->
                      
                      <!-- Chase -->
@@ -60,7 +60,7 @@
                      <!-- 일반 킥 -->
                      <Kick _while="decision == 'kick'" speed_limit="0.8" min_msec_kick="1000" msecs_stablize="1000" />
                      
-                     <!-- 원터치 킥 -->
+                     <!-- 원터치 킥 (세트피스 킥) -->
                      <!-- TODO 4 : OneTouchKick 구현 -->
                      <!-- <Kick _while="decision == 'one_touch'" speed_limit="0.9" min_msec_kick="300" skip_adjust="true" /> -->
                      
