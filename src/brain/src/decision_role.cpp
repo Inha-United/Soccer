@@ -89,8 +89,8 @@ NodeStatus StrikerDecide::tick() {
             && brain->tree->getEntry<bool>("gc_is_sub_state_kickoff_side")
         )
         && brain->data->ballDetected
-        && ball.range < 0.6 // 거리가 가까울 때 (Kick 노드 진입 가능 거리)
-        && fabs(brain->data->ball.yawToRobot) < 0.5 // 각도가 어느정도 맞을 때
+        && ball.range < 0.4 // 거리가 매우 가까울 때 (Kick 노드 즉시 진입 가능 거리)
+        && fabs(brain->data->ball.yawToRobot) < 0.2 // 각도가 거의 정면일 때 (~11도 이내)
     ) {
         newDecision = "one_touch";
         color = 0xFF0000FF; // Red color for one touch
