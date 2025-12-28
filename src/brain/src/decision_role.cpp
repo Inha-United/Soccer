@@ -78,7 +78,24 @@ NodeStatus StrikerDecide::tick() {
     {
         newDecision = "chase";
         color = 0x0000FFFF;
-    } else if (
+    } 
+    // 세트피스 상황이나 원터치 패스 상황일 때 adjust 없이 바로 킥
+    else if (
+        (
+            (brain->tree->getEntry<string>("gc_game_sub_state_type") == "CORNER_KICK"
+            || brain->tree->getEntry<string>("gc_game_sub_state_type") == "GOAL_KICK"
+            || brain->tree->getEntry<string>("gc_game_sub_state_type") == "DIRECT_FREE_KICK"
+            || brain->tree->getEntry<string>("gc_game_sub_state_type") == "THROW_IN")
+            && brain->tree->getEntry<bool>("gc_is_sub_state_kickoff_side")
+        )
+        && brain->data->ballDetected
+        && ball.range < 0.6 // 거리가 가까울 때 (Kick 노드 진입 가능 거리)
+        && fabs(brain->data->ball.yawToRobot) < 0.5 // 각도가 어느정도 맞을 때
+    ) {
+        newDecision = "one_touch";
+        color = 0xFF0000FF; // Red color for one touch
+    }
+    else if (
         (
             (angleGoodForKick && !brain->data->isFreekickKickingOff) 
             || reachedKickDir

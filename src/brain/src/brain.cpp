@@ -277,7 +277,7 @@ double Brain::msecsSince(rclcpp::Time time){
 /* ------------------------- ROS Callback 관련 함수 구현 -------------------------------*/
 void Brain::gameControlCallback(const game_controller_interface::msg::GameControlData &msg){
     data->timeLastGamecontrolMsg = get_clock()->now();
-    // 处理比赛的一级状态
+    // 处理比赛的一级状态 
     auto lastGameState = tree->getEntry<string>("gc_game_state"); // 比赛的一级状态
     vector<string> gameStateMap = {
         "INITIAL", // 초기 상태, 선수는 경기장 밖에서 대기
@@ -303,33 +303,31 @@ void Brain::gameControlCallback(const game_controller_interface::msg::GameContro
             gameSubStateType = "TIMEOUT"; // 양 팀의 타임아웃과 심판 타임아웃을 포함
             data->realGameSubState = "TIMEOUT";
             break;
-
-        // 현재 다른 상태는 처리하지 않고, TIMEOUT을 제외한 모든 상태를 FREE_KICK으로 처리
         case 4:
-            gameSubStateType = "FREE_KICK";
+            gameSubStateType = "DIRECT_FREE_KICK";
             data->realGameSubState = "DIRECT_FREEKICK"; // 간접 프리킥 
             data->isDirectShoot = true;
             break;
         case 5:
-            gameSubStateType = "FREE_KICK";
+            gameSubStateType = "INDIRECT_FREE_KICK";
             data->realGameSubState = "INDIRECT_FREEKICK"; // 직접 프리킥
             break;
         case 6:
-            gameSubStateType = "FREE_KICK";
+            gameSubStateType = "PENALTY_KICK";
             data->realGameSubState = "PENALTY_KICK"; // 패널티킥
             data->isDirectShoot = true;
             break;
         case 7:
-            gameSubStateType = "FREE_KICK";
+            gameSubStateType = "CORNER_KICK";
             data->realGameSubState = "CORNER_KICK"; // 코너 킥
             break;
         case 8:
-            gameSubStateType = "FREE_KICK";
+            gameSubStateType = "GOAL_KICK";
             data->realGameSubState = "GOAL_KICK"; // 골 킥
             data->isDirectShoot = true;
             break;
         case 9:
-            gameSubStateType = "FREE_KICK";
+            gameSubStateType = "THROW_IN";
             data->realGameSubState = "THROW_IN"; // 스로우 인
             break;
         default:

@@ -61,8 +61,7 @@
                      <Kick _while="decision == 'kick'" speed_limit="0.8" min_msec_kick="1000" msecs_stablize="1000" />
                      
                      <!-- 원터치 킥 (세트피스 킥) -->
-                     <!-- TODO 4 : OneTouchKick 구현 -->
-                     <!-- <Kick _while="decision == 'one_touch'" speed_limit="0.9" min_msec_kick="300" skip_adjust="true" /> -->
+                     <Kick _while="decision == 'one_touch'" speed_limit="1.0" min_msec_kick="300" />
                      
                      <!-- Cross (측면 패스) -->
                      <Kick _while="decision == 'cross'" speed_limit="0.4" min_msec_kick="300" />
