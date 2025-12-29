@@ -543,7 +543,7 @@ void BrainCommunication::spinCommunicationReceiver() {
         // 수신된 패킷 내용을 BrainData의 tmStatus에 저장 -> 이 데이터는 전략(누가 공을 찰지)과 시각화(Rerun에서 Teammate 표시)에 사용됨
         TMStatus &tmStatus = brain->data->tmStatus[tmIdx];
         
-        tmStatus.role = msg.playerRole == 1 ? "striker" : "goal_keeper"; // 역할
+        tmStatus.role = msg.playerRole == 1 ? "striker" : msg.playerRole == 2 ? "defender" : "goal_keeper"; // 역할
         tmStatus.isAlive = msg.isAlive; // 생존 여부
         tmStatus.ballDetected = msg.ballDetected; // 공 감지 여부
         tmStatus.ballLocationKnown = msg.ballLocationKnown; // 공 위치 파악 여부

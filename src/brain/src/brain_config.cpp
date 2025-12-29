@@ -242,9 +242,9 @@ void BrainConfig::calcMapMarkings() {
 
 void BrainConfig::handle(){
     // playerRole [striker, goal_keeper]
-    if (playerRole != "striker" && playerRole != "goal_keeper")
+    if (playerRole != "striker" && playerRole != "defender" && playerRole != "goal_keeper")
     {
-        throw invalid_argument("player_role must be one of [striker, goal_keeper]. Got: " + playerRole);
+        throw invalid_argument("player_role must be one of [striker, defender, goal_keeper]. Got: " + playerRole);
     }
 
     // playerId

@@ -80,7 +80,6 @@ NodeStatus StrikerDecide::tick() {
         color = 0x0000FFFF;
     } 
     // 세트피스 상황에서 adjust 없이 바로 킥
-    // 세트피스 상황에서 adjust 없이 바로 킥
     else if (
         (
             (
