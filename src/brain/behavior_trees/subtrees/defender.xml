@@ -4,10 +4,10 @@
    <include path="./find_ball.xml" />
    
    <BehaviorTree ID="Defender">
-      <RunOnce>
-         <Script code="log('Defender Tree Started!')" />
-      </RunOnce>
       <ReactiveSequence>
+         <RunOnce>
+            <Script code="log('Defender Tree Started!')" />
+         </RunOnce>
          <!-- 자기 위치 추정 -->
          <SelfLocate mode="trust_direction" />
          
