@@ -75,6 +75,7 @@ public:
             InputPort<double>("min_msec_kick", 500, "킥 동작을 최소한 이 시간(ms) 동안 실행"),
             InputPort<double>("msecs_stablize", 1000, "동작 안정화를 위해 정지 상태로 유지하는 시간(ms)"),
             InputPort<double>("speed_limit", 0.8, "속도의 최대값"),
+            InputPort<string>("kick_type", "kick", "킥 종류 (로그용)"),
         };
     }
 

@@ -323,6 +323,8 @@ NodeStatus Kick::onRunning(){
         brain->log->setTimeNow();
         brain->log->log("debug/Kick", rerun::TextLog(msg));
     };
+    string kickType = getInput<string>("kick_type").value();
+    brain->log->logToScreen("debug/Action", "Action: " + kickType, 0x00FF00FF);
 
     // if(brain->tree->getEntry<string>("striker_state") != "kick") return NodeStatus::SUCCESS;
 
