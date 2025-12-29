@@ -80,19 +80,22 @@ NodeStatus StrikerDecide::tick() {
         color = 0x0000FFFF;
     } 
     // 세트피스 상황에서 adjust 없이 바로 킥
+    // 세트피스 상황에서 adjust 없이 바로 킥
     else if (
         (
-            (brain->tree->getEntry<string>("gc_game_sub_state_type") == "CORNER_KICK"
-            || brain->tree->getEntry<string>("gc_game_sub_state_type") == "GOAL_KICK"
-            || brain->tree->getEntry<string>("gc_game_sub_state_type") == "DIRECT_FREE_KICK"
-            || brain->tree->getEntry<string>("gc_game_sub_state_type") == "THROW_IN")
-            && brain->tree->getEntry<bool>("gc_is_sub_state_kickoff_side")
-        )
-        // 세트피스가 아닌 경기에서도 골대를 보고있고 장애물이 없다면 정렬 없이 킥
-        || (
-            angleGoodForKick          // 골대에 각이 있고
-            && !avoidKick             // 장애물이 없고
-            && reachedKickDir         // 킥 방향 정렬도 되어있다면
+            (
+                (brain->tree->getEntry<string>("gc_game_sub_state_type") == "CORNER_KICK"
+                || brain->tree->getEntry<string>("gc_game_sub_state_type") == "GOAL_KICK"
+                || brain->tree->getEntry<string>("gc_game_sub_state_type") == "DIRECT_FREE_KICK"
+                || brain->tree->getEntry<string>("gc_game_sub_state_type") == "THROW_IN")
+                && brain->tree->getEntry<bool>("gc_is_sub_state_kickoff_side")
+            )
+            // 세트피스가 아닌 경기에서도 골대를 보고있고 장애물이 없다면 정렬 없이 킥
+            || (
+                angleGoodForKick          // 골대에 각이 있고
+                && !avoidKick             // 장애물이 없고
+                && reachedKickDir         // 킥 방향 정렬도 되어있다면
+            )
         )
         && brain->data->ballDetected
         && ball.range < 0.4 // 거리가 매우 가까울 때 (Kick 노드 즉시 진입 가능 거리)
@@ -188,11 +191,6 @@ NodeStatus GoalieDecide::tick()
 }
 
 NodeStatus DefenderDecide::tick() {
-    auto log = [=](string msg) {
-        brain->log->setTimeNow();
-        brain->log->log("debug/defender_decide", rerun::TextLog(msg));
-    };
-
     double chaseRangeThreshold;
     getInput("chase_threshold", chaseRangeThreshold);
     string lastDecision;
