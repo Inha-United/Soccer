@@ -55,7 +55,7 @@
                      
                      <!-- Pass (Defender's Kick) -->
                      <Kick _while="decision == 'pass'" speed_limit="0.5" min_msec_kick="1000" msecs_stablize="1000" kick_type="pass" />
-                     <SetVelocity x="0.0" y="0.0" theta="0.0" />
+                     
                      
                   </Sequence>
                </ReactiveSequence>
