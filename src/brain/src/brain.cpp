@@ -128,6 +128,8 @@ void Brain::init(){
     locator->init(config->fieldDimensions, config->pfMinMarkerCnt, config->pfMaxResidual);
     log->prepare();
     communication->initCommunication();
+
+    log->logToScreen("Config/Role", "Role: " + config->playerRole, 0x00FF00FF);
     
     // 초기 시간 스탬프 설정
     data->lastSuccessfulLocalizeTime = get_clock()->now();  // 마지막 위치추정 성공 시각
