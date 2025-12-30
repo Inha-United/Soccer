@@ -107,8 +107,9 @@ NodeStatus Chase::tick(){
     if (fabs(toPInPI(kickDir - theta_rb)) < dirThreshold) {
         log("targetType = direct");
         targetType = "direct";
-        target_f.x = ballPos.x - dist * cos(kickDir);
-        target_f.y = ballPos.y - dist * sin(kickDir);
+        
+        target_f.x = ballPos.x - dist * cos(kickDir + M_PI);
+        target_f.y = ballPos.y - dist * sin(kickDir + M_PI);
     } 
     // else {
     //     targetType = "circle_back";
@@ -138,11 +139,18 @@ NodeStatus Chase::tick(){
     } 
 
     else {
-        vx = min(vxLimit, brain->data->ball.range);
-        vy = 0;
-        vtheta = targetDir;
-        if (fabs(targetDir) < 0.1 && ballRange > 2.0) vtheta = 0.0;
-        vx *= sigmoid((fabs(vtheta)), 1, 3); 
+        
+        double p_gain = 1.0;
+        vx = target_r.x * p_gain;
+        vy = target_r.y * p_gain;
+
+        vtheta = ballYaw;   
+        
+        double speed = sqrt(vx*vx + vy*vy);
+        if (speed > vxLimit) {
+            vx = vx / speed * vxLimit;
+            vy = vy / speed * vxLimit; 
+        }
     }
 
     vx = cap(vx, vxLimit, -vxLimit);
