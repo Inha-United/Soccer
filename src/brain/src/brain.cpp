@@ -729,6 +729,19 @@ void Brain::depthImageCallback(const sensor_msgs::msg::Image &msg){
                     obj.posToRobot.y = y_min + (j + 0.5) * grid_size;
                     obj.confidence = grid_occupied[i][j]; // 포인트가 많이 찍힌 셀 = 더 강한 장애물 후보
                     updateFieldPos(obj); // 로봇 좌표(posToRobot)를 필드 좌표(posToField)로 변환
+                    
+                    // Person(사람)과 겹치는 장애물은 무시
+                    bool isPerson = false;
+                    auto persons = data->getPersons();
+                    for(const auto& p : persons){
+                         // 0.5m 이내면 동일 물체로 간주
+                        if(norm(obj.posToField.x - p.posToField.x, obj.posToField.y - p.posToField.y) < 0.5){
+                            isPerson = true;
+                            break;
+                        }
+                    }
+                    if(isPerson) continue;
+
                     obs_new.push_back(obj);
                 }
             }
