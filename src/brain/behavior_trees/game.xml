@@ -34,7 +34,7 @@
                             <SelfLocateEnterField />
                         </ReactiveSequence>
 
-                        <ReactiveSequence _while="gc_game_state=='READY'" name="Ready">
+                        <ReactiveSequence _while="gc_game_state=='SET'" name="Ready">
                             <SubTree ID="CamFindAndTrackBall" _autoremap="true" /> 
                             <CalcKickDir />
                             <ReactiveSequence>
@@ -48,10 +48,10 @@
                             <SubTree ID="Locate" _autoremap="true" />
                         </ReactiveSequence>
 
-                        <ReactiveSequence _while="gc_game_state=='SET'" name="Set">
+                        <!-- <ReactiveSequence _while="gc_game_state=='SET'" name="Set">
                             <SetVelocity x="0.0" y="0.0" theta="0.0" />
                             <SubTree ID="Locate" _autoremap="true" />
-                        </ReactiveSequence>
+                        </ReactiveSequence> -->
 
                         <ReactiveSequence _while="gc_game_state=='PLAY'" name="Play">
                             <SubTree ID="CamFindAndTrackBall" _autoremap="true" />
