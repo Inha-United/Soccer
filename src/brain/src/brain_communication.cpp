@@ -516,14 +516,14 @@ void BrainCommunication::spinCommunicationReceiver() {
         } 
 
 
-        double dist = sqrt(pow(brain->data->robotPoseToField.x - msg.robotPoseToField.x, 2) + pow(brain->data->robotPoseToField.y - msg.robotPoseToField.y, 2));
-        cout << GREEN_CODE << format(
-            "TMID: %d | MyPos: (%.2f, %.2f) | TmPos: (%.2f, %.2f) | Dist: %.2f", 
-            msg.playerId, 
-            brain->data->robotPoseToField.x, brain->data->robotPoseToField.y,
-            msg.robotPoseToField.x, msg.robotPoseToField.y,
-            dist
-            ) << RESET_CODE << endl;
+        // double dist = sqrt(pow(brain->data->robotPoseToField.x - msg.robotPoseToField.x, 2) + pow(brain->data->robotPoseToField.y - msg.robotPoseToField.y, 2));
+        // cout << GREEN_CODE << format(
+        //     "TMID: %d | MyPos: (%.2f, %.2f) | TmPos: (%.2f, %.2f) | Dist: %.2f", 
+        //     msg.playerId, 
+        //     brain->data->robotPoseToField.x, brain->data->robotPoseToField.y,
+        //     msg.robotPoseToField.x, msg.robotPoseToField.y,
+        //     dist
+        //     ) << RESET_CODE << endl;
         auto tmIdx = msg.playerId - 1;
 
         if (tmIdx < 0 || tmIdx >= HL_MAX_NUM_PLAYERS) { 
@@ -537,7 +537,7 @@ void BrainCommunication::spinCommunicationReceiver() {
         //     continue;
         // }
 
-
+        log(format("TMID: %.d, alive: %d, lead: %d, cost: %.1f, CmdId: %d, Cmd: %d", msg.playerId, msg.isAlive, msg.isLead, msg.cost, msg.cmdId, msg.cmd));
 
         /* ---------------- 데이터 업데이트 ---------------- */
         // 수신된 패킷 내용을 BrainData의 tmStatus에 저장 -> 이 데이터는 전략(누가 공을 찰지)과 시각화(Rerun에서 Teammate 표시)에 사용됨
