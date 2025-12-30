@@ -62,8 +62,8 @@
                      <Kick _while="decision == 'one_touch'" speed_limit="1.0" min_msec_kick="300" msecs_stablize="100" kick_type="one_touch" />
                      
                      <!-- Cross (측면 패스) -->
-                     <Kick _while="decision == 'cross'" speed_limit="0.4" min_msec_kick="300" kick_type="cross" />
-                     
+                     <!-- <Kick _while="decision == 'cross'" speed_limit="0.4" min_msec_kick="300" kick_type="cross" /> -->
+
                   </Sequence>
                </ReactiveSequence>
             </ReactiveSequence>
