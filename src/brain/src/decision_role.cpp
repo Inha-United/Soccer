@@ -71,9 +71,9 @@ NodeStatus StrikerDecide::tick() {
     {
         newDecision = "find";
         color = 0xFFFFFFFF;
-    } else if (!brain->data->tmImLead) {
-        newDecision = "assist";
-        color = 0x00FFFFFF;
+    // } else if (!brain->data->tmImLead) {
+    //     newDecision = "assist";
+    //     color = 0x00FFFFFF;
     } else if (ballRange > chaseRangeThreshold * (lastDecision == "chase" ? 0.9 : 1.0))
     {
         newDecision = "chase";

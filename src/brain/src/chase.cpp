@@ -108,8 +108,8 @@ NodeStatus Chase::tick(){
         log("targetType = direct");
         targetType = "direct";
         
-        target_f.x = ballPos.x - dist * cos(kickDir + M_PI);
-        target_f.y = ballPos.y - dist * sin(kickDir + M_PI);
+        target_f.x = ballPos.x - dist * cos(kickDir);
+        target_f.y = ballPos.y - dist * sin(kickDir);
     } 
     // else {
     //     targetType = "circle_back";
