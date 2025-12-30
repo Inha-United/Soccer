@@ -12,7 +12,7 @@
          <SubTree ID="Locate" _autoremap="true" _while="decision!='find'" />
          
          <!-- 상대 킥오프 대기 -->
-         <ReactiveSequence _while="wait_for_opponent_kickoff" name="상대 팀 킥오프 대기"> 
+         <ReactiveSequence _while="wait_for_opponent_kickoff" name="상대 팀 킥오프 대기">
             <SubTree ID="CamFindAndTrackBall" _autoremap="true" />
             <SetVelocity />
          </ReactiveSequence>
@@ -39,7 +39,7 @@
                   <Sequence>
                      
                      <ReactiveSequence>
-                        <StrikerDecide decision_out="{decision}" decision_in="{decision}" chase_threshold="0.6" /> <!-- one_touch_enabled="true" 원터치 활성화 -->
+                        <StrikerDecide decision_out="{decision}" decision_in="{decision}" chase_threshold="0.6" />
                         
                         <!-- 공 찾기 -->
                         <SubTree ID="FindBall" _while="decision=='find'" _autoremap="true" />
