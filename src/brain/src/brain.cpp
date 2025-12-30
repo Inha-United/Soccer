@@ -1390,5 +1390,12 @@ bool Brain::isAngleGood(double goalPostMargin, string type) {
         theta_r = goalPostAngles[1]; 
     }
 
-    return (theta_l > angle && theta_r < angle);
+    double diff = theta_l - theta_r;
+    if (diff < 0) diff += 2 * M_PI; // Normalize to 0~2PI
+
+    if (diff > M_PI) { // Pasing through PI boundary (Goal is at -X direction)
+        return (angle > theta_l || angle < theta_r);
+    } else { // Normal case (Goal is at +X direction)
+        return (angle < theta_l && angle > theta_r);
+    }
 }
