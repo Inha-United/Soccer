@@ -138,6 +138,8 @@ private:
     /* ----------------------------- 변수 업데이트를 위한 함수들 ----------------------------- */
     void updateBallMemory();
     void updateObstacleMemory();
+    void handleCooperation();
+    void updateCostToKick();
 
     // ROS subscription 변수
     rclcpp::Subscription<game_controller_interface::msg::GameControlData>::SharedPtr gameControlSubscription;

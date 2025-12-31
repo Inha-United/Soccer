@@ -390,7 +390,8 @@ NodeStatus Kick::onRunning(){
         
         // 입력받은 제한 속도와 비교
         double currentCmdSpeed = min(speedLimit, _speed);
-
+        
+        // kick에서의 속도 log 추가
         auto log = [=](string msg) {
         brain->log->setTimeNow();
         brain->log->log("debug/kick/state", rerun::TextLog(msg));
