@@ -1392,3 +1392,327 @@ bool Brain::isAngleGood(double goalPostMargin, string type) {
 
     return (theta_l > angle && theta_r < angle);
 }
+
+//-------------------------------커뮤니케이션 기반 결과 처리----------------------------------
+void Brain::handleCooperation() {
+    auto log_ = [=](string msg) {
+        log->setTimeNow();
+        log->log("debug/handleCooperation", rerun::TextLog(msg));
+    };
+    log_("handle cooperation");
+
+    const int CMD_COOLDOWN = 2000; 
+    const int COM_TIMEOUT = 5000; 
+
+    int selfId = config->playerId;
+    int selfIdx = selfId - 1;
+    int numOfPlayers = config->numOfPlayers;
+
+    vector<int> aliveTmIdxs = {}; 
+
+		// 내 상태 업데이트 (패널티가 아니고, local이 됨).
+		// cost 계산 호출
+    data->tmImAlive = 
+        (data->penalty[selfIdx] == PENALTY_NONE) 
+        && tree->getEntry<bool>("odom_calibrated"); 
+    updateCostToKick(); 
+    log_(format("ImAlive: %d, myCost: %.1f", data->tmImAlive, data->tmMyCost));
+
+    // field에 있는 살아있는 팀메이트 시각화 (rerun으로)
+    int gcAliveCount = 0; 
+    for (int i = 0; i < HL_MAX_NUM_PLAYERS; i++)
+    {
+        if (data->penalty[i] == PENALTY_NONE) {
+            gcAliveCount++;
+
+            int tmId = i + 1;
+            if (tmId == config->playerId) continue;
+
+            auto tmStatus = data->tmStatus[i];
+            log->setTimeNow();
+            auto color = 0x00FFFFFF;
+            if (!tmStatus.isAlive) color = 0x006666FF;
+            else if (!tmStatus.isLead) color = 0x00CCCCFF;
+            string label = format("ID: %d, Cost: %.1f", tmId, tmStatus.cost);
+            log->logRobot(format("field/teammate-%d", tmId).c_str(), tmStatus.robotPoseToField, color, label);
+            log->logBall(
+            format("tm_ball-%d", tmId).c_str(),
+            tmStatus.ballPosToField, 
+            tmStatus.ballDetected ? 0x00FFFFFF : (tmStatus.isAlive ? 0x006666FF : 0x003333FF),
+            tmStatus.ballConfidence,
+            tmStatus.ballLocationKnown
+            );
+        }
+    }
+    log_(format("gcAliveCnt: %d", gcAliveCount));
+
+
+		// 통신이 5초 이 끊겨도 죽은것처럼 처리
+    for (int i = 0; i < HL_MAX_NUM_PLAYERS; i++) {
+        if (i == selfIdx) continue; 
+
+        if (
+            data->penalty[i] != PENALTY_NONE 
+            || msecsSince(data->tmStatus[i].timeLastCom) > COM_TIMEOUT 
+        ) {
+            data->tmStatus[i].isAlive = false;
+            data->tmStatus[i].isLead = false;
+        }
+        
+        if (data->tmStatus[i].isAlive) {
+            aliveTmIdxs.push_back(i);
+            log->setTimeNow();
+            log->log(format("debug/tm_cost_scalar_%d", i + 1), rerun::Scalar(data->tmStatus[i].cost));
+            log->log(format("debug/tm_lead_scalar_%d", i + 1), rerun::Scalar(data->tmStatus[i].isLead));
+        }
+    }
+    log_(format("alive TM Count: %d", aliveTmIdxs.size()));
+
+    log_(format("Self: cost: %.1f, isLead: %d", data->tmMyCost, data->tmImLead));
+
+
+		// 공 위치 보정
+    static rclcpp::Time lastTmBallPosTime = get_clock()->now();
+    const double TM_BALL_TIMEOUT = 1000.; 
+    const double RANGE_THRESHOLD = config->tmBallDistThreshold; 
+    int trustedTMIdx = -1;
+    double minRange = 1e6;
+    log_(format("Find ball info among %d alive TMs", aliveTmIdxs.size()));
+    for (int i = 0; i < aliveTmIdxs.size(); i++) {
+        auto status = data->tmStatus[aliveTmIdxs[i]];
+        log_(format("TM %d, ballDetected: %d, ballRange: %.1f", i + 1, status.ballDetected, status.ballRange));
+        if (status.ballDetected && status.ballRange < minRange) {
+            log_(format("tm ball range(%.1f) < minRange(%.1f)", status.ballRange, minRange));
+            double dist = norm(status.ballPosToField.x - data->robotPoseToField.x, status.ballPosToField.y - data->robotPoseToField.y);
+            if (dist > RANGE_THRESHOLD) {
+                log_(format("tm ball dist to me(%.1f) > threshold(%.1f), TM %d can be trusted", dist, RANGE_THRESHOLD, i+ 1));
+                minRange = status.ballRange;
+                trustedTMIdx = aliveTmIdxs[i];
+            }  else {
+                log_(format("tm ball dist to me(%.1f) < threshold(%.1f), TM %d can NOT be trusted", dist, RANGE_THRESHOLD, i+ 1));
+            }
+        }
+    }
+    if (trustedTMIdx >= 0) {   
+        log_(format("Reliable tm ball found. PlayerID = %d", trustedTMIdx + 1));
+        data->tmBall.posToField = data->tmStatus[trustedTMIdx].ballPosToField;
+        updateRelativePos(data->tmBall);
+
+        tree->setEntry<bool>("tm_ball_pos_reliable", true);
+        lastTmBallPosTime = get_clock()->now();
+        if (!tree->getEntry<bool>("ball_location_known")) { 
+            log_("update ball.posToField");
+            data->ball.posToField = data->tmBall.posToField;
+            updateRelativePos(data->ball);
+        }
+    } else {
+        log_("TM reported NO BALL or can not be trusted");
+        if (msecsSince(lastTmBallPosTime) > TM_BALL_TIMEOUT) {
+            log_("TM ball timeout reached");
+            tree->setEntry<bool>("tm_ball_pos_reliable", false);
+        }
+    }
+		
+		// 역할 스위칭 (config에서 on off 가능)
+    // 팀원 수가 덜 차면 striker로
+    bool switchRole;
+    get_parameter("strategy.cooperation.enable_role_switch", switchRole);
+    if (switchRole) {
+        if (data->penalty[selfIdx] == PENALTY_NONE) { 
+            if (gcAliveCount < numOfPlayers) { 
+                log_("Not full team. I must be Striker");
+                tree->setEntry<string>("player_role", "striker"); 
+            }
+        } else { 
+            if (gcAliveCount == numOfPlayers - 1) { 
+                log_("I am only on under penalty, I must be goal keeper");
+                tree->setEntry<string>("player_role", "goal_keeper"); 
+            }
+    
+        }
+    }
+    
+		// initial이면 처음 역할
+    if (tree->getEntry<string>("gc_game_state") == "INITIAL") {
+        tree->setEntry<string>("player_role", config->playerRole);
+    }
+
+		// 팀원들 중 최소 cost 가져오기
+    double tmMinCost = 1e5;
+    for (int i = 0; i < aliveTmIdxs.size(); i++) {
+        int tmIdx = aliveTmIdxs[i];
+        auto tmStatus = data->tmStatus[tmIdx];
+        if (tmStatus.cost < tmMinCost) tmMinCost = tmStatus.cost;
+    }
+    double BALL_CONTROL_COST_THRESHOLD = 3.0;
+    get_parameter("strategy.cooperation.ball_control_cost_threshold", BALL_CONTROL_COST_THRESHOLD);
+
+		// 내 cost가 그거보다 크면 팀원이 lead, 아니면 내가 lead
+    if (tmMinCost < BALL_CONTROL_COST_THRESHOLD && data->tmMyCost > tmMinCost) {
+
+        data->tmImLead = false;
+        tree->setEntry<bool>("is_lead", false);
+        log_("I am not lead");
+
+    } else {
+        data->tmImLead = true;
+        tree->setEntry<bool>("is_lead", true);
+        log_("I am Lead");
+    }
+    log_(format("tmMinCost: %.1f, myCost: %.1f", tmMinCost, data->tmMyCost));
+
+		
+		// 골키퍼가 lead일땐 골대에 가장 가까운 선수가 골키퍼가 되고
+		// 나는 striker로 전환
+    if (
+        data->tmImAlive 
+        && tree->getEntry<string>("player_role") == "goal_keeper"
+        && data->tmImLead 
+        && msecsSince(data->tmLastCmdChangeTime) > CMD_COOLDOWN 
+    ) {
+        auto distToGoal = [=](Pose2D pose) {
+            return norm(pose.x + config->fieldDimensions.length / 2.0, pose.y);
+        };
+        double maxDist = 0.0;
+        double minDist = 1e6;
+        int minIndex = -1; 
+        double myDist = distToGoal(data->robotPoseToField);
+        for (int i = 0; i < aliveTmIdxs.size(); i++) {
+            int tmIdx = aliveTmIdxs[i];
+            auto tmPose = data->tmStatus[tmIdx].robotPoseToField;
+            double dist = distToGoal(tmPose);
+            if (dist > maxDist) maxDist = dist;
+            if (dist < minDist) {
+                minIndex = tmIdx;
+                minDist = dist;
+            }
+        }
+        if (minIndex >= 0 && myDist > maxDist) {
+            data->tmLastCmdChangeTime = get_clock()->now();
+            data->tmMyCmd = 10 + minIndex + 1; 
+            data->tmCmdId += 1;
+            data->tmMyCmdId = data->tmCmdId;
+            tree->setEntry<string>("player_role", "striker");
+            log_(format("goalie: i am too far from goal, i ask player %d to attack", minIndex + 1));
+        } else {
+            log_(format("goalie: i am close enough to goal, no need to attack, my dist: %.2f", myDist));
+        }
+    }
+
+		// 팀원에게서 온 명령 처리 (앞서 있던 골키퍼 지정...)
+		// 내가 대상이면 역할바꾸고, 아니면 로그
+    auto cmd = data->tmReceivedCmd;
+    if (cmd != 0) {
+        log_(format("received cmd %d from teammate", cmd));
+        if (cmd > 10 && cmd < 20) { 
+            log_("goalie wants to attack");
+            int newGoalieId = cmd - 10;
+            if (newGoalieId == selfId) { 
+                log_("i become goalie");
+                tree->setEntry<string>("player_role", "goal_keeper");
+                speak("i become goalie", true);
+            } else { 
+                log_(format("teammate %d becomes goalie", newGoalieId));
+            }
+        } else {
+            log_(format("unknown cmd %d from teammate", cmd));
+        }
+
+        data->tmReceivedCmd = 0; 
+    }
+
+    tree->setEntry<bool>("is_lead", data->tmImLead);
+
+    if (
+        (tree->getEntry<string>("gc_game_state") == "READY" || tree->getEntry<string>("gc_game_sub_state") == "GET_READY") 
+        && gcAliveCount == numOfPlayers
+    ) {
+       
+        tree->setEntry<string>("player_role", config->playerRole);
+        log_(format("all teammates on field. Back to initial role: %s", config->playerRole.c_str()));
+    }
+
+    return;
+}
+
+void Brain::updateCostToKick() {
+    auto log_ = [=](string msg) {
+        log->setTimeNow();
+        log->log("debug/updateCostToKick", rerun::TextLog(msg));
+    };
+    double cost = 0.;
+
+
+		// 공 인식 freshness (최근에 봤으면 유리함)
+    // if (!data->ballDetected) cost += 2.0;
+    double secsSinceBallDet = msecsSince(data->ball.timePoint) / 1000;
+    cost += secsSinceBallDet;
+    log_(format("ball not dectect cost: %.1f", secsSinceBallDet));
+
+		// 공 위치 불확실성
+    if (!tree->getEntry<bool>("ball_location_known")) {
+        cost += 5.0;
+        log_(format("ball lost cost: %.1f", 5.0));
+    }
+
+		// 공까지의 거리
+    cost += data->ball.range;
+    log_(format("ball range cost: %.1f", data->ball.range));
+    
+    
+		// 장애물 방해
+    if (distToObstacle(data->ball.yawToRobot) < 1.5) {
+        log_(format("obstacle cost: %.1f", 2.0));
+        cost += 2.0;
+    }
+
+		// 공 정렬 각도
+    cost += fabs(data->ball.yawToRobot) / 1.0; 
+    log_(format("ball yaw cost: %.1f", fabs(data->ball.yawToRobot) / 1.0));
+
+
+		// 팀원과의 충돌 가능성
+    int selfIdx = config->playerId - 1;
+    for (int i = 0; i < HL_MAX_NUM_PLAYERS; i++) {
+        if (i == selfIdx) continue; 
+
+        auto status = data->tmStatus[i]; 
+        if (!status.isAlive) continue; 
+
+        double theta_tm2ball = atan2(status.ballPosToField.y - status.robotPoseToField.y, status.ballPosToField.x - status.robotPoseToField.x);
+        double range_tm2ball = norm(status.ballPosToField.y - status.robotPoseToField.y, status.ballPosToField.x - status.robotPoseToField.x);
+        double theta_me2ball = data->robotBallAngleToField;
+        double range_me2ball = data->ball.range;
+        double deltaTheta = fabs(toPInPI(theta_tm2ball - theta_me2ball));
+
+        const double BUMP_DIST = 1.0;
+        if (range_tm2ball < range_me2ball && sin(deltaTheta) * range_tm2ball < BUMP_DIST) {
+            cost += 2.0;
+            log_(format("bump cost: %.1f", 2.0));  
+        }
+    }
+		
+		// 킥 방향 보정량
+    cost += fabs(toPInPI(data->kickDir - data->robotBallAngleToField)) * 0.4 / 0.3; 
+    log_(format("ajust cost: %.1f", fabs(toPInPI(data->kickDir - data->robotBallAngleToField)) * 0.4 / 0.3));
+    
+		// 넘어짐 여부 판단
+    if (data->recoveryState == RobotRecoveryState::HAS_FALLEN) {
+        cost += 15.0;
+        log_(format("fall cost: %.1f", 15.0));  
+    }
+
+    // local 실패
+    if (!tree->getEntry<bool>("odom_calibrated")) {
+        cost += 100;
+        log_(format("localization cost: %.1f", 100.0));  
+
+    }
+    
+    // 스무딩
+    double lastCost = data->tmMyCost;
+    data->tmMyCost = lastCost * 0.5 + cost * 0.5;
+    log_(format("lastCost: %.1f, newCost: %.1f, smoothCost: %.1f", lastCost, cost, data->tmMyCost));
+
+    return;
+}
