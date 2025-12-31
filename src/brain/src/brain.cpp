@@ -1610,7 +1610,7 @@ void Brain::handleCooperation() {
             if (newGoalieId == selfId) { 
                 log_("i become goalie");
                 tree->setEntry<string>("player_role", "goal_keeper");
-                speak("i become goalie", true);
+                // speak("i become goalie", true);
             } else { 
                 log_(format("teammate %d becomes goalie", newGoalieId));
             }
