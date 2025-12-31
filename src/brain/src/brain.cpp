@@ -1583,6 +1583,18 @@ void Brain::handleCooperation() {
     }
     log_(format("tmMinCost: %.1f, myCost: %.1f", tmMinCost, data->tmMyCost));
 
+    // Cost, lead, role 관계 표시 위함
+    log->logToScreen(
+        "debug/Coop",
+        format("Cost: %.2f | Lead: %s | Role: %s", 
+            data->tmMyCost, 
+            data->tmImLead ? "YES" : "NO",
+            tree->getEntry<string>("player_role").c_str()), 
+        data->tmImLead ? 0x00FF00FF : 0xFFFF00FF
+    );
+    log->log("debug/my_cost_scalar", rerun::Scalar(data->tmMyCost));
+    log->log("debug/is_lead_scalar", rerun::Scalar(data->tmImLead ? 1.0 : 0.0));
+
 
     if (
         data->tmImAlive 
