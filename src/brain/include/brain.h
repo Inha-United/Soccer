@@ -44,6 +44,7 @@
 #include "kick.h"
 #include "adjust.h"
 #include "decision_role.h"
+#include "speak.h"
 
 // Forward declaration to avoid circular dependency
 class BrainCommunication;
@@ -90,6 +91,7 @@ public:
     void registerChaseNodes(BT::BehaviorTreeFactory &factory){RegisterChaseNodes(factory, this);}
     void registerKickNodes(BT::BehaviorTreeFactory &factory){RegisterKickNodes(factory, this);}
     void registerAdjustNodes(BT::BehaviorTreeFactory &factory){RegisterAdjustNodes(factory, this);}
+    void registerSpeakNodes(BT::BehaviorTreeFactory &factory){RegisterSpeakNodes(factory, this);}
     
     // ROS callback 함수
     void gameControlCallback(const game_controller_interface::msg::GameControlData &msg);
@@ -132,12 +134,24 @@ public:
     // goalpost 관련 함수
     vector<double> getGoalPostAngles(const double margin = 0.3);
 
+    void speak(string text, bool allowRepeat = false);
+    
+
 private:
     void loadConfig(); // config 불러오기
 
     /* ----------------------------- 변수 업데이트를 위한 함수들 ----------------------------- */
     void updateBallMemory();
     void updateObstacleMemory();
+    void handleCooperation();
+    void updateCostToKick();
+
+    void updateRobotMemory();
+    void updateKickoffMemory();
+    void updateMemory();
+
+    void logMemRobots();
+    void speak(string msg, bool interrupt = false);
 
     // ROS subscription 변수
     rclcpp::Subscription<game_controller_interface::msg::GameControlData>::SharedPtr gameControlSubscription;
@@ -149,6 +163,10 @@ private:
     rclcpp::Subscription<booster_interface::msg::RawBytesMsg>::SharedPtr recoveryStateSubscription;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr depthImageSubscription;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr imageSubscription;
+
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pubSoundPlay;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pubSpeak;
+    rclcpp::TimerBase::SharedPtr timer_;
     
     // tf2 broadcaster
     std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;

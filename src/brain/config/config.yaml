@@ -69,6 +69,10 @@ brain_node:
       ball_exclusion_radius: 0.0 # 공을 장애물로 인식하기 하는 것을 제외하기 위해
       ball_exclusion_height: 0.3 
 
+    sound:
+      enable: false 
+      sound_pack: "espeak" 
+
     rerunLog:
       enable_tcp: true # 리런에 연결 할 지
 
