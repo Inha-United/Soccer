@@ -191,7 +191,21 @@ NodeStatus CalcKickDirWithGoalkeeper::tick(){
     
     double goalVisibleAngle = fabs(angleDiff);
 
-    brain->data->kickDir = bestKickDir;
+    // [Stabilization] Low-Pass Filter (LPF) 적용
+    // 이전 값(brain->data->kickDir)과 현재 목표값(bestKickDir)을 섞어서 급격한 변화를 막습니다.
+    double prevKickDir = brain->data->kickDir;
+    double diff = remainder(bestKickDir - prevKickDir, 2.0 * M_PI);
+    
+    // Alpha 값: 0.0에 가까울수록 부드럽게(느리게), 1.0에 가까울수록 즉각적으로(빠르게) 반응
+    // 점프 현상을 막기 위해 0.2 정도로 설정하여 급격한 튀는 값을 억제합니다.
+    const double ALPHA = 0.2; 
+    
+    // 만약 차이가 너무 크면(90도 이상), LPF 대신 바로 따라가거나(전략 변경 시) 혹은 무시할 수도 있지만,
+    // 사용자는 "튀는 것"을 싫어하므로 일단 부드럽게 따라가도록 합니다.
+    brain->data->kickDir = prevKickDir + diff * ALPHA;
+    
+    // Normalize -PI ~ PI
+    brain->data->kickDir = remainder(brain->data->kickDir, 2.0 * M_PI);
 
      // 만약 골문이 너무 좁거나(crossThreshold) 해도, 일단 슛을 시도합니다 (User Request)
      // if (goalVisibleAngle < crossThreshold) {
@@ -201,7 +215,7 @@ NodeStatus CalcKickDirWithGoalkeeper::tick(){
     
     brain->data->kickType = kickType;
 
-    // 시각화
+    // 시각화 
     brain->log->setTimeNow();
     brain->log->log(
         "field/kick_dir_gk",
@@ -353,7 +367,6 @@ NodeStatus Kick::onRunning(){
 
     // if(brain->tree->getEntry<string>("striker_state") != "kick") return NodeStatus::SUCCESS;
 
-    // [원본 그대로] 킥 중단 조건 (공이 너무 많이 움직였거나 놓쳤을 때)
     bool enableAbort;
     brain->get_parameter("strategy.abort_kick_when_ball_moved", enableAbort);
     auto ballRange = brain->data->ball.range;
@@ -375,7 +388,6 @@ NodeStatus Kick::onRunning(){
 
     if (ballRange < _minRange) _minRange = ballRange;    
 
-    // [원본 그대로] 킥 도중 장애물 감지 시 회피
     bool avoidPushing;
     brain->get_parameter("obstacle_avoidance.avoid_during_kick", avoidPushing);
     double kickAoSafeDist;

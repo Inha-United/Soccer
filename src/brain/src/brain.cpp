@@ -430,6 +430,15 @@ void Brain::detectionsCallback(const vision_interface::msg::Detections &msg){
 
     auto gameObjects = detection_utils::detectionsToGameObjects(msg, config, data); // 감지된 객체 리스트 GameObject 객체로 변환
     
+    // Update robotBallAngleToField
+    // Adjust 노드 등에서 사용하는 값이므로 여기서 최신화해야 해야한다 방향 튀는 문제
+    if (data->ballDetected) {
+        data->robotBallAngleToField = atan2(
+            data->ball.posToField.y - data->robotPoseToField.y,
+            data->ball.posToField.x - data->robotPoseToField.x
+        );
+    }
+    
     // Identify Teammates before separating objects
     detection_utils::identifyTeammates(gameObjects, data);
 
