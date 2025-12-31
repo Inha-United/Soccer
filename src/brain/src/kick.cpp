@@ -147,13 +147,35 @@ NodeStatus CalcKickDirWithGoalkeeper::tick(){
         while(diff < -M_PI) diff += 2*M_PI;
         
         // 골키퍼가 중심보다 왼쪽에 있음(diff > 0) -> 오른쪽 포스트 쪽으로 슛
+        // diff는 (GK각도 - 골대중심각도) 입니다.
+        // GK가 왼쪽에 있다(diff > 0) -> 오른쪽 공간이 빎 -> 오른쪽 포스트와 중심 사이로 슛
+        // GK가 오른쪽에 있다(diff < 0) -> 왼쪽 공간이 빎 -> 왼쪽 포스트와 중심 사이로 슛
+        
+        string gapChoice = "Center";
         if(diff > 0) {
             bestKickDir = angleRightPost + (angleToGoalCenter - angleRightPost) * 0.5; // 오른쪽 절반의 중간
+            gapChoice = "Right Gap";
         } else {
             bestKickDir = angleLeftPost + (angleToGoalCenter - angleLeftPost) * 0.5; // 왼쪽 절반의 중간
+            gapChoice = "Left Gap";
         }
-        
         // 만약 골키퍼가 너무 중앙이라 양쪽 다 좁다 or thetal - thetar 자체가 작다면 -> 여기서 바로 cross로 가도 좋을듯
+        
+        brain->log->logToScreen("debug/KickDir", format("GK Detected! Aiming: %s (Diff: %.2f)", gapChoice.c_str(), diff), 0xFF00FFFF);
+        
+        // Debug Visualization for GK logic
+        brain->log->log(
+            "debug/gk_angles",
+            rerun::Arrows2D::from_vectors({
+                {5 * cos(angleLeftPost), -5 * sin(angleLeftPost)}, 
+                {5 * cos(angleRightPost), -5 * sin(angleRightPost)},
+                {5 * cos(gkAngle), -5 * sin(gkAngle)}
+            })
+            .with_origins({{bPos.x, -bPos.y}, {bPos.x, -bPos.y}, {bPos.x, -bPos.y}})
+            .with_colors({0x00FF00FF, 0x00FF00FF, 0xFF0000FF}) // Green=Posts, Red=GK
+            .with_labels({"L-Post", "R-Post", "GK"})
+            .with_radii(0.01)
+        );
     }
 
     // 최종 결정
@@ -183,7 +205,8 @@ NodeStatus CalcKickDirWithGoalkeeper::tick(){
         rerun::Arrows2D::from_vectors({{10 * cos(brain->data->kickDir), -10 * sin(brain->data->kickDir)}})
             .with_origins({{brain->data->ball.posToField.x, -brain->data->ball.posToField.y}})
             .with_colors({color}) 
-            .with_radii(0.015) 
+            .with_radii(0.02) 
+            .with_labels({"KickDir"})
             .with_draw_order(32)
     );
 
