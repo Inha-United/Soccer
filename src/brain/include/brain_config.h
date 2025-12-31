@@ -59,6 +59,7 @@ public:
 
     /* --------------------------------------------------------------------- Communication 관련 파라미터 --------------------------------------------------------------------- */
     bool enableCom = false; // 팀 통신 활성화 여부
+    double tmBallDistThreshold = 2.0;
     string brainCommunicationTreeFilePath; // communication용 behavior tree 파일 경로
 
 
@@ -96,5 +97,6 @@ public:
     void print(ostream &os);
 
     /* -------------------------------------------------------------------------- speak관련 --------------------------------------------------------------------- */
+    bool soundEnable = false;
     string soundPack = "espeak";
 };
