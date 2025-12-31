@@ -151,7 +151,6 @@ private:
     void updateMemory();
 
     void logMemRobots();
-    void speak(string msg, bool interrupt = false);
 
     // ROS subscription 변수
     rclcpp::Subscription<game_controller_interface::msg::GameControlData>::SharedPtr gameControlSubscription;
