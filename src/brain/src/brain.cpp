@@ -1440,7 +1440,7 @@ void Brain::handleCooperation() {
             string label = format("ID: %d, Cost: %.1f", tmId, tmStatus.cost);
             log->logRobot(format("field/teammate-%d", tmId).c_str(), tmStatus.robotPoseToField, color, label);
             log->logBall(
-            format("tm_ball-%d", tmId).c_str(),
+            format("field/tm_ball-%d", tmId).c_str(),   // 로그 위치 수정
             tmStatus.ballPosToField, 
             tmStatus.ballDetected ? 0x00FFFFFF : (tmStatus.isAlive ? 0x006666FF : 0x003333FF),
             tmStatus.ballConfidence,
