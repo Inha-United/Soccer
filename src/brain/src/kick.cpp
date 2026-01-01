@@ -168,7 +168,7 @@ NodeStatus CalcKickDirWithGoalkeeper::tick(){
 
     brain->data->kickType = strategy;
     
-    // 추가로 부드러운 회전을 위해 필터 적용
+    // 추가로 부드러운 kickdir 움직임을 위해 필터 적용
     double prevKickDir = brain->data->kickDir; 
     
     double diff = targetKickDir - prevKickDir;

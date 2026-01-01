@@ -103,9 +103,12 @@ NodeStatus StrikerDecide::tick() {
         newDecision = "one_touch";
         color = 0xFF0000FF; // Red color
     }
+    
+    bool maintainKick = (lastDecision == "kick" && fabs(deltaDir) < 0.5); 
+
     else if (
         (
-            (reachedKickDir && !brain->data->isFreekickKickingOff) 
+            ( (reachedKickDir || maintainKick) && !brain->data->isFreekickKickingOff) 
             // || reachedKickDir
         )
         && brain->data->ballDetected
