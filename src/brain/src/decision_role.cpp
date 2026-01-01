@@ -57,9 +57,9 @@ NodeStatus StrikerDecide::tick() {
     auto dt = brain->msecsSince(timeLastTick);
     bool reachedKickDir = 
         deltaDir * lastDeltaDir <= 0 
-        && fabs(deltaDir) < M_PI / 6
+        && fabs(deltaDir) < 0.1 // M_PI/6 (30도) -> 0.1 (5.7도)로 강화
         && dt < 100;
-    reachedKickDir = reachedKickDir || fabs(deltaDir) < 0.1;
+    reachedKickDir = reachedKickDir || fabs(deltaDir) < 0.05; // 0.1 (5.7도) -> 0.05 (2.9도)로 강화
     timeLastTick = now;
     lastDeltaDir = deltaDir;
 
