@@ -906,7 +906,7 @@ void Brain::updateBallMemory(){
 
     // Calculate ball speed
     double dt = msecsSince(lastBallTime) / 1000.0;
-    if (dt > 0.0 && dt < 1.0 && data->ballDetected) { // Only calculate if reasonable time delta and ball detected
+    if (dt > 0.0 && dt < 1.0 && data->ballDetected) {
         double dist = norm(data->ball.posToField.x - lastBallPos.x, data->ball.posToField.y - lastBallPos.y);
         double speed = dist / dt;
         
