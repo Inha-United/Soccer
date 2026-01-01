@@ -61,9 +61,9 @@ int RobotClient::waveHand(bool doWaveHand)
 
 int RobotClient::setVelocity(double x, double y, double theta, bool applyMinX, bool applyMinY, bool applyMinTheta)
 {
-    //brain->log->setTimeNow();
-    //brain->log->log("RobotClient/setVelocity_in",
-    //                rerun::TextLog(format("vx: %.2f  vy: %.2f  vtheta: %.2f", x, y, theta)));
+    brain->log->setTimeNow();
+    brain->log->log("debug/cmd_vel", rerun::TextLog(format("vx: %.2f  vy: %.2f  vtheta: %.2f", x, y, theta)));
+    brain->log->log("debug/cmd_speed", rerun::TextLog(format("speed: %.2f", norm(x, y))));
 
     // 速度指令太小时, 给一个最小速度, 以防止不响应 TODO 转为参数化
     double minx = 0.05, miny = 0.08, mintheta = 0.05;
