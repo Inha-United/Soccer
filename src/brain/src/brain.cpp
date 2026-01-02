@@ -871,6 +871,9 @@ void Brain::updateBallMemory(){
     updateRelativePos(data->ball);
     // updateRelativePos(data->tmBall);
     
+    static Point lastBallPos = data->ball.posToField;
+    static rclcpp::Time lastBallTime = data->ball.timePoint;
+    
     // Calculate ball speed
     double dt = msecsSince(lastBallTime) / 1000.0;
     if (dt > 0.0 && dt < 1.0 && data->ballDetected) {
