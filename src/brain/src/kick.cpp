@@ -108,8 +108,13 @@ NodeStatus CalcKickDirWithGoalkeeper::tick(){
     // CalcKickDir과 동일한 로직으로 중앙을 default로
     double goalX = - (brain->config->fieldDimensions.length / 2); 
     
+    // 기본 킥 방향을 중앙이 아닌, 로봇(공)과 가까운 구석으로 설정
+    double targetGoalY = (bPos.y > 0) 
+        ? (fd.goalWidth / 2.0 - 0.2) 
+        : (-fd.goalWidth / 2.0 + 0.2);
+
     double targetKickDir = atan2(
-        0 - bPos.y,
+        targetGoalY - bPos.y,
         goalX - bPos.x 
     );
     
