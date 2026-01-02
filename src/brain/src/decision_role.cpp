@@ -122,10 +122,6 @@ NodeStatus StrikerDecide::tick() {
         newDecision = "chase";
         color = 0x0000FFFF;
     } 
-    // 세트피스 상황이거나, 일반 경기에서도 골대랑 가까우면 one_touch
-
-
-    
 
     else if (
         (

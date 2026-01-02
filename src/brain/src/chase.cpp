@@ -268,58 +268,76 @@ NodeStatus OfftheballPosition::tick()
 {
     auto fd = brain->config->fieldDimensions;
     double distFromGoal = 2.0; 
-    getInput("dist_from_goal", distFromGoal);
-
-    // 목표 위치: 골대에서 2m 떨어진 지점
-    double targetX = -(fd.length / 2.0) + distFromGoal;
+    if (!getInput("dist_from_goal", distFromGoal)) {
+        // failed to get input, use default
+        distFromGoal = 2.0;
+    }
+    
+    // 목표 위치 : 골대 중앙에서 2m
+    double goalX = -(fd.length / 2.0);
+    double targetX = goalX + distFromGoal;
     double targetY = 0.0;
 
-    // 현재 위치
+    // 2. 현재 상태 가져오기
     double robotX = brain->data->robotPoseToField.x;
     double robotY = brain->data->robotPoseToField.y;
     double robotTheta = brain->data->robotPoseToField.theta;
 
-    // 오차
+    // 3. 위치 오차 및 속도 계산 (P제어)
     double errX = targetX - robotX;
     double errY = targetY - robotY;
     double dist = norm(errX, errY);
 
-    // 속도 계산
-    double pGain = 1.0;
-    double vX_field = errX * pGain;
-    double vY_field = errY * pGain;
+    double vX_field = errX * 1.0; // P-Gain 1.0
+    double vY_field = errY * 1.0;
 
-    // 속도 제한
+    // 속도 제한 
     double vLimit = 0.6;
-    if (norm(vX_field, vY_field) > vLimit) {
+    if (dist > 0.01 && norm(vX_field, vY_field) > vLimit) {
         double scale = vLimit / norm(vX_field, vY_field);
         vX_field *= scale;
         vY_field *= scale;
     }
     
+    // 위치 Deadzone (10cm 이내면 정지)
+    if (dist < 0.1) {
+        vX_field = 0.0;
+        vY_field = 0.0;
+    }
+
     double vx_robot = cos(robotTheta) * vX_field + sin(robotTheta) * vY_field;
     double vy_robot = -sin(robotTheta) * vX_field + cos(robotTheta) * vY_field;
 
-    // 로봇 위치에서 골대(-length/2, 0)를 바라보는 각도 계산
-    // goalX: -fd.length/2.0
-    // robotX: 현재 로봇 X
-    // vector: (goalX - robotX, 0 - robotY)
-    double angleToGoal = atan2(0.0 - robotY, -(fd.length/2.0) - robotX);
-    
-    // 로봇이 angleToGoal을 향하도록 제어
+    // 골대 바라보기
+    double angleToGoal = atan2(0.0 - robotY, goalX - robotX);
     double angleDiff = toPInPI(angleToGoal - robotTheta);
-    double vtheta = angleDiff * 1.5;
+    double vtheta = angleDiff * 1.0;
 
+    // 방향 Deadzone
+    if (fabs(angleDiff) < 0.05) {
+        vtheta = 0.0;
+    }
+
+    // vtheta 제한 및 NaN 체크
+    if (!isfinite(vtheta) || !isfinite(vx_robot)) {
+        brain->log->logToScreen("error/Offtheball", "NaN/Inf detected", 0xFF0000FF);
+        vtheta = 0.0; vx_robot = 0.0; vy_robot = 0.0;
+    } else {
+        // Cap vtheta
+        if (vtheta > 1.5) vtheta = 1.5;
+        if (vtheta < -1.5) vtheta = -1.5;
+    }
+    
     brain->client->setVelocity(vx_robot, vy_robot, vtheta);
     
-    // Debug Log (Rerun + Screen)
+    // Debug Log
     brain->log->setTimeNow();
-    brain->log->log("debug/offtheball/target_pos", rerun::Points2D({{(float)targetX, (float)targetY}}).with_colors({0x00FFFFFF}).with_radii({0.1f}).with_labels({"SupportTarget"}));
-    brain->log->log("debug/offtheball/angles", rerun::TextLog(format("GoalAngle: %.2f RobotTheta: %.2f Diff: %.2f vtheta: %.2f", angleToGoal, robotTheta, angleDiff, vtheta)));
+    brain->log->log("debug/offtheball/target_pos", rerun::Points2D({{(float)targetX, (float)targetY}}).with_colors({0x00FFFFFF}).with_radii({0.1f}).with_labels({"Offtheball"}));
+    brain->log->log("debug/offtheball/data", rerun::TextLog(format("DistFromGoal: %.2f Tgt: (%.2f, %.2f) Err: (%.2f, %.2f) Dist: %.2f", distFromGoal, targetX, targetY, errX, errY, dist)));
     
     brain->log->logToScreen(
         "debug/Offtheball", 
-        format("Target: (%.1f, %.1f) Dist: %.2f", targetX, targetY, dist), 
+        format("Tgt:(%.1f,%.1f) Err:%.2f AngErr:%.2f", targetX, targetY, dist, angleDiff), 
         0x00FFFFFF
     );
 
