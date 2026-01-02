@@ -115,7 +115,7 @@ NodeStatus StrikerDecide::tick() {
         newDecision = "one_touch";
         color = 0xFF0000FF; // Red color
     } else if (!brain->data->tmImLead) {
-        newDecision = "support";
+        newDecision = "offtheball";
         color = 0x00FFFFFF;
     } else if (ballRange > chaseRangeThreshold * (lastDecision == "chase" ? 0.9 : 1.0))
     {

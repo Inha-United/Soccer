@@ -77,10 +77,10 @@ private:
     Brain *brain;
 };
 
-class SupportPosition : public SyncActionNode
+class OfftheballPosition : public SyncActionNode
 {
 public:
-    SupportPosition(const string &name, const NodeConfig &config, Brain *_brain) : SyncActionNode(name, config), brain(_brain) {}
+    OfftheballPosition(const string &name, const NodeConfig &config, Brain *_brain) : SyncActionNode(name, config), brain(_brain) {}
 
     static PortsList providedPorts()
     {

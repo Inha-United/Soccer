@@ -16,7 +16,7 @@ void RegisterChaseNodes(BT::BehaviorTreeFactory &factory, Brain* brain){
     REGISTER_CHASE_BUILDER(SimpleChase) // obstacle 없이 chase만 
     REGISTER_CHASE_BUILDER(Chase) // obstacle 추가된 chase
     REGISTER_CHASE_BUILDER(DribbleChase) // 드리블 전용 chase
-    REGISTER_CHASE_BUILDER(SupportPosition) // 골대 앞 오프더볼 무브
+    REGISTER_CHASE_BUILDER(OfftheballPosition) // 골대 앞 오프더볼 무브
 }
 
 NodeStatus SimpleChase::tick(){
@@ -264,7 +264,7 @@ NodeStatus DribbleChase::tick() {
 }
 
 // 패스 받기 전 오프더볼 무브 추후 오프사이드 보완해야함 (opponent보다는 앞으로 가지 않도록)
-NodeStatus SupportPosition::tick()
+NodeStatus OfftheballPosition::tick()
 {
     auto fd = brain->config->fieldDimensions;
     double distFromGoal = 2.0; 
@@ -310,7 +310,7 @@ NodeStatus SupportPosition::tick()
     
     // Debug Log
     brain->log->logToScreen(
-        "debug/Support", 
+        "debug/Offtheball", 
         format("Target: (%.1f, %.1f) Dist: %.2f", targetX, targetY, dist), 
         0x00FFFFFF
     );
