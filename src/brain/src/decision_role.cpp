@@ -89,38 +89,36 @@ NodeStatus StrikerDecide::tick() {
         newDecision = "chase";
         color = 0x0000FFFF;
     } 
-    // 세트피스 상황에서 adjust 없이 바로 킥
+    // 세트피스 상황이거나, 일반 경기에서도 골대랑 가까우면 one_touch
     else if (
         (
             (
-                (brain->tree->getEntry<string>("gc_game_sub_state_type") == "CORNER_KICK"
-                || brain->tree->getEntry<string>("gc_game_sub_state_type") == "GOAL_KICK"
-                || brain->tree->getEntry<string>("gc_game_sub_state_type") == "DIRECT_FREE_KICK"
-                || brain->tree->getEntry<string>("gc_game_sub_state_type") == "THROW_IN")
-                && brain->tree->getEntry<bool>("gc_is_sub_state_kickoff_side")
+                (
+                    (brain->tree->getEntry<string>("gc_game_sub_state_type") == "CORNER_KICK"
+                    || brain->tree->getEntry<string>("gc_game_sub_state_type") == "GOAL_KICK"
+                    || brain->tree->getEntry<string>("gc_game_sub_state_type") == "DIRECT_FREE_KICK"
+                    || brain->tree->getEntry<string>("gc_game_sub_state_type") == "THROW_IN")
+                    && brain->tree->getEntry<bool>("gc_is_sub_state_kickoff_side")
+                )
+                || (
+                     angleGoodForKick          
+                     && !avoidKick             
+                )
             )
-            // 세트피스가 아닌 경기에서도 골대를 보고있고 장애물이 없다면 정렬 없이 킥 && reachedKickDir // 킥 방향 정렬도 되어있다면
-             || (
-                 angleGoodForKick          // 골대에 각이 있고
-                 && !avoidKick             // 장애물이 없고
-            )
+            && brain->data->ballDetected
+            && ball.range < 0.5 
+            && fabs(brain->data->ball.yawToRobot) < 0.3 
         )
-        && brain->data->ballDetected
-        && ball.range < 0.5 // 거리가 매우 가까울 때 -> 0.4에서 0.5
-        && fabs(brain->data->ball.yawToRobot) < 0.3 // 각도가 거의 정면일 때 -> 0.2에서 0.3
+        || // 일반 경기 + 골대 근처
+        (
+            brain->data->ballDetected
+            && ball.range < 0.5 
+            && fabs(brain->data->ball.yawToRobot) < 0.3 
+            && norm(brain->data->robotPoseToField.x - brain->config->fieldDimensions.length/2, brain->data->robotPoseToField.y) < 2.0 
+        )
     ) {
         newDecision = "one_touch";
         color = 0xFF0000FF; // Red color
-    }
-    // 일반 경기상황에서도 골대랑 가까우면 one_touch 
-    else if (
-        brain->data->ballDetected
-        && ball.range < 0.5 // 공이랑 가까움
-        && fabs(brain->data->ball.yawToRobot) < 0.3 // 공이 정면
-        && norm(brain->data->robotPoseToField.x - brain->config->fieldDimensions.length/2, brain->data->robotPoseToField.y) < 2.0 // 골대랑 가까움 (2.0m)
-    ) {
-        newDecision = "one_touch";
-        color = 0xFF0000FF; 
     }
     
 
