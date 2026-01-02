@@ -248,7 +248,7 @@ NodeStatus CalcPassDir::tick(){
         // 공에서 팀원 방향으로 킥 방향 설정
         // brain->data->kickDir = atan2(tmPos.y - bPos.y, tmPos.x - bPos.x);
         
-        brain->log->logToScreen("debug/Pass", format("Passing to TM %d at Dist %.2f", bestTeammateIdx+1, minDist), 0x00FF00FF);
+        brain->log->logToScreen("debug/Pass", format("Passing to TM %d at Dist %.2f to (%.2f, %.2f)", bestTeammateIdx+1, minDist, tx, ty), 0x00FF00FF);
     } else {
         // 줄 사람 없으면 그냥 슛 (기존 로직 fallback)
         brain->data->kickType = "shoot";
