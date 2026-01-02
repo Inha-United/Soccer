@@ -115,6 +115,10 @@ public:
     /* ----------------------------- 변수 업데이트를 위한 함수들 ----------------------------- */
     void updateRelativePos(GameObject &obj);
     bool isFreekickStartPlacing();
+    void updateMemory();
+    void updateRobotMemory();
+    void updateKickoffMemory();
+
 
     /*------------------------------- 공통으로 쓰이는 판단 로직 함수 ----------------------------------------------*/
     // ostacle 관련 함수
@@ -140,6 +144,7 @@ private:
     void updateObstacleMemory();
     void handleCooperation();
     void updateCostToKick();
+    
 
     // ROS subscription 변수
     rclcpp::Subscription<game_controller_interface::msg::GameControlData>::SharedPtr gameControlSubscription;

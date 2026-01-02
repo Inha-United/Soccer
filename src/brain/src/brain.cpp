@@ -870,6 +870,24 @@ void Brain::updateBallMemory(){
 
     updateRelativePos(data->ball);
     // updateRelativePos(data->tmBall);
+    
+    // Calculate ball speed
+    double dt = msecsSince(lastBallTime) / 1000.0;
+    if (dt > 0.0 && dt < 1.0 && data->ballDetected) {
+        double dist = norm(data->ball.posToField.x - lastBallPos.x, data->ball.posToField.y - lastBallPos.y);
+        double speed = dist / dt;
+        
+        static double filteredSpeed = 0.0;
+        filteredSpeed = filteredSpeed * 0.7 + speed * 0.3;
+
+        log->log("debug/ball_speed", rerun::TextLog(format("speed: %.2f m/s", filteredSpeed)));
+        log->log("debug/ball_speed_scalar", rerun::Scalar(filteredSpeed));
+    }
+
+    if (data->ballDetected) {
+        lastBallPos = data->ball.posToField;
+        lastBallTime = data->ball.timePoint;
+    }
 
     tree->setEntry<double>("ball_range", data->ball.range);
 
@@ -1378,6 +1396,43 @@ void Brain::logDepth(int grid_x_count, int grid_y_count, vector<vector<int>> &gr
     );
 }
 
+void Brain::logMemRobots() {
+    auto rbts = data->getRobots();
+    // prtDebug(format("logMemRobots called, robotsize = %d", rbts.size()), RED_CODE);
+
+    if (rbts.size() == 0) {
+        log->log("field/mem_robots", rerun::Clear::FLAT);
+        // log->log("robotframe/mem_robots", rerun::Clear::FLAT);
+        return;
+    }
+    
+    // else 
+    log->setTimeNow();
+    // vector<rerun::Vec2D> points;
+    vector<rerun::LineStrip2D> circles;
+    vector<rerun::Vec2D> points_r; // robot frame
+    for (int i = 0; i < rbts.size(); i++)
+    {
+        auto rbt = rbts[i];
+        log->logRobot("field/robots", Pose2D({rbt.posToField.x, rbt.posToField.y, -M_PI}), 0xFF0000FF);
+        // circles.push_back(log->circle(rbt.posToField.x, -rbt.posToField.y, 0.5)); // y 取反是因为 rerun Viewer 的坐标系是左手系。转一下看起来更方便。
+        // points_r.push_back(rerun::Vec2D{rbt.posToRobot.x, -rbt.posToRobot.y});
+    }
+
+    // log->log("field/mem_robots",
+    //          rerun::LineStrips2D(circles)
+    //              .with_colors(0xFF0000AA)
+    //              .with_radii(0.01)
+    //          // .with_labels(labels)
+    // );
+    // log->log("robotframe/mem_robots",
+    //          rerun::Points2D(points_r)
+    //              .with_colors(0xFF0000AA)
+    //              .with_radii(0.5)
+    //          // .with_labels(labels)
+    // );
+}
+
 bool Brain::isAngleGood(double goalPostMargin, string type) {
     double angle = 0;
     if (type == "kick") angle = data->robotBallAngleToField; // type == "kick": 로봇 → 공 방향 벡터 (필드 좌표계)
@@ -1719,4 +1774,70 @@ void Brain::updateCostToKick() {
     log_(format("lastCost: %.1f, newCost: %.1f, smoothCost: %.1f", lastCost, cost, data->tmMyCost));
 
     return;
+}
+
+/* ------------------------- Memory 관련 함수 구현 -------------------------------*/
+void Brain::updateMemory()
+{
+
+    updateRobotMemory();
+
+    updateKickoffMemory();
+}
+
+
+void Brain::updateRobotMemory() {
+    auto robots = data->getRobots();
+    vector<GameObject> newRobots = {};
+
+    for (int i = 0; i < robots.size(); i++) {
+        auto r = robots[i];
+
+
+        if (msecsSince(r.timePoint) > 1000)  continue;
+
+
+        updateRelativePos(r);
+        newRobots.push_back(r);
+    }
+
+    data->setRobots(newRobots);
+
+    logMemRobots();
+}
+
+void Brain::updateKickoffMemory() {
+    
+    static Point ballPos;
+    const double BALL_MOVE_THRESHOLD_FACTOR = 0.15; 
+    const double BALL_MOVE_THRESHOLD_MIN = 0.3; 
+    auto ballMoved = [=]() {
+        if (!data->ballDetected) return false; 
+        double range = data->ball.range;
+        double threshold = max(range * BALL_MOVE_THRESHOLD_FACTOR, BALL_MOVE_THRESHOLD_MIN);
+        double posChange = norm(data->ball.posToRobot.x - ballPos.x, data->ball.posToRobot.y - ballPos.y);
+        return posChange > threshold;
+    };
+    static rclcpp::Time kickOffTime;
+    const double TIMEOUT = 1000 * 10; 
+    auto timeReached = [=]() {
+        return msecsSince(kickOffTime) > TIMEOUT;
+    };
+    bool isWaitingForKickoff = (
+        (tree->getEntry<string>("gc_game_state") == "SET"  || tree->getEntry<string>("gc_game_state") == "READY")
+        && !tree->getEntry<bool>("gc_is_kickoff_side")
+    );
+    bool isWaitingForFreekickKickoff = (
+        (tree->getEntry<string>("gc_game_sub_state") == "SET" || tree->getEntry<string>("gc_game_sub_state") == "GET_READY")
+        && !tree->getEntry<bool>("gc_is_sub_state_kickoff_side")
+    );
+    if ( isWaitingForFreekickKickoff || isWaitingForKickoff) {
+        ballPos = data->ball.posToRobot;
+        kickOffTime = get_clock()->now();
+        tree->setEntry<bool>("wait_for_opponent_kickoff", true);
+    } else if (tree->getEntry<bool>("wait_for_opponent_kickoff")) {
+        if (ballMoved() || timeReached()) {
+            tree->setEntry<bool>("wait_for_opponent_kickoff", false);
+        }
+    }
 }

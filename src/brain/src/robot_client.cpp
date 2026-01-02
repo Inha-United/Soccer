@@ -77,7 +77,7 @@ int RobotClient::setVelocity(double x, double y, double theta, bool applyMinX, b
     y = cap(y, brain->config->vyLimit, -brain->config->vyLimit);
     theta = cap(theta, brain->config->vthetaLimit, -brain->config->vthetaLimit);
     
-    // // log simulated path based on velocity
+    // log simulated path based on velocity
     vector<Pose2D> path = {{0, 0, 0}}; // 坐标系是以机器人的位置为 0,0, linear 速度方向为 theta = 0 的坐标系
     double v = norm(x, y);
     double simStep = 1e-1; double simLength = 5.;
@@ -125,6 +125,9 @@ int RobotClient::setVelocity(double x, double y, double theta, bool applyMinX, b
     if (fabs(_vx) > 1e-3 || fabs(_vy) > 1e-3 || fabs(_vtheta) > 1e-3) _lastNonZeroCmdTime = brain->get_clock()->now();
     brain->log->log("RobotClient/setVelocity_out",
        rerun::TextLog(format("vx: %.2f  vy: %.2f  vtheta: %.2f", x, y, theta)));
+    
+    double v = std::sqrt(x * x + y * y)
+    brain->log->log("RobotClient/setVelocity_out_scalar", rerun::Scalar(v));
     return call(booster_interface::CreateMoveMsg(x, y, theta));
 }
 

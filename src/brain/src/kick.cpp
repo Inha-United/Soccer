@@ -198,6 +198,8 @@ NodeStatus CalcPassDir::tick(){
     auto bPos = brain->data->ball.posToField; // 공 위치
     int bestTeammateIdx = -1;
     double minDist = 9999.0;
+    auto fd = brain->config->fieldDimensions; // 필드 정보
+    auto color = 0xFFFFFFFF
 
     // 가장 가까운(혹은 적절한) 팀원 찾기
     for(int i=0; i<HL_MAX_NUM_PLAYERS; i++){
@@ -228,8 +230,14 @@ NodeStatus CalcPassDir::tick(){
         brain->log->logToScreen("debug/Pass", format("Passing to TM %d at Dist %.2f", bestTeammateIdx+1, minDist), 0x00FF00FF);
     } else {
         // 줄 사람 없으면 그냥 슛 (기존 로직 fallback)
-        brain->data->kickType = "shoot"; 
-        brain->data->kickDir = 0.0; // 정면
+        brain->data->kickType = "shoot";
+        color = 0x00FF00FF;
+        brain->data->kickDir = atan2(
+            0 - bPos.y,
+            - fd.length/2 - bPos.x // 여기도 - 붙였음
+        );
+        // 이것도 - 로 바꿈 + 0에서 M_PI로 바꿈
+        if (brain->data->ball.posToField.x < - (brain->config->fieldDimensions.length / 2)) brain->data->kickDir = M_PI; 
         brain->log->logToScreen("debug/Pass", "No Teammate found, fallback to shoot", 0xFF0000FF);
     }
 
@@ -328,7 +336,6 @@ NodeStatus Kick::onRunning(){
 
     // if(brain->tree->getEntry<string>("striker_state") != "kick") return NodeStatus::SUCCESS;
 
-    // [원본 그대로] 킥 중단 조건 (공이 너무 많이 움직였거나 놓쳤을 때)
     bool enableAbort;
     brain->get_parameter("strategy.abort_kick_when_ball_moved", enableAbort);
     auto ballRange = brain->data->ball.range;
@@ -383,30 +390,41 @@ NodeStatus Kick::onRunning(){
     }
 
     // [원본 그대로] 가속 로직 (점점 빨라짐)
-    if (brain->data->ballDetected) { 
-        double angle = brain->data->ball.yawToRobot;
-        // _speed는 멤버 변수
-        _speed += 0.1; 
+    // if (brain->data->ballDetected) { 
+    //     double angle = brain->data->ball.yawToRobot;
+    //     // _speed는 멤버 변수
+    //     _speed += 0.1; 
         
-        // 입력받은 제한 속도와 비교
-        double currentCmdSpeed = min(speedLimit, _speed);
-        
-        // kick에서의 속도 log 추가
-        auto log = [=](string msg) {
+    //     // 입력받은 제한 속도와 비교
+    //     double currentCmdSpeed = min(speedLimit, _speed);
+    //     brain->client->crabWalk(angle, currentCmdSpeed);
+    // }
+    
+    // 승재욱 추가: _calcSpeed 활용하도록 변경
+    if(brain->data->ballDetected){
+        auto [vx, vy, _] = _calcSpeed();
+        double vtheta = brain->data->ball.yawToRobot * 1.5; // P-gain 1.5
+        // 실제 평면 속도
+        double v = std::sqrt(vx * vx + vy * vy);
+
+        // === 로그 ===
         brain->log->setTimeNow();
-        brain->log->log("debug/kick/state", rerun::TextLog(msg));
-        };
-
-        log(format(
-            "kick running | speed=%.2f (raw=%.2f) | angle=%.2f | range=%.2f",
-            currentCmdSpeed,
-            _speed,
-            angle,
-            ballRange
-        ));
-
-        brain->client->crabWalk(angle, currentCmdSpeed);
+        brain->log->log(
+            "debug/kick/speed",
+            rerun::TextLog(format(
+                "kickType=%s | vx=%.3f vy=%.3f | v=%.3f | vtheta=%.3f | range=%.3f",
+                kickType.c_str(),
+                vx, vy,
+                v,
+                vtheta,
+                ballRange
+            ))
+        );
+        
+        brain->client->setVelocity(vx, vy, vtheta);
     }
+
+
 
     return NodeStatus::RUNNING;
 }
