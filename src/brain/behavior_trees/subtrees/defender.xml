@@ -34,7 +34,7 @@
                   <SubTree ID="CamFindAndTrackBall" _autoremap="true" />
                   
                   <!-- 킥 방향 계산 (패스 방향) -->
-                  <CalcPassDir pass_threshold="5.0" />
+                  <CalcPassDir pass_threshold="8.0" />
                   
                   <Sequence>
                      
