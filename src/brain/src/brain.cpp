@@ -1495,7 +1495,7 @@ void Brain::handleCooperation() {
             auto color = 0x00FFFFFF;
             if (!tmStatus.isAlive) color = 0x006666FF;
             else if (!tmStatus.isLead) color = 0x00CCCCFF;
-            string label = format("ID: %d, Cost: %.1f", tmId, tmStatus.cost);
+            string label = format("ID: %d, Cost: %.1f", tmId, tmStatus.cost*0.8);
             log->logRobot(format("field/teammate-%d", tmId).c_str(), tmStatus.robotPoseToField, color, label);
             log->logBall(
             format("field/tm_ball-%d", tmId).c_str(),   // 로그 위치 수정
@@ -1604,8 +1604,11 @@ void Brain::handleCooperation() {
     for (int i = 0; i < aliveTmIdxs.size(); i++) {
         int tmIdx = aliveTmIdxs[i];
         auto tmStatus = data->tmStatus[tmIdx];
-        if (tmStatus.cost < tmMinCost) tmMinCost = tmStatus.cost*0.8;
+        if (tmStatus.cost < tmMinCost) tmMinCost = tmStatus.cost;
     }
+    
+    tmMinCost *=0.8;
+
     double BALL_CONTROL_COST_THRESHOLD = 3.0;
     get_parameter("strategy.cooperation.ball_control_cost_threshold", BALL_CONTROL_COST_THRESHOLD);
 
