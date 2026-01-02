@@ -418,6 +418,17 @@ NodeStatus Kick::onRunning(){
         
         // 입력받은 제한 속도와 비교
         double currentCmdSpeed = min(speedLimit, _speed);
+        
+        brain->log->setTimeNow();
+        brain->log->log(
+            "debug/kick/speed",
+            rerun::TextLog(format(
+                "angle=%s | currentCmdSpeed=%.3f",
+                kickType.c_str(),
+                angle, currentCmdSpeed
+            ))
+        );
+
         brain->client->crabWalk(angle, currentCmdSpeed);
     }
     
