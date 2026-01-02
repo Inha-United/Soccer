@@ -224,8 +224,29 @@ NodeStatus CalcPassDir::tick(){
         brain->data->kickType = "pass"; // 킥 타입 설정
         auto tmPos = brain->data->tmStatus[bestTeammateIdx].robotPoseToField;
         color = 0x00FFFFFF;
+        double offset = 0.5;
+        // 골대 중심 좌표 (공격 골대가 -L/2 라면)
+        double gx = -fd.length / 2.0;
+        double gy = 0.0;
+
+        // 팀원 -> 골대 벡터
+        double vg_x = gx - tmPos.x;
+        double vg_y = gy - tmPos.y;
+
+        double vg_norm = std::hypot(vg_x, vg_y);
+        
+        // 팀원->골대 단위벡터
+        double ug_x = vg_x / vg_norm;
+        double ug_y = vg_y / vg_norm;
+
+        // 팀원 "앞" 타겟 (팀원 위치에서 골대 방향으로 offset만큼)
+        double tx = tmPos.x + offset * ug_x;
+        double ty = tmPos.y + offset * ug_y;
+
+        // 공 -> 타겟 방향으로 킥
+        brain->data->kickDir = atan2(ty - bPos.y, tx - bPos.x);
         // 공에서 팀원 방향으로 킥 방향 설정
-        brain->data->kickDir = atan2(tmPos.y - bPos.y, tmPos.x - bPos.x);
+        // brain->data->kickDir = atan2(tmPos.y - bPos.y, tmPos.x - bPos.x);
         
         brain->log->logToScreen("debug/Pass", format("Passing to TM %d at Dist %.2f", bestTeammateIdx+1, minDist), 0x00FF00FF);
     } else {
