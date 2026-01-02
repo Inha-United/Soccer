@@ -113,9 +113,6 @@ NodeStatus CalcKickDirWithGoalkeeper::tick(){
         goalX - bPos.x 
     );
     
-    // 골라인 뒤쪽에서 180도 돌아가버리는 것 방지
-    if (bPos.x < goalX) targetKickDir = M_PI; 
-
     // 기본적으로 중앙을 목표하지만(킥의 부정확함) 그 경로에 opponent가 있다면 회피 로직
     vector<GameObject> obstacles = brain->data->getObstacles();
     vector<GameObject> goalkeepers;
@@ -125,11 +122,6 @@ NodeStatus CalcKickDirWithGoalkeeper::tick(){
         if(obs.posToField.x < goalX + fd.goalAreaLength + goalkeeperMargin){
             goalkeepers.push_back(obs);
         }
-    }
-    
-    // locator 실패 시 회피 로직 오작동 방지
-    if (brain->msecsSince(brain->data->lastSuccessfulLocalizeTime) > 2000) {
-        goalkeepers.clear();
     }
 
     if(!goalkeepers.empty()){
@@ -175,7 +167,7 @@ NodeStatus CalcKickDirWithGoalkeeper::tick(){
     while(diff > M_PI) diff -= 2*M_PI;
     while(diff < -M_PI) diff += 2*M_PI;
 
-    brain->data->kickDir = prevKickDir + diff * 0.3;
+    brain->data->kickDir = prevKickDir + diff * 0.5;
     
     while(brain->data->kickDir > M_PI) brain->data->kickDir -= 2*M_PI;
     while(brain->data->kickDir < -M_PI) brain->data->kickDir += 2*M_PI;
