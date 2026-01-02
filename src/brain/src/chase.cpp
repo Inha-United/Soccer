@@ -16,6 +16,7 @@ void RegisterChaseNodes(BT::BehaviorTreeFactory &factory, Brain* brain){
     REGISTER_CHASE_BUILDER(SimpleChase) // obstacle 없이 chase만 
     REGISTER_CHASE_BUILDER(Chase) // obstacle 추가된 chase
     REGISTER_CHASE_BUILDER(DribbleChase) // 드리블 전용 chase
+    REGISTER_CHASE_BUILDER(SupportPosition) // 골대 앞 오프더볼 무브
 }
 
 NodeStatus SimpleChase::tick(){
@@ -262,6 +263,61 @@ NodeStatus DribbleChase::tick() {
     return NodeStatus::SUCCESS;
 }
 
+// 패스 받기 전 오프더볼 무브 추후 오프사이드 보완해야함 (opponent보다는 앞으로 가지 않도록)
+NodeStatus SupportPosition::tick()
+{
+    auto fd = brain->config->fieldDimensions;
+    double distFromGoal = 2.0; 
+    getInput("dist_from_goal", distFromGoal);
+
+    // 목표 위치: 골대에서 2m 떨어진 지점
+    double targetX = -(fd.length / 2.0) + distFromGoal;
+    double targetY = 0.0;
+
+    // 현재 위치
+    double robotX = brain->data->robotPoseToField.x;
+    double robotY = brain->data->robotPoseToField.y;
+    double robotTheta = brain->data->robotPoseToField.theta;
+
+    // 오차
+    double errX = targetX - robotX;
+    double errY = targetY - robotY;
+    double dist = norm(errX, errY);
+
+    // 속도 계산
+    double pGain = 1.0;
+    double vX_field = errX * pGain;
+    double vY_field = errY * pGain;
+
+    // 속도 제한
+    double vLimit = 0.6;
+    if (norm(vX_field, vY_field) > vLimit) {
+        double scale = vLimit / norm(vX_field, vY_field);
+        vX_field *= scale;
+        vY_field *= scale;
+    }
+    
+    double vx_robot = cos(robotTheta) * vX_field + sin(robotTheta) * vY_field;
+    double vy_robot = -sin(robotTheta) * vX_field + cos(robotTheta) * vY_field;
+
+    // 로봇 위치에서 골대(-length/2, 0)를 바라보는 각도 계산
+    double angleToGoal = atan2(0.0 - robotY, -(fd.length/2.0) - robotX);
+    
+    // 로봇이 angleToGoal을 향하도록 제어
+    double vtheta = toPInPI(angleToGoal - robotTheta) * 1.5;
+
+    brain->client->setVelocity(vx_robot, vy_robot, vtheta);
+    
+    // Debug Log
+    brain->log->logToScreen(
+        "debug/Support", 
+        format("Target: (%.1f, %.1f) Dist: %.2f", targetX, targetY, dist), 
+        0x00FFFFFF
+    );
+
+    return NodeStatus::RUNNING;
+}
+
 // // 승재욱 - 직접 만든 Chase
 // NodeStatus Chase::tick(){
 //     auto log = [=](string msg) {
@@ -454,4 +510,6 @@ NodeStatus DribbleChase::tick() {
     
 //     return NodeStatus::SUCCESS;
 // }
+
+
 

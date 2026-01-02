@@ -81,13 +81,6 @@ NodeStatus StrikerDecide::tick() {
     {
         newDecision = "find";
         color = 0xFFFFFFFF;
-    // } else if (!brain->data->tmImLead) {
-    //     newDecision = "assist";
-    //     color = 0x00FFFFFF;
-    } else if (ballRange > chaseRangeThreshold * (lastDecision == "chase" ? 0.9 : 1.0))
-    {
-        newDecision = "chase";
-        color = 0x0000FFFF;
     } 
     // 세트피스 상황이거나, 일반 경기에서도 골대랑 가까우면 one_touch
     else if (
@@ -121,7 +114,17 @@ NodeStatus StrikerDecide::tick() {
     ) {
         newDecision = "one_touch";
         color = 0xFF0000FF; // Red color
-    }
+    } else if (!brain->data->tmImLead) {
+        newDecision = "support";
+        color = 0x00FFFFFF;
+    } else if (ballRange > chaseRangeThreshold * (lastDecision == "chase" ? 0.9 : 1.0))
+    {
+        newDecision = "chase";
+        color = 0x0000FFFF;
+    } 
+    // 세트피스 상황이거나, 일반 경기에서도 골대랑 가까우면 one_touch
+
+
     
 
     else if (

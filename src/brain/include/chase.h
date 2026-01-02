@@ -72,6 +72,24 @@ public:
     }
 
     NodeStatus tick() override;
+    
+private:
+    Brain *brain;
+};
+
+class SupportPosition : public SyncActionNode
+{
+public:
+    SupportPosition(const string &name, const NodeConfig &config, Brain *_brain) : SyncActionNode(name, config), brain(_brain) {}
+
+    static PortsList providedPorts()
+    {
+        return {
+            InputPort<double>("dist_from_goal", 2.0, "goal 앞에서 대기할 거리"),
+        };
+    }
+
+    NodeStatus tick() override;
 
 private:
     Brain *brain;
