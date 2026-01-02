@@ -113,6 +113,9 @@ NodeStatus CalcKickDirWithGoalkeeper::tick(){
         ? (fd.goalWidth / 2.0 - 0.2) 
         : (-fd.goalWidth / 2.0 + 0.2);
 
+    brain->log->logToScreen("debug/KickCalc", 
+        format("GW: %.2f bY: %.2f tGY: %.2f", fd.goalWidth, bPos.y, targetGoalY), 0x00FFFFFF);
+
     double targetKickDir = atan2(
         targetGoalY - bPos.y,
         goalX - bPos.x 
