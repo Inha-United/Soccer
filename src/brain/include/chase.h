@@ -77,6 +77,28 @@ private:
     Brain *brain;
 };
 
+class DribbleToGoal : public BT::SyncActionNode
+{
+public:
+    DribbleToGoal(const string &name, const BT::NodeConfig &config, Brain *brain)
+        : BT::SyncActionNode(name, config), brain(brain) {}
+
+    static BT::PortsList providedPorts()
+    {
+        return {
+            BT::InputPort<double>("vx_limit", 1.0, "x velocity limit"),
+            BT::InputPort<double>("vy_limit", 0.5, "y velocity limit"),
+            BT::InputPort<double>("vtheta_limit", 1.0, "theta velocity limit"),
+            BT::InputPort<double>("dist_to_goal", 2.0, "stop distance from goal"),
+        };
+    }
+
+    BT::NodeStatus tick() override;
+
+private:
+    Brain *brain;
+};
+
 class OfftheballPosition : public SyncActionNode
 {
 public:

@@ -16,6 +16,7 @@ void RegisterChaseNodes(BT::BehaviorTreeFactory &factory, Brain* brain){
     REGISTER_CHASE_BUILDER(SimpleChase) // obstacle 없이 chase만 
     REGISTER_CHASE_BUILDER(Chase) // obstacle 추가된 chase
     REGISTER_CHASE_BUILDER(DribbleChase) // 드리블 전용 chase
+    REGISTER_CHASE_BUILDER(DribbleToGoal) // 골대 드리블
     REGISTER_CHASE_BUILDER(OfftheballPosition) // 골대 앞 오프더볼 무브
 }
 
@@ -263,6 +264,112 @@ NodeStatus DribbleChase::tick() {
     return NodeStatus::SUCCESS;
 }
 
+// DribbleToGoal
+NodeStatus DribbleToGoal::tick() {
+    auto log = [=](string msg) {
+        brain->log->setTimeNow();
+        brain->log->log("debug/DribbleToGoal", rerun::TextLog(msg));
+    };
+    log("ticked");
+
+    double vxLimit, vyLimit, vthetaLimit, distToGoalThresh;
+    getInput("vx_limit", vxLimit);
+    getInput("vy_limit", vyLimit);
+    getInput("vtheta_limit", vthetaLimit);
+    getInput("dist_to_goal", distToGoalThresh);
+
+    if (!brain->tree->getEntry<bool>("ball_location_known")){
+        brain->client->setVelocity(0, 0, 0);
+        return NodeStatus::FAILURE;
+    }
+
+    auto fd = brain->config->fieldDimensions;
+    Point ballPos = brain->data->ball.posToField;
+    Point robotPos = brain->data->robotPoseToField.toPoint();
+    double robotTheta = brain->data->robotPoseToField.theta;
+
+    // 골대 목표 및 거리 확인
+    double goalX = -(fd.length / 2.0);
+    double goalY = 0.0;
+    
+    // 공과 골대 사이의 거리
+    double ballDistToGoal = hypot(goalX - ballPos.x, goalY - ballPos.y);
+    
+    // 도달 확인
+    if (ballDistToGoal < distToGoalThresh) {
+        brain->client->setVelocity(0, 0, 0);
+        log("Success: Ball reached target distance");
+        return NodeStatus::SUCCESS;
+    }
+
+    // 정렬 상태 확인
+    // Goalpost <- Ball <- Robot 순서로 서야 함.
+    double angleBallToGoal = atan2(goalY - ballPos.y, goalX - ballPos.x);
+    double angleRobotToBall = atan2(ballPos.y - robotPos.y, ballPos.x - robotPos.x);
+    
+    // 정렬 오차 (로봇이 공 뒤에 잘 섰는가?)
+    double alignmentError = fabs(toPInPI(angleBallToGoal - angleRobotToBall));
+    
+    double vx = 0, vy = 0, vtheta = 0;
+    string phase = "Align";
+
+    // 정렬이 안되어 있으면 (오차 > 60도), 공 뒤로 돌아가기 (Circle Back)
+    if (alignmentError > deg2rad(60)) {
+        phase = "CircleBack";
+        // 목표 위치: 공 뒤 50cm 지점 (골대 반대 방향)
+        double targetX = ballPos.x - 0.5 * cos(angleBallToGoal);
+        double targetY = ballPos.y - 0.5 * sin(angleBallToGoal);
+        
+        // 로봇 기준 이동 벡터
+        double errX = targetX - robotPos.x;
+        double errY = targetY - robotPos.y;
+        double dist = hypot(errX, errY);
+ 
+        double vX_field = errX * 1.5;
+        double vY_field = errY * 1.5;
+        
+        // 로봇 좌표계 변환
+        vx = cos(robotTheta) * vX_field + sin(robotTheta) * vY_field;
+        vy = -sin(robotTheta) * vX_field + cos(robotTheta) * vY_field;
+        
+        // 공을 바라보게 회전
+        vtheta = brain->data->ball.yawToRobot * 1.5;
+        
+        // 공과 너무 가까우면 뒤로 물러나면서 돌기
+        if (brain->data->ball.range < 0.3) {
+            vx = -0.3; 
+        }
+    } 
+    // 정렬 후 전진 드리블
+    else {
+        phase = "Push";
+        // 공 방향으로 전진
+        vx = brain->data->ball.posToRobot.x; // P-Gain 1.0 implicitly
+        vy = brain->data->ball.posToRobot.y + (brain->data->ball.yawToRobot * 0.5); // 약간의 조향 보정
+        vtheta = brain->data->ball.yawToRobot * 2.0; // 공 중심 맞추기
+        
+        // 너무 빠르지 않게
+        double speed = hypot(vx, vy);
+        if (speed > 0.8) { // Max Dribble Speed
+             vx *= (0.8 / speed);
+             vy *= (0.8 / speed);
+        }
+    }
+
+    // 속도 제한
+    vx = cap(vx, vxLimit, -vxLimit);
+    vy = cap(vy, vyLimit, -vyLimit);
+    vtheta = cap(vtheta, vthetaLimit, -vthetaLimit);
+
+    brain->client->setVelocity(vx, vy, vtheta);
+
+    // 디버깅
+    log(format("Phase:%s DistToGoal:%.2f AlignErr:%.1f", phase.c_str(), ballDistToGoal, rad2deg(alignmentError)));
+    brain->log->log("debug/dribble_goal", rerun::Points2D({{(float)goalX, (float)goalY}}).with_colors({0x00FF00FF}).with_labels({"GoalTarget"}));
+    
+    return NodeStatus::RUNNING;
+}
+
 // 패스 받기 전 오프더볼 무브 추후, 오프사이드 보완해야함 (opponent보다는 앞으로 가지 않도록)
 NodeStatus OfftheballPosition::tick()
 {
@@ -324,12 +431,6 @@ NodeStatus OfftheballPosition::tick()
              double d = hypot(baseX - obs.posToField.x, y - obs.posToField.y);
              if (d < posClearance) posClearance = d;
         }
-
-        // 점수 계산
-        // 1. Lane Clearance: 제일 중요 (패스 길 확보) -> 가중치 2.0
-        // 2. Pos Clearance: 중요 (몸싸움 방지) -> 가중치 1.0
-        // 3. Center Bias: 슛 쏘기 좋은 중앙 선호 -> 중앙에서 멀어질수록 감점 (0.3)
-        // 4. Stability: 이전 위치와 가까울수록 선호 -> 흔들림 방지 (0.5)
         
         double score = (laneClearance * 2.0) // 패스길 확보 -> 가중치 높게
                      + (posClearance * 1.0) // 위치 안전성
