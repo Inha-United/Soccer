@@ -122,6 +122,12 @@ NodeStatus StrikerDecide::tick() {
         newDecision = "chase";
         color = 0x0000FFFF;
     } 
+    // 공 소유하고 있고 골대와 멀면 드리블
+    else if (norm(brain->data->robotPoseToField.x - (-brain->config->fieldDimensions.length/2), brain->data->robotPoseToField.y) > 2.0) 
+    {
+        newDecision = "dribble";
+        color = 0x00FFFF00; // Cyan-ish
+    } 
 
     else if (
         (
