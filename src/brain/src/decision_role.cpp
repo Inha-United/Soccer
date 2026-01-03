@@ -263,7 +263,7 @@ NodeStatus DefenderDecide::tick() {
         && brain->data->ballDetected
         && fabs(brain->data->ball.yawToRobot) < M_PI / 2.
         && !avoidKick
-        && ball.range < 1.0
+        && ball.range < 1.5
     ) {
         if(passFound) {
         newDecision = "pass"; // pass가능하면 패스
