@@ -35,7 +35,8 @@
                   
                   <!-- 킥 방향 계산 (패스 방향) -->
                   <CalcPassDir pass_threshold="8.0" pass_found="{pass_found}" pass_speed_limit="{pass_speed_limit}"/>
-                  
+                  <CalcKickDir _while="!pass_found" cross_threshold="0.4"/>
+
                   <Sequence>
                      
                      <ReactiveSequence>
