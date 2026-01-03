@@ -263,14 +263,14 @@ NodeStatus DefenderDecide::tick() {
         && brain->data->ballDetected
         && fabs(brain->data->ball.yawToRobot) < M_PI / 2.
         && !avoidKick
-        && ball.range < 1.5
+        && ball.range < 1.0
     ) {
-        if(passFound) { //임시로 한대로도 가능하게 
-        newDecision = "kick"; // pass가능하면 패스
+        if(passFound) {
+        newDecision = "pass"; // pass가능하면 패스
         color = 0x00FF00FF;
         brain->data->isFreekickKickingOff = false;}
         else{
-        newDecision = "pass"; // 아니면 
+        newDecision = "kick"; // 아니면 
         color = 0xFF0000FF;
         brain->data->isFreekickKickingOff = false;} 
     }
