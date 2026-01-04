@@ -430,6 +430,9 @@ NodeStatus DribbleToGoal::tick() {
 // 패스 받기 전 오프더볼 무브 추후, 오프사이드 보완해야함 (opponent보다는 앞으로 가지 않도록)
 NodeStatus OfftheballPosition::tick()
 {
+    // LOGGING START
+    brain->log->logToScreen("debug/Offtheball", "Tick Start", 0xFFFFFFFF);
+
     // 기본 설정값
     auto fd = brain->config->fieldDimensions;
     double distFromGoal = 2.0; 
@@ -449,7 +452,10 @@ NodeStatus OfftheballPosition::tick()
     double bestY = 0.0;
     double maxScore = -1e9;
     
+    // LOGGING OBSTACLES
+    brain->log->logToScreen("debug/Offtheball", "Getting Obstacles", 0xFFFFFFFF);
     auto obstacles = brain->data->getObstacles();
+    brain->log->logToScreen("debug/Offtheball", format("Got %d obstacles", (int)obstacles.size()), 0xFFFFFFFF);
 
     // 계속 해서 움직이는 걸 막기 위해서 -> 이미 좋은 자리라면 가중치 크게
     static double lastBestY = 0.0;
@@ -500,6 +506,9 @@ NodeStatus OfftheballPosition::tick()
         }
     }
     
+    // LOGGING LOOP DONE
+    brain->log->logToScreen("debug/Offtheball", "Loop Done", 0xFFFFFFFF);
+
     // 스무딩, 목표 위치가 튀지 않도록 필터 적용
     lastBestY = lastBestY * 0.9 + bestY * 0.1;
     
@@ -605,6 +614,8 @@ NodeStatus OfftheballPosition::tick()
         if (vtheta < -1.0) vtheta = -1.0;
     }
     
+    // LOGGING VELOCITY
+    brain->log->logToScreen("debug/Offtheball", format("SetVel: %.2f %.2f %.2f", vx_robot, vy_robot, vtheta), 0xFFFFFFFF);
     brain->client->setVelocity(vx_robot, vy_robot, vtheta);
     
     // 디버그 로그
@@ -621,6 +632,8 @@ NodeStatus OfftheballPosition::tick()
         );
     }
 
+    // LOGGING END
+    brain->log->logToScreen("debug/Offtheball", "Tick End", 0xFFFFFFFF);
     return NodeStatus::RUNNING;
 }
 
