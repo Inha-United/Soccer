@@ -44,6 +44,7 @@
 #include "kick.h"
 #include "adjust.h"
 #include "decision_role.h"
+#include "gotopose.h"
 
 // Forward declaration to avoid circular dependency
 class BrainCommunication;
