@@ -128,8 +128,8 @@ NodeStatus StrikerDecide::tick() {
     double distToGoal = norm(brain->data->robotPoseToField.x - (-brain->config->fieldDimensions.length/2), brain->data->robotPoseToField.y);
     bool isShotPathClear = false;
 
-    // 슛 경로 확인 (4.5m 이내일 때만 체크)
-    if (distToGoal < 4.5) {
+    // 슛 경로 확인 (4m 이내일 때만 체크)
+    if (distToGoal < 4) {
         isShotPathClear = true;
         auto obstacles = brain->data->getObstacles();
         Point goalPos = {-brain->config->fieldDimensions.length / 2.0, 0.0, 0.0};
@@ -160,11 +160,11 @@ NodeStatus StrikerDecide::tick() {
         }
     }
 
-    // 3m 보다 멀고 AND (너무 멀거나 OR 슛길이 막혀있으면) -> 드리블
-    if (distToGoal > 3.0 && (distToGoal > 4.5 || !isShotPathClear))
+    // 2.5m 보다 멀거나 1.6m보다 멀면서 슛길이 막혀있으면 -> 드리블
+    if (distToGoal > 2.5 || (!isShotPathClear && distToGoal > 1.5))
     {
         newDecision = "dribble";
-        color = 0x00FFFF00; //
+        color = 0x00FFFF00; 
     } 
 
     else if (
