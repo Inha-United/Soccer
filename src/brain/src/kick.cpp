@@ -193,7 +193,7 @@ NodeStatus CalcKickDirWithGoalkeeper::tick(){
 
 NodeStatus CalcPassDir::tick(){
     double maxpassThreshold;
-    double minPassThreshold;
+    double minpassThreshold;
     getInput("max_pass_threshold", maxpassThreshold);    
     getInput("min_pass_threshold", minpassThreshold);
 
