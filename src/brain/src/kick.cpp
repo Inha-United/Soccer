@@ -192,8 +192,10 @@ NodeStatus CalcKickDirWithGoalkeeper::tick(){
 }
 
 NodeStatus CalcPassDir::tick(){
-    double passThreshold;
-    getInput("pass_threshold", passThreshold);
+    double maxpassThreshold;
+    double minPassThreshold;
+    getInput("max_pass_threshold", maxpassThreshold);    
+    getInput("min_pass_threshold", minpassThreshold);
 
     auto bPos = brain->data->ball.posToField; // 공 위치
     int bestTeammateIdx = -1;
@@ -214,7 +216,7 @@ NodeStatus CalcPassDir::tick(){
         double dist = norm(bPos.x - tmPos.x, bPos.y - tmPos.y);
 
         // 유효 거리 내에 있고, 가장 가까운 팀원 선택 (단순 거리 기준)
-        if(dist < passThreshold && dist < minDist){
+        if( dist > minpassThreshold && dist < maxpassThreshold && dist < minDist){
             minDist = dist;
             bestTeammateIdx = i;
         }
