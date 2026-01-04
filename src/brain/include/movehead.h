@@ -91,6 +91,39 @@ private:
     Brain *brain;
 };
 
+class CamScanField : public StatefulActionNode
+{
+public:
+    CamScanField(const string &name, const NodeConfig &config, Brain *_brain) : StatefulActionNode(name, config), brain(_brain) {}
+
+    static PortsList providedPorts()
+    {
+        return {
+            InputPort<double>("msecs_interval", 1000, "같은 위치에 머무르는 시간(밀리초)"),
+        };
+    }
+
+    NodeStatus onStart() override;
+
+    NodeStatus onRunning() override;
+
+    void onHalted() override {};
+
+private:
+    // Wide scan pattern for field features
+    double _cmdSequence[6][2] = {
+        {0.3, 0.0},
+        {0.3, 1.0},
+        {0.3, 1.5},
+        {0.3, 0.0},
+        {0.3, -1.0},
+        {0.3, -1.5},
+    };    
+    rclcpp::Time _timeLastCmd;    
+    int _cmdIndex = 0;               
+    Brain *brain;
+};
+
 class TurnOnSpot : public StatefulActionNode
 {
 public:

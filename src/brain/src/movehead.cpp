@@ -17,6 +17,7 @@ void RegisterMoveHeadNodes(BT::BehaviorTreeFactory &factory, Brain* brain){
     REGISTER_MOVEHEAD_BUILDER(CamFindBall) // 카메라로 공 찾기
     REGISTER_MOVEHEAD_BUILDER(CamTrackBall) // 카메라로 공 추적
     REGISTER_MOVEHEAD_BUILDER(CamFastScan) // 카메라로 공 찾기
+    REGISTER_MOVEHEAD_BUILDER(CamScanField) // 필드 스캔
     REGISTER_MOVEHEAD_BUILDER(TurnOnSpot) // 제자리 회전
     REGISTER_MOVEHEAD_BUILDER(GoBackInField) // 경기장 안으로 복귀
     
@@ -165,6 +166,27 @@ NodeStatus CamFastScan::onRunning()
     if (_cmdIndex >= 7) return NodeStatus::SUCCESS; // 6->7 수정
 
     // else
+    _cmdIndex++;
+    _timeLastCmd = brain->get_clock()->now();
+    brain->client->moveHead(_cmdSequence[_cmdIndex][0], _cmdSequence[_cmdIndex][1]);
+    return NodeStatus::RUNNING;
+}
+
+NodeStatus CamScanField::onStart()
+{
+    _cmdIndex = 0;
+    _timeLastCmd = brain->get_clock()->now();
+    brain->client->moveHead(_cmdSequence[_cmdIndex][0], _cmdSequence[_cmdIndex][1]);
+    return NodeStatus::RUNNING;
+}
+
+NodeStatus CamScanField::onRunning()
+{
+    double interval = getInput<double>("msecs_interval").value();
+    if (brain->msecsSince(_timeLastCmd) < interval) return NodeStatus::RUNNING;
+
+    if (_cmdIndex >= 6) return NodeStatus::SUCCESS; // 6 points in sequence
+
     _cmdIndex++;
     _timeLastCmd = brain->get_clock()->now();
     brain->client->moveHead(_cmdSequence[_cmdIndex][0], _cmdSequence[_cmdIndex][1]);
