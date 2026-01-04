@@ -172,25 +172,24 @@ NodeStatus CamFastScan::onRunning()
     return NodeStatus::RUNNING;
 }
 
-NodeStatus CamScanField::onStart()
+NodeStatus CamScanField::tick()
 {
-    _cmdIndex = 0;
-    _timeLastCmd = brain->get_clock()->now();
-    brain->client->moveHead(_cmdSequence[_cmdIndex][0], _cmdSequence[_cmdIndex][1]);
-    return NodeStatus::RUNNING;
-}
+    auto sec = brain->get_clock()->now().seconds();
+    auto msec = static_cast<unsigned long long>(sec * 1000);
+    double lowPitch, highPitch, leftYaw, rightYaw;
+    getInput("low_pitch", lowPitch);
+    getInput("high_pitch", highPitch);
+    getInput("left_yaw", leftYaw);
+    getInput("right_yaw", rightYaw);
+    int msecCycle;
+    getInput("msec_cycle", msecCycle);
 
-NodeStatus CamScanField::onRunning()
-{
-    double interval = getInput<double>("msecs_interval").value();
-    if (brain->msecsSince(_timeLastCmd) < interval) return NodeStatus::RUNNING;
+    int cycleTime = msec % msecCycle;
+    double pitch = cycleTime > (msecCycle / 2.0) ? lowPitch : highPitch;
+    double yaw = cycleTime < (msecCycle / 2.0) ? (leftYaw - rightYaw) * (2.0 * cycleTime / msecCycle) + rightYaw : (leftYaw - rightYaw) * (2.0 * (msecCycle - cycleTime) / msecCycle) + rightYaw;
 
-    if (_cmdIndex >= 6) return NodeStatus::SUCCESS; // 6 points in sequence
-
-    _cmdIndex++;
-    _timeLastCmd = brain->get_clock()->now();
-    brain->client->moveHead(_cmdSequence[_cmdIndex][0], _cmdSequence[_cmdIndex][1]);
-    return NodeStatus::RUNNING;
+    brain->client->moveHead(pitch, yaw);
+    return NodeStatus::SUCCESS;
 }
 
 NodeStatus TurnOnSpot::onStart()

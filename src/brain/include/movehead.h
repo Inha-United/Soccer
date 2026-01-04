@@ -91,38 +91,28 @@ private:
     Brain *brain;
 };
 
-class CamScanField : public StatefulActionNode
+class CamScanField : public SyncActionNode
 {
 public:
-    CamScanField(const string &name, const NodeConfig &config, Brain *_brain) : StatefulActionNode(name, config), brain(_brain) {}
+    CamScanField(const std::string &name, const NodeConfig &config, Brain *_brain) : SyncActionNode(name, config), brain(_brain) {}
 
-    static PortsList providedPorts()
+    static BT::PortsList providedPorts()
     {
         return {
-            InputPort<double>("msecs_interval", 1000, "같은 위치에 머무르는 시간(밀리초)"),
+            InputPort<double>("low_pitch", 0.6, "向下看时的最大 pitch"),
+            InputPort<double>("high_pitch", 0.45, "向上看时的最小 pitch"),
+            InputPort<double>("left_yaw", 0.8, "向左看时的最大 yaw"),
+            InputPort<double>("right_yaw", -0.8, "向右看时的最小 yaw"),
+            InputPort<int>("msec_cycle", 4000, "多少毫秒转一圈"),
         };
     }
 
-    NodeStatus onStart() override;
-
-    NodeStatus onRunning() override;
-
-    void onHalted() override {};
+    NodeStatus tick() override;
 
 private:
-    // Wide scan pattern for field features
-    double _cmdSequence[6][2] = {
-        {0.3, 0.0},
-        {0.3, 1.0},
-        {0.3, 1.5},
-        {0.3, 0.0},
-        {0.3, -1.0},
-        {0.3, -1.5},
-    };    
-    rclcpp::Time _timeLastCmd;    
-    int _cmdIndex = 0;               
     Brain *brain;
 };
+
 
 class TurnOnSpot : public StatefulActionNode
 {
