@@ -237,62 +237,112 @@ NodeStatus DefenderDecide::tick() {
     bool passFound = brain->tree->getEntry<bool>("pass_found");
     bool isLead = brain->tree->getEntry<bool>("is_lead");
 
-    // 1. 공을 모르면 -> 찾기
-    if (!(iKnowBallPos || tmBallPosReliable))
-    {
+    auto pose = brain->data->robotPoseToField;
+
+    // 레인 설정
+    const double laneY = -2.5;
+    const double laneTol = 0.25;   // 필요시 파라미터로 빼도 됨
+    bool inLane = std::fabs(pose.y - laneY) < laneTol;
+
+    // 1) 공을 모르면 -> find
+    if (!(iKnowBallPos || tmBallPosReliable)) {
         newDecision = "find";
         color = 0xFFFFFFFF;
-    } 
-    // 2. 추적 거리 밖이면 -> chase
-    else if (ballRange > chaseRangeThreshold * (lastDecision == "chase" ? 0.9 : 1.0))
-    {
-        // 수비수는 쫓아가지 않고 대기 -> 당장은 pass 이후 등에서 활용됨
-        // if (brain->data->ball.posToField.x < -1.0) { // 공 위치가 x <-1 면 wait
-        //     newDecision = "wait";
-        //     color = 0x00FFFFFF; // Cyan/White mix
-        // } else {
-            newDecision = isLead ? "chase" : "side_chase"; //passtopass용 side_chase
-            color = 0x0000FFFF;
-        // }
-    } 
-    // 3. 킥 조건 만족하면 -> kick(패스)
-    else if (
-        isLead && (
-            (angleGoodForKick && !brain->data->isFreekickKickingOff) 
-            || reachedKickDir
-        )
-        && brain->data->ballDetected
-        && fabs(brain->data->ball.yawToRobot) < M_PI / 2.
-        && !avoidKick
-        && ball.range < 1.5
-    ) {
-        if(passFound) {
-        newDecision = "pass"; // pass가능하면 패스
-        color = 0x00FF00FF;
-        brain->data->isFreekickKickingOff = false;
-        
-        }
-        else{
-        newDecision = "kick"; // 아니면 
-        color = 0xFF0000FF;
-        brain->data->isFreekickKickingOff = false;} 
     }
-    // 4. 그 외 -> 위치 조정 ("adjust")
-    else
-    {
-        newDecision = isLead ? "adjust" : "return"; //일단 passtopass용 return
+    // 2) non-lead인데 레인 밖이면 -> return (레인 복귀)
+    else if (!isLead && !inLane) {
+        newDecision = "return";
         color = 0xFFFF00FF;
-        
-        if (newDecision == "return" && lastDecision != "return") {
-            auto pose = brain->data->robotPoseToField;
-            brain->tree->setEntry("return_x", pose.x);
-
-            // 필요하면 로그도
-            brain->log->logToScreen(
-                "debug/ReturnSave",
-                format("Saved return_x on return entry: x=%.2f", pose.x), 0xFFFFFFFF );    
-        }   
     }
+    // 3) lead이면 -> (기존대로) chase / pass / adjust
+    else if (isLead) {
+        // 멀면 chase
+        bool wasChasing = (lastDecision == "chase");
+        if (ballRange > chaseRangeThreshold * (wasChasing ? 0.9 : 1.0)) {
+            newDecision = "chase";
+            color = 0x0000FFFF;
+        }
+        // 킥(패스) 조건
+        else if (
+            ((angleGoodForKick && !brain->data->isFreekickKickingOff) || reachedKickDir) &&
+            brain->data->ballDetected &&
+            std::fabs(brain->data->ball.yawToRobot) < M_PI/2.0 &&
+            !avoidKick &&
+            ball.range < 1.5
+        ) {
+            if (passFound) newDecision = "pass";
+            else newDecision = "kick";
+            color = 0x00FF00FF;
+            brain->data->isFreekickKickingOff = false;
+        }
+        // 그 외 adjust
+        else {
+            newDecision = "adjust";
+            color = 0xFFFF00FF;
+        }
+    }
+    // 4) non-lead면서 레인 안이면 -> side_chase (항상)
+    else {
+        newDecision = "side_chase";
+        color = 0x00FFFFFF;
+    }
+
+    // // 1. 공을 모르면 -> 찾기
+    // if (!(iKnowBallPos || tmBallPosReliable))
+    // {
+    //     newDecision = "find";
+    //     color = 0xFFFFFFFF;
+    // } 
+    // // 2. 추적 거리 밖이면 -> chase
+    // else if (ballRange > chaseRangeThreshold * (lastDecision == "chase" ? 0.9 : 1.0))
+    // {
+    //     // 수비수는 쫓아가지 않고 대기 -> 당장은 pass 이후 등에서 활용됨
+    //     // if (brain->data->ball.posToField.x < -1.0) { // 공 위치가 x <-1 면 wait
+    //     //     newDecision = "wait";
+    //     //     color = 0x00FFFFFF; // Cyan/White mix
+    //     // } else {
+    //         newDecision = isLead ? "chase" : "side_chase"; //passtopass용 side_chase
+    //         color = 0x0000FFFF;
+    //     // }
+    // } 
+    // // 3. 킥 조건 만족하면 -> kick(패스)
+    // else if (
+    //     isLead && (
+    //         (angleGoodForKick && !brain->data->isFreekickKickingOff) 
+    //         || reachedKickDir
+    //     )
+    //     && brain->data->ballDetected
+    //     && fabs(brain->data->ball.yawToRobot) < M_PI / 2.
+    //     && !avoidKick
+    //     && ball.range < 1.5
+    // ) {
+    //     if(passFound) {
+    //     newDecision = "pass"; // pass가능하면 패스
+    //     color = 0x00FF00FF;
+    //     brain->data->isFreekickKickingOff = false;
+        
+    //     }
+    //     else{
+    //     newDecision = "kick"; // 아니면 
+    //     color = 0xFF0000FF;
+    //     brain->data->isFreekickKickingOff = false;} 
+    // }
+    // // 4. 그 외 -> 위치 조정 ("adjust")
+    // else
+    // {
+    //     newDecision = isLead ? "adjust" : "return"; //일단 passtopass용 return
+    //     color = 0xFFFF00FF;
+        
+    //     if (newDecision == "return" && lastDecision != "return") {
+    //         auto pose = brain->data->robotPoseToField;
+    //         brain->tree->setEntry("return_x", pose.x);
+
+    //         // 필요하면 로그도
+    //         brain->log->logToScreen(
+    //             "debug/ReturnSave",
+    //             format("Saved return_x on return entry: x=%.2f", pose.x), 0xFFFFFFFF );    
+    //     }   
+    // }
 
     setOutput("decision_out", newDecision);
     brain->log->logToScreen(
