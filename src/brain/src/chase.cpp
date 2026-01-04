@@ -101,6 +101,23 @@ NodeStatus Chase::tick(){
     static double circleBackDir = 1.0; 
     double dirThreshold = M_PI / 2;
     if (targetType == "direct") dirThreshold *= 1.2;
+    
+    //side chase용 추가
+    auto decision = brain->tree->getEntry<string>("decision");
+    if (decision == "side_chase") {
+        if (!brain->tree->getEntry<bool>("ball_location_known")) {
+            brain->client->setVelocity(0, 0, 0, false, false, false);
+            return NodeStatus::SUCCESS;
+        }
+
+        // 좌우만 공 y를 따라감 (로봇좌표계)
+        vy = cap(brain->data->ball.posToRobot.y, vyLimit, -vyLimit);
+        vx = 0.0;      // 앞뒤 금지
+        vtheta = 0.0;  // 회전 금지
+
+        brain->client->setVelocity(vx, vy, vtheta, false, false, false);
+        return NodeStatus::SUCCESS;
+    }
 
 
     // calculate target point

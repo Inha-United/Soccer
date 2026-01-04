@@ -51,7 +51,7 @@ NodeStatus GoToPose::tick(){
       controly *= linearFactor;
       controlx = cap(controlx, vLimit, -vLimit*0.5);    
       controly = cap(controly, vLimit*0.5, -vLimit*0.5);
-      controltheta = 0.0;
+      controltheta = 0.0; // 수현 수정 : 몸 안틀고 이동
     }
     else if(dist < turn_Threshold && dist > stop_Threshold){ // 선회
 		  controlx = errorx*cos(gtheta) + errory*sin(gtheta);

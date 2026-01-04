@@ -5,6 +5,7 @@
     <include path="./subtrees/cam_find_and_track_ball.xml" />
     <include path="./subtrees/striker.xml" />
     <include path="./subtrees/defender.xml" />
+    <include path="./subtrees/sub_test.xml" />
 
 
     <!-- 시작 -->
@@ -43,7 +44,7 @@
                             <SubTree ID="CamFindAndTrackBall" _autoremap="true" /> 
                             <ReactiveSequence>
                                 
-                                <SubTree ID="Defender" _autoremap="true" _while="player_role == 'defender'" />
+                                <SubTree ID="Sub_test" _autoremap="true" _while="player_role == 'defender'" />
                                 <!-- <SubTree ID="DefenderAssist" _autoremap="true" _while="player_role == 'defender'" /> -->
                                 
                                 <SubTree ID="Striker" _autoremap="true" _while="player_role == 'striker'" />
