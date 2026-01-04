@@ -99,11 +99,11 @@ public:
     static BT::PortsList providedPorts()
     {
         return {
-            InputPort<double>("low_pitch", 0.6, "向下看时的最大 pitch"),
-            InputPort<double>("high_pitch", 0.45, "向上看时的最小 pitch"),
-            InputPort<double>("left_yaw", 0.8, "向左看时的最大 yaw"),
-            InputPort<double>("right_yaw", -0.8, "向右看时的最小 yaw"),
-            InputPort<int>("msec_cycle", 4000, "多少毫秒转一圈"),
+            InputPort<double>("low_pitch", 0.6,  "아래를 볼 때의 최대 pitch"),
+            InputPort<double>("high_pitch", 0.45, "위를 볼 때의 최소 pitch"),
+            InputPort<double>("left_yaw", 0.8,   "왼쪽을 볼 때의 최대 yaw"),
+            InputPort<double>("right_yaw", -0.8, "오른쪽을 볼 때의 최소 yaw"),
+            InputPort<int>("msec_cycle", 4000,   "한 바퀴 도는 데 걸리는 시간(밀리초)"),
         };
     }
 
