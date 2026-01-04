@@ -101,9 +101,9 @@ NodeStatus CamTrackBall::tick(){
 
     bool iSeeBall = brain->data->ballDetected; // 공이 실제 Vision에 의해 발견되었는지
     bool iKnowBallPos = brain->tree->getEntry<bool>("ball_location_known"); // 공의 위치가 알고 있는지
-    // bool tmBallPosReliable = brain->tree->getEntry<bool>("tm_ball_pos_reliable"); // TM에 의해 공의 위치가 신뢰할 수 있는지
-    // if (!(iKnowBallPos || tmBallPosReliable))
-    //     return NodeStatus::SUCCESS;
+    bool tmBallPosReliable = brain->tree->getEntry<bool>("tm_ball_pos_reliable"); // TM에 의해 공의 위치가 신뢰할 수 있는지
+    if (!(iKnowBallPos || tmBallPosReliable))
+        return NodeStatus::SUCCESS;
 
     if(!iKnowBallPos){ return NodeStatus::SUCCESS; }
 
@@ -112,10 +112,10 @@ NodeStatus CamTrackBall::tick(){
             pitch = brain->data->ball.pitchToRobot;
             yaw = brain->data->ball.yawToRobot;
         } 
-        // else if (tmBallPosReliable) {
-        //     pitch = brain->data->tmBall.pitchToRobot;
-        //     yaw = brain->data->tmBall.yawToRobot;
-        // } 
+        else if (tmBallPosReliable) {
+            pitch = brain->data->tmBall.pitchToRobot;
+            yaw = brain->data->tmBall.yawToRobot;
+        } 
         else { log("reached impossible condition"); }
         logTrackingBox(0x000000FF, "ball not detected"); // 검은색 박스로 바뀜
     }
