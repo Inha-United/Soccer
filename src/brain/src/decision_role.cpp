@@ -122,11 +122,49 @@ NodeStatus StrikerDecide::tick() {
         newDecision = "chase";
         color = 0x0000FFFF;
     } 
-    // 공 소유하고 있고 골대와 멀면 드리블
-    else if (norm(brain->data->robotPoseToField.x - (-brain->config->fieldDimensions.length/2), brain->data->robotPoseToField.y) > 2.0) 
+    // 공 소유하고 있고 골대와 멀면 드리블 : 골대와 거리가 멀어도 슈팅 각이 있으면 드리블 대신 슛(Adjust -> Kick) 시도
+    // 반대로 이미 세트피스 범위라면 adjust 생략 가능
+    
+    double distToGoal = norm(brain->data->robotPoseToField.x - (-brain->config->fieldDimensions.length/2), brain->data->robotPoseToField.y);
+    bool isShotPathClear = false;
+
+    // 슛 경로 확인 (4.5m 이내일 때만 체크)
+    if (distToGoal < 4.5) {
+        isShotPathClear = true;
+        auto obstacles = brain->data->getObstacles();
+        Point goalPos = {-brain->config->fieldDimensions.length / 2.0, 0.0, 0.0};
+        Point myPos = {brain->data->robotPoseToField.x, brain->data->robotPoseToField.y, 0.0};
+        
+        double pathDx = goalPos.x - ball.posToField.x;
+        double pathDy = goalPos.y - ball.posToField.y;
+        double pathLen = hypot(pathDx, pathDy);
+        
+        for(const auto& obs : obstacles) {
+             if (obs.posToField.x > ball.posToField.x) continue;
+             
+             double obsDx = obs.posToField.x - ball.posToField.x;
+             double obsDy = obs.posToField.y - ball.posToField.y;
+             
+             double t = (obsDx * pathDx + obsDy * pathDy) / (pathLen * pathLen);
+             
+             if (t > 0.0 && t < 1.0) {
+                 double closestX = ball.posToField.x + t * pathDx;
+                 double closestY = ball.posToField.y + t * pathDy;
+                 double dist = hypot(obs.posToField.x - closestX, obs.posToField.y - closestY);
+                 
+                 if (dist < 0.6) {
+                     isShotPathClear = false;
+                     break;
+                 }
+             }
+        }
+    }
+
+    // 3m 보다 멀고 AND (너무 멀거나 OR 슛길이 막혀있으면) -> 드리블
+    if (distToGoal > 3.0 && (distToGoal > 4.5 || !isShotPathClear))
     {
         newDecision = "dribble";
-        color = 0x00FFFF00; // Cyan-ish
+        color = 0x00FFFF00; //
     } 
 
     else if (
