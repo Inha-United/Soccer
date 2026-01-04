@@ -64,6 +64,9 @@ void BrainTree::initEntry(){
 
     //  승재욱 추가 : chase -> adjust -> kick
     setEntry<string>("striker_state", "chase");   
+
+    // 위치 추정 보정 여부
+    setEntry<bool>("odom_calibrated", false);
 }
 
 void BrainTree::tick(){ tree.tickOnce(); }
