@@ -138,9 +138,7 @@ NodeStatus CalcKickDirWithGoalkeeper::tick(){
         double angleToGK = atan2(gk.posToField.y - bPos.y, gk.posToField.x - bPos.x);
         double angularWidth = atan2(goalkeeperMargin, distToGK);
         
-        double diff = angleToGK - targetKickDir;
-        while(diff > M_PI) diff -= 2*M_PI;
-        while(diff < -M_PI) diff += 2*M_PI;
+        double diff = toPInPI(angleToGK - targetKickDir);
         
         // 빈 공칸 탐지, 왼쪽과 오른쪽을 결정하는 기준은 더 넓은 공칸을 선택함
         if(fabs(diff) < angularWidth){
@@ -173,14 +171,11 @@ NodeStatus CalcKickDirWithGoalkeeper::tick(){
     // 추가로 부드러운 kickdir 움직임을 위해 필터 적용
     double prevKickDir = brain->data->kickDir; 
     
-    double diff = targetKickDir - prevKickDir;
-    while(diff > M_PI) diff -= 2*M_PI;
-    while(diff < -M_PI) diff += 2*M_PI;
+    double diff = toPInPI(targetKickDir - prevKickDir);
 
     brain->data->kickDir = prevKickDir + diff * 0.5;
     
-    while(brain->data->kickDir > M_PI) brain->data->kickDir -= 2*M_PI;
-    while(brain->data->kickDir < -M_PI) brain->data->kickDir += 2*M_PI;
+    brain->data->kickDir = toPInPI(brain->data->kickDir);
     
     brain->log->setTimeNow();
     brain->log->log(
