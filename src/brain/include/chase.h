@@ -118,7 +118,9 @@ public:
         };
     }
 
-    NodeStatus tick() override;
+    NodeStatus onStart() override;
+    NodeStatus onRunning() override;
+    void onHalted() override;
 
 private:
     Brain *brain;
