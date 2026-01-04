@@ -265,7 +265,15 @@ NodeStatus DribbleChase::tick() {
 }
 
 // DribbleToGoal
-NodeStatus DribbleToGoal::tick() {
+NodeStatus DribbleToGoal::onStart() {
+    return NodeStatus::RUNNING;
+}
+
+void DribbleToGoal::onHalted() {
+    // Cleanup if needed
+}
+
+NodeStatus DribbleToGoal::onRunning() {
     auto log = [=](string msg) {
         brain->log->setTimeNow();
         brain->log->log("debug/DribbleToGoal", rerun::TextLog(msg));
@@ -300,18 +308,22 @@ NodeStatus DribbleToGoal::tick() {
     // 후보지 목록 : (0,0), 중앙, 왼쪽 오른쪽 끝
     vector<double> candidatesY = {0.0, fd.goalWidth/2.0 - 0.5, -fd.goalWidth/2.0 + 0.5};
 
-    // [New Logic] CalcKickDirWithGoalkeeper가 계산한 킥 방향(kickDir)을 후보에 추가
+    // CalcKickDirWithGoalkeeper가 계산한 킥 방향도 후보에 추가
     double kickDir = brain->data->kickDir;
     
     // tan값이 폭발하지 않는 안전한 경우에만 계산
     if (isfinite(tan(kickDir))) {
         // kickDir을 이용해 골라인(x=goalX) 상의 y좌표 계산
+    // 로봇 위치 기준이 아니라 공 위치 기준으로 투영
         double kickDirTargetY = ballPos.y + tan(kickDir) * (goalX - ballPos.x);
         
-        // 골대 벗어나지 않게 클램핑
+    // 골대 벗어나지 않게 클램핑 (골키퍼가 막고 있어서 킥 방향이 골대 밖일 수도 있으므로 주의)
+    // 하지만 CalcKickDirWithGoalkeeper가 골대 안쪽을 가리킨다고 가정
+    // 안전하게 골포스트 안쪽 0.2m 까지만 허용
         double maxY = fd.goalWidth / 2.0 - 0.2;
         kickDirTargetY = cap(kickDirTargetY, maxY, -maxY);
         
+    // 후보지에 추가
         candidatesY.push_back(kickDirTargetY);
     }
 
@@ -459,7 +471,14 @@ NodeStatus DribbleToGoal::tick() {
 }
 
 // 패스 받기 전 오프더볼 무브 추후, 오프사이드 보완해야함 (opponent보다는 앞으로 가지 않도록)
-NodeStatus OfftheballPosition::tick()
+NodeStatus OfftheballPosition::onStart() {
+    return NodeStatus::RUNNING;
+}
+
+void OfftheballPosition::onHalted() {
+}
+
+NodeStatus OfftheballPosition::onRunning()
 {
     // LOGGING START
     brain->log->logToScreen("debug/Offtheball", "Tick Start", 0xFFFFFFFF);
