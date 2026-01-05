@@ -41,7 +41,7 @@ brain_node:
       collision_threshold: 0.5 # 충돌 회피 거리 임계값 (로봇 반경 고려) 
       # 밑에 2개 변수를 chase에 뺄지 고민중 
       avoid_during_chase: true # chase 중에 장애물을 회피할 지 여부
-      chase_ao_safe_dist: 1.2 # chase 중 장애물을 회피할 때 최소 안전 거리
+      chase_ao_safe_dist: 1.5 # chase 중 장애물을 회피할 때 최소 안전 거리
 
       # 킥에 사용
       avoid_during_kick: false 

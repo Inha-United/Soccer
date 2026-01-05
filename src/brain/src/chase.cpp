@@ -76,7 +76,7 @@ NodeStatus Chase::tick(){
 
     bool avoidObstacle = true;
     brain->get_parameter("obstacle_avoidance.avoid_during_chase", avoidObstacle);
-    double oaSafeDist = 1.2;
+    double oaSafeDist = 1.5;
     brain->get_parameter("obstacle_avoidance.chase_ao_safe_dist", oaSafeDist);
 
     if (
