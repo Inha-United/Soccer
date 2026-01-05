@@ -56,7 +56,11 @@ NodeStatus StrikerDecide::tick() {
     
     // 정렬 기준은 deltaDir가 0이 아니라 offset 각도와 일치하는 것
     double kickYOffset = 0.13; 
+    double kickYOffset = 0.13; 
     getInput("kick_y_offset", kickYOffset);
+
+    double oneTouchGoalDist = 1.2;
+    getInput("one_touch_goal_dist", oneTouchGoalDist);
     
     double targetAngleOffset = atan2(kickYOffset, ballRange);
     double errorDir = toPInPI(deltaDir + targetAngleOffset);
@@ -107,7 +111,7 @@ NodeStatus StrikerDecide::tick() {
             brain->data->ballDetected
             && ball.range < 0.5 
             && fabs(brain->data->ball.yawToRobot) < 0.3 
-            && norm(brain->data->robotPoseToField.x - (-brain->config->fieldDimensions.length/2), brain->data->robotPoseToField.y) < 1.2
+            && norm(brain->data->robotPoseToField.x - (-brain->config->fieldDimensions.length/2), brain->data->robotPoseToField.y) < oneTouchGoalDist
             // 킥 방향(kickDir)과 로봇 방향(dir_rb_f)이 대략적으로 일치할 때 one_touch 실행
             && fabs(toPInPI(brain->data->kickDir - brain->data->robotBallAngleToField)) < 0.5
         )
