@@ -262,10 +262,10 @@ NodeStatus CalcPassDir::tick(){
     double d = norm(bPos.x - tmPos.x, bPos.y - tmPos.y);
 
     // 파라미터
-    double k = 0.05;        // 감도
+    double k = 1.7;        // 감도
 
     // 경험적 식...
-    double passSpeed = k * std::pow(d,2);
+    double passSpeed = k * std::sqrt(d / 10.0);
 
     passSpeed = std::min(passSpeed, 2.0);
 
