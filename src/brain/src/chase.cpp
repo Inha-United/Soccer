@@ -468,6 +468,14 @@ NodeStatus DribbleToGoal::onRunning() {
     log(format("Phase:%s DistToGoal:%.2f AlignErr:%.1f", phase.c_str(), ballDistToGoal, rad2deg(alignmentError)));
     brain->log->log("debug/dribble_goal", rerun::Points2D({{(float)goalX, (float)goalY}}).with_colors({0x00FF00FF}).with_labels({"GoalTarget"}));
     
+    // 드리블 방향 시각화
+    brain->log->log("debug/dribble_arrow", 
+        rerun::Arrows2D::from_vectors({{(float)(cos(pushDir)), (float)(-sin(pushDir))}})
+        .with_origins({{(float)brain->data->ball.posToField.x, (float)(-brain->data->ball.posToField.y)}})
+        .with_colors({0xFFFF00FF})
+        .with_labels({"DribbleDir"})
+    );
+    
     return NodeStatus::RUNNING;
 }
 
