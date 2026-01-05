@@ -4,9 +4,9 @@
                 <ReactiveSequence>
                     <SubTree ID="CamFindAndTrackBall" _autoremap="true" />
                     <SelfLocate mode="trust_direction" /> 
-                    <CamScanField _while="!odom_calibrated"/>
+                    <!-- <CamScanField _while="!odom_calibrated"/> -->
                     
-                    <CalcKickDir />
+                    <CalcKickDir cross_threshold="0.5" />
 
                     <!-- 현재 striker의 kick decision 값이 들어가진 않으니 도움닫기는 adjust로만 수정 (kick 결정 ball.range < 0.8) 
                     1. adjust range : 0.6
