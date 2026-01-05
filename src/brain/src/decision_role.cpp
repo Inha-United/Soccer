@@ -308,18 +308,16 @@ NodeStatus DefenderDecide::tick() {
     // // 2. 추적 거리 밖이면 -> chase
     // else if (ballRange > chaseRangeThreshold * (lastDecision == "chase" ? 0.9 : 1.0))
     // {
-    //     // 수비수는 쫓아가지 않고 대기 -> 당장은 pass 이후 등에서 활용됨
-    //     // if (brain->data->ball.posToField.x < -1.0) { // 공 위치가 x <-1 면 wait
-    //     //     newDecision = "wait";
-    //     //     color = 0x00FFFFFF; // Cyan/White mix
-    //     // } else {
-    //         newDecision = isLead ? "chase" : "side_chase"; //passtopass용 side_chase
-    //         color = 0x0000FFFF;
-    //     // }
+    //     // 추가: 방금 패스를 했다면 바로 쫓아가지 않음
+    //      if (lastDecision == "pass") {
+    //          newDecision = "wait"; // 혹은 "return"
+    //      } else {
+    //          newDecision = "chase";
+    // }
     // } 
     // // 3. 킥 조건 만족하면 -> kick(패스)
     // else if (
-    //     isLead && (
+    //     (
     //         (angleGoodForKick && !brain->data->isFreekickKickingOff) 
     //         || reachedKickDir
     //     )
@@ -333,6 +331,16 @@ NodeStatus DefenderDecide::tick() {
     //     color = 0x00FF00FF;
     //     brain->data->isFreekickKickingOff = false;
         
+
+    //     //pass 진입시 직전 포즈 저장 (for pass to pass, 패스 성공 후에 돌아가기 위함)
+    //     if (lastDecision != "pass") {
+    //     auto pose = brain->data->robotPoseToField;
+    //     brain->tree->setEntry("return_x", pose.x);
+    //     brain->tree->setEntry("return_y", pose.y);
+    //     brain->tree->setEntry("return_yaw", pose.theta); // pose의 yaw 필드명 확인
+        
+    //     brain->log->logToScreen("debug/ReturnSave",format("Saved return pose: x=%.2f y=%.2f th=%.2f", pose.x, pose.y, pose.theta),0xFFFFFFFF);
+    //     }
     //     }
     //     else{
     //     newDecision = "kick"; // 아니면 
@@ -342,19 +350,10 @@ NodeStatus DefenderDecide::tick() {
     // // 4. 그 외 -> 위치 조정 ("adjust")
     // else
     // {
-    //     newDecision = isLead ? "adjust" : "return"; //일단 passtopass용 return
+    //     newDecision = "adjust";
     //     color = 0xFFFF00FF;
-        
-    //     if (newDecision == "return" && lastDecision != "return") {
-    //         auto pose = brain->data->robotPoseToField;
-    //         brain->tree->setEntry("return_x", pose.x);
-
-    //         // 필요하면 로그도
-    //         brain->log->logToScreen(
-    //             "debug/ReturnSave",
-    //             format("Saved return_x on return entry: x=%.2f", pose.x), 0xFFFFFFFF );    
-    //     }   
     // }
+
 
     setOutput("decision_out", newDecision);
     brain->log->logToScreen(

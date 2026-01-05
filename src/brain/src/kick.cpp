@@ -262,10 +262,12 @@ NodeStatus CalcPassDir::tick(){
     double d = norm(bPos.x - tmPos.x, bPos.y - tmPos.y);
 
     // 파라미터
-    double k = 1.0;        // 감도
+    double k = 0.05;        // 감도
 
     // 경험적 식...
-    double passSpeed = k * std::sqrt(d / 10.0);
+    double passSpeed = k * std::pow(d,2);
+
+    passSpeed = std::min(result, 2.0);
 
     // BT로 전달 (Kick에서 speed_limit으로 사용)
     setOutput("pass_speed_limit", passSpeed);
