@@ -40,7 +40,7 @@ NodeStatus Adjust::tick(){
     getInput("vtheta_limit", vthetaLimit);
     getInput("range", range);
     double kickYOffset;
-    if(!getInput("kick_y_offset", kickYOffset)) kickYOffset = 0.13; // [Offset] 킥 오프셋 파라미터 읽기 (기본값 0.0)
+    if(!getInput("kick_y_offset", kickYOffset)) kickYOffset = 0.13;
 
     log(format("ballX: %.1f ballY: %.1f ballYaw: %.1f", brain->data->ball.posToRobot.x, brain->data->ball.posToRobot.y, brain->data->ball.yawToRobot));
     double NO_TURN_THRESHOLD, TURN_FIRST_THRESHOLD;
@@ -56,7 +56,7 @@ NodeStatus Adjust::tick(){
     double ballRange = brain->data->ball.range;
 
     // 한 발로 차기 위해 공을 로봇 중심보다 옆(kickYOffset)에 두도록 정렬
-    // deltaDir 각도 에러 수정
+    // 정확히 정렬됐다면 kickdir - dir_rb_f = 0 targetAngleOffset을 더해줌으로써 오차각도를 더 줘서 정렬하는 방식
     double targetAngleOffset = atan2(kickYOffset, ballRange);
     double deltaDir = toPInPI(kickDir - dir_rb_f + targetAngleOffset);
 
