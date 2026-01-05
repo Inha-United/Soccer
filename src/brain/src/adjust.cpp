@@ -40,7 +40,7 @@ NodeStatus Adjust::tick(){
     getInput("vtheta_limit", vthetaLimit);
     getInput("range", range);
     double kickYOffset;
-    if(!getInput("kick_y_offset", kickYOffset)) kickYOffset = 0.13;
+    if(!getInput("kick_y_offset", kickYOffset)) kickYOffset = -0.13;
 
     log(format("ballX: %.1f ballY: %.1f ballYaw: %.1f", brain->data->ball.posToRobot.x, brain->data->ball.posToRobot.y, brain->data->ball.yawToRobot));
     double NO_TURN_THRESHOLD, TURN_FIRST_THRESHOLD;
@@ -50,17 +50,21 @@ NodeStatus Adjust::tick(){
 
     double vx = 0, vy = 0, vtheta = 0;
     double kickDir = brain->data->kickDir;
-    double dir_rb_f = brain->data->robotBallAngleToField; 
-    // double deltaDir = toPInPI(kickDir - dir_rb_f);
-    double deltaDirVal = toPInPI(kickDir - dir_rb_f);
+    // double dir_rb_f = brain->data->robotBallAngleToField; 
+    double theta_robot_f = brain->data->robotPoseToField.theta;
+    double headingError = toPInPI(kickDir - theta_robot_f);
+    double ballYaw = brain->data->ball.yawToRobot;
     double ballRange = brain->data->ball.range;
 
     // 한 발로 차기 위해 공을 로봇 중심보다 옆(kickYOffset)에 두도록 정렬
-    // 정확히 정렬됐다면 kickdir - dir_rb_f = 0 targetAngleOffset을 더해줌으로써 오차각도를 더 줘서 정렬하는 방식
+    // ballYaw에 offset을 직접 더해줌으로써 가상의 공(Virtual Ball)을 목표로 삼음
+    // 이러면 로봇이 공 중심이 아니라 공 옆(Kick Spot)을 향해 전진(sr)하므로 더 자연스러움
     double targetAngleOffset = atan2(kickYOffset, ballRange);
-    double deltaDir = toPInPI(kickDir - dir_rb_f + targetAngleOffset);
+    ballYaw -= targetAngleOffset; // Virtual Ball Yaw
 
-    double ballYaw = brain->data->ball.yawToRobot;
+    // deltaDir = headingError - VirtualBallYaw
+    double deltaDir = toPInPI(headingError - ballYaw);
+
     // double st = cap(fabs(deltaDir), st_far, st_near);
     double st = st_far; 
     double R = ballRange; 
@@ -75,10 +79,8 @@ NodeStatus Adjust::tick(){
         // sr = 0.;
         // vxLimit = 0.1;
     }
-
-    double theta_robot_f = brain->data->robotPoseToField.theta; 
-    double thetat_r = dir_rb_f + M_PI / 2 * (deltaDir > 0 ? -1.0 : 1.0) - theta_robot_f; 
-    double thetar_r = dir_rb_f - theta_robot_f; 
+    double thetat_r = ballYaw + M_PI / 2 * (deltaDir > 0 ? -1.0 : 1.0);
+    double thetar_r = ballYaw;
 
     vx = st * cos(thetat_r) + sr * cos(thetar_r); 
     vy = st * sin(thetat_r) + sr * sin(thetar_r); 
@@ -87,7 +89,7 @@ NodeStatus Adjust::tick(){
     
     // 오프셋 킥 사용 시, 로봇이 공을 바라보는 것이 아니라(ballYaw=0), 
     // 킥 방향(골대)과 평행하게 서야 함. (kickDir - robotTheta = Heading Error)
-    double headingError = toPInPI(kickDir - theta_robot_f);
+    // double headingError = toPInPI(kickDir - theta_robot_f); // This line was moved up
     vtheta = headingError;
     vtheta *= vtheta_factor; 
     // if (fabs(ballYaw) < NO_TURN_THRESHOLD) vtheta = 0.;
