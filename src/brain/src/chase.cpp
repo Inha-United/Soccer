@@ -426,6 +426,17 @@ NodeStatus DribbleToGoal::onRunning() {
         // P-Control for CircleBack
         double vX_field = errX * 2.0;
         double vY_field = errY * 2.0;
+
+        // circleback 시에 공에 닿는걸 방지
+        double distToBall = hypot(ballPos.x - robotPos.x, ballPos.y - robotPos.y);
+        double safeDist = 0.5; 
+        if (distToBall < safeDist) {
+            double repulsionStrength = 3.0 * (safeDist - distToBall); // 가까울수록 강하게 밈
+            double angleBallToRobot = atan2(robotPos.y - ballPos.y, robotPos.x - ballPos.x); // Ball -> Robot 벡터
+            
+            vX_field += repulsionStrength * cos(angleBallToRobot);
+            vY_field += repulsionStrength * sin(angleBallToRobot);
+        }
         
         // 속도 제한 (CircleBack은 빠르게)
         double speed = hypot(vX_field, vY_field);
