@@ -58,14 +58,12 @@ NodeStatus Adjust::tick(){
 
     // 한 발로 차기 위해 공을 로봇 중심보다 옆(kickYOffset)에 두도록 정렬
     // ballYaw에 offset을 직접 더해줌으로써 가상의 공(Virtual Ball)을 목표로 삼음
-    // 이러면 로봇이 공 중심이 아니라 공 옆(Kick Spot)을 향해 전진(sr)하므로 더 자연스러움
     double targetAngleOffset = atan2(kickYOffset, ballRange);
     ballYaw -= targetAngleOffset; // Virtual Ball Yaw
 
     // deltaDir = headingError - VirtualBallYaw
     double deltaDir = toPInPI(headingError - ballYaw);
 
-    // double st = cap(fabs(deltaDir), st_far, st_near);
     double st = st_far; 
     double R = ballRange; 
     double r = range; 
@@ -76,24 +74,16 @@ NodeStatus Adjust::tick(){
     if (fabs(deltaDir) * R < NEAR_THRESHOLD) {
         log("use near speed");
         st = st_near;
-        // sr = 0.;
-        // vxLimit = 0.1;
     }
     double thetat_r = ballYaw + M_PI / 2 * (deltaDir > 0 ? -1.0 : 1.0);
     double thetar_r = ballYaw;
 
     vx = st * cos(thetat_r) + sr * cos(thetar_r); 
     vy = st * sin(thetat_r) + sr * sin(thetar_r); 
-    // vtheta = toPInPI(ballYaw + st / R * (deltaDir > 0 ? 1.0 : -1.0)); 
-    // vtheta = ballYaw;
     
-    // 오프셋 킥 사용 시, 로봇이 공을 바라보는 것이 아니라(ballYaw=0), 
-    // 킥 방향(골대)과 평행하게 서야 함. (kickDir - robotTheta = Heading Error)
-    // double headingError = toPInPI(kickDir - theta_robot_f); // This line was moved up
     vtheta = headingError;
     vtheta *= vtheta_factor; 
-    // if (fabs(ballYaw) < NO_TURN_THRESHOLD) vtheta = 0.;
-    // 회전 제어 조건도 ballYaw(공 방향)가 아닌 headingError(골대 방향) 기준으로 변경
+    
     if (fabs(headingError) < NO_TURN_THRESHOLD) vtheta = 0.; 
     
     // 방향이 많이 틀어졌거나 위치가 많이 벗어났으면 일단 제자리 회전
