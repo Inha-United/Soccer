@@ -1,7 +1,7 @@
 brain_node:
   ros__parameters:
     game:
-      team_id: 13 
+      team_id: 100
       player_id: 1 # 1 | 2 | 3 | 4 | 5
       field_type: "inha_size" # kid_size | adult_size | inha_size
       player_role: "striker" # striker | defender | goal_keeper
