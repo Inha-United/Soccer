@@ -37,30 +37,34 @@ NodeStatus GoToPose::tick(){
     double errorx = targetx - gx;
     double errory = targety - gy;
     double targetdir = atan2(errory, errorx); // 내 위치에서 골대중앙을 이은 벡터의 각도
-    double errortheta = targetdir - gtheta; // 이걸 P제어한다면 골대중앙을 쳐다볼것.
+    double errortheta = toPInPI(targettheta - gtheta); // 이걸 P제어한다면 골대중앙을 쳐다볼것.
 
     double dist = norm(errorx, errory); // 골대중앙까지의 거리
     double controlx, controly, controltheta;
     double Kp = 4.0;
     double linearFactor = 1.0 / (1.0 + exp(-6.0 * (dist - 0.5)));
 
-    if(dist > stop_Threshold){// 직진
+    if (dist > stop_Threshold && fabs(errortheta) > 0.2) { 
+        controlx = 0;
+        controly = 0;
+        controltheta = errortheta * Kp;
+        controltheta = cap(controltheta, 1.5, -1.5);
+    }
+    else if(dist > stop_Threshold){// 직진
       controlx = errorx*cos(gtheta) + errory*sin(gtheta);
       controly = -errorx*sin(gtheta) + errory*cos(gtheta);
+
+      controltheta = errortheta * Kp;
+
       controlx *= linearFactor;
       controly *= linearFactor;
       controlx = cap(controlx, vLimit, -vLimit*0.5);    
       controly = cap(controly, vLimit*0.5, -vLimit*0.5);
-      if (dist < turn_Threshold) {
-        controltheta = toPInPI(targettheta - gtheta) * Kp;
-      } else {
-          controltheta = 0.0;
-      } // 수현 수정 : 몸 안틀고 이동
     }
-    else if (dist <= stop_Threshold && fabs(toPInPI(targettheta - gtheta)) > 0.1) { // 약 6도 오차
-    controlx = 0;
-    controly = 0;
-    controltheta = toPInPI(targettheta - gtheta) * Kp; // 제자리에서 각도만 P제어
+    else if (fabs(errortheta) > 0.2) { // 약 12도 오차
+      controlx = 0;
+      controly = 0;
+      controltheta = errortheta * Kp; // 제자리에서 각도만 P제어
     }
     else{ // 정지
         controlx = 0;
