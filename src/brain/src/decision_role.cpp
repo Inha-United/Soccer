@@ -224,7 +224,7 @@ NodeStatus DefenderDecide::tick() {
     auto dt = brain->msecsSince(timeLastTick);
     bool reachedKickDir = 
         deltaDir * lastDeltaDir <= 0 
-        && fabs(deltaDir) < M_PI / 6
+        && fabs(deltaDir) < 0.1
         && dt < 100;
     reachedKickDir = reachedKickDir || fabs(deltaDir) < 0.1;
     timeLastTick = now;
@@ -241,7 +241,7 @@ NodeStatus DefenderDecide::tick() {
 
     // 레인 설정
     const double laneY = -2.5;
-    const double laneTol = 0.20;   // 필요시 파라미터로 빼도 됨
+    const double laneTol = 0.10;   // 필요시 파라미터로 빼도 됨
     bool inLane = std::fabs(pose.y - laneY) < laneTol;
 
     // 1) 공을 모르면 -> find
@@ -278,7 +278,7 @@ NodeStatus DefenderDecide::tick() {
         else if (
             ((angleGoodForKick && !brain->data->isFreekickKickingOff) || reachedKickDir) &&
             brain->data->ballDetected &&
-            std::fabs(brain->data->ball.yawToRobot) < M_PI/2.0 &&
+            std::fabs(brain->data->ball.yawToRobot) < 0.1 &&
             !avoidKick &&
             ball.range < 1.5
         ) {
