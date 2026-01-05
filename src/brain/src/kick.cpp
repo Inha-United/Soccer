@@ -267,7 +267,7 @@ NodeStatus CalcPassDir::tick(){
     // 경험적 식...
     double passSpeed = k * std::pow(d,2);
 
-    passSpeed = std::min(result, 2.0);
+    passSpeed = std::min(passSpeed, 2.0);
 
     // BT로 전달 (Kick에서 speed_limit으로 사용)
     setOutput("pass_speed_limit", passSpeed);
