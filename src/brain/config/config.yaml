@@ -5,7 +5,7 @@ brain_node:
       player_id: 1 # 1 | 2 | 3 | 4 | 5
       field_type: "inha_size" # kid_size | adult_size | inha_size
       player_role: "striker" # striker | defender | goal_keeper
-      treat_person_as_robot: false 
+      treat_person_as_robot: true 
       number_of_players: 4
      
     robot: # 로봇 제어할 때 clapping 등 동작을 위한 파라미터 -> robot_client.cpp 에서 사용
@@ -41,7 +41,7 @@ brain_node:
       collision_threshold: 0.4 # 충돌 회피 거리 임계값 (로봇 반경 고려) 
       # 밑에 2개 변수를 chase에 뺄지 고민중 
       avoid_during_chase: true # chase 중에 장애물을 회피할 지 여부
-      chase_ao_safe_dist: 3.5 # chase 중 장애물을 회피할 때 최소 안전 거리
+      chase_ao_safe_dist: 1.0 # chase 중 장애물을 회피할 때 최소 안전 거리
 
       # 킥에 사용
       avoid_during_kick: false 
