@@ -411,6 +411,7 @@ NodeStatus DribbleToGoal::onRunning() {
     }
 
     // 드리블 로직
+    double pushDir = 0.0;
     if (alignmentError > deg2rad(60)) {
         // 공 뒤에 제대로 서지 못했다면 CircleBack으로 공뒤로 이동할 수 있게
         phase = "CircleBack";
@@ -443,7 +444,7 @@ NodeStatus DribbleToGoal::onRunning() {
         // 정렬이 잘 되었다면 Push로 공 방향으로 전진
         phase = "Push";
 
-        double pushDir = atan2(brain->data->ball.posToRobot.y, brain->data->ball.posToRobot.x);
+        pushDir = atan2(brain->data->ball.posToRobot.y, brain->data->ball.posToRobot.x);
         
         // 정렬 오차만큼 보정 추가
         vx = targetSpeed * cos(pushDir);
@@ -470,8 +471,8 @@ NodeStatus DribbleToGoal::onRunning() {
     
     // 드리블 방향 시각화
     brain->log->log("debug/dribble_arrow", 
-        rerun::Arrows2D::from_vectors({{(float)(cos(pushDir)), (float)(-sin(pushDir))}})
-        .with_origins({{(float)brain->data->ball.posToField.x, (float)(-brain->data->ball.posToField.y)}})
+        rerun::Arrows2D::from_vectors({{cos(pushDir), -sin(pushDir)}})
+        .with_origins({{brain->data->ball.posToField.x, -brain->data->ball.posToField.y}})
         .with_colors({0xFFFF00FF})
         .with_labels({"DribbleDir"})
     );
