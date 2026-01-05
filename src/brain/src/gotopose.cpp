@@ -44,26 +44,25 @@ NodeStatus GoToPose::tick(){
     double Kp = 4.0;
     double linearFactor = 1.0 / (1.0 + exp(-6.0 * (dist - 0.5)));
 
-    if(dist > turn_Threshold){// 직진
+    if(dist > stop_Threshold){// 직진
       controlx = errorx*cos(gtheta) + errory*sin(gtheta);
       controly = -errorx*sin(gtheta) + errory*cos(gtheta);
       controlx *= linearFactor;
       controly *= linearFactor;
       controlx = cap(controlx, vLimit, -vLimit*0.5);    
       controly = cap(controly, vLimit*0.5, -vLimit*0.5);
-      controltheta = 0.0; // 수현 수정 : 몸 안틀고 이동
+      if (dist < turn_Threshold) {
+        controltheta = toPInPI(targettheta - gtheta) * Kp;
+      } else {
+          controltheta = 0.0;
+      } // 수현 수정 : 몸 안틀고 이동
     }
-    else if(dist < turn_Threshold && dist > stop_Threshold){ // 선회
-		  controlx = errorx*cos(gtheta) + errory*sin(gtheta);
-      controly = -errorx*sin(gtheta) + errory*cos(gtheta);
-      controlx *= linearFactor;
-      controly *= linearFactor;
-      controlx = cap(controlx, vLimit, -vLimit*0.5);    
-      controly = cap(controly, vLimit*0.5, -vLimit*0.5);
-	    controltheta = (targettheta - gtheta) * Kp; // 이러면 gtheta(로봇방향)이 targettheta를 바라봄
+    else if (dist <= stop_Threshold && fabs(toPInPI(targettheta - gtheta)) > 0.1) { // 약 6도 오차
+    controlx = 0;
+    controly = 0;
+    controltheta = toPInPI(targettheta - gtheta) * Kp; // 제자리에서 각도만 P제어
     }
-    
-    else if(dist < turn_Threshold && dist < stop_Threshold){ // 정지
+    else{ // 정지
         controlx = 0;
         controly = 0;
         controltheta = 0;
