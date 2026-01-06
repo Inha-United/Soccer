@@ -129,8 +129,8 @@ NodeStatus StrikerDecide::tick() {
     // 반대로 이미 세트피스 범위라면 adjust 생략 가능
     
     else {
-        // 골대 중앙과 로봇 사이 거리 계산
-        double distToGoal = norm(brain->data->robotPoseToField.x - (-brain->config->fieldDimensions.length/2), brain->data->robotPoseToField.y);
+        // 골대 중앙과 *공* 사이 거리 계산 (DribbleToGoal과 일관성 유지)
+        double distToGoal = norm(ball.posToField.x - (-brain->config->fieldDimensions.length/2), ball.posToField.y);
         // 골대를 향하는 직선거리에 장애물이 있나 확인하는 로직 제거됨 (사용자 요청)
 
     // 2.0m 보다 멀거나 1.5m보다 멀면서 슛길이 막혀있으면 -> 드리블
@@ -167,8 +167,8 @@ NodeStatus StrikerDecide::tick() {
     brain->log->logToScreen(
         "tree/Decide",
         format(
-            "Decision: %s ballrange: %.2f ballyaw: %.2f kickDir: %.2f rbDir: %.2f angleGoodForKick: %d lead: %d", 
-            newDecision.c_str(), ballRange, ballYaw, kickDir, dir_rb_f, angleGoodForKick, brain->data->tmImLead
+            "Decision: %s dist: %.2f ballrange: %.2f kickDir: %.2f angles: %d lead: %d", 
+            newDecision.c_str(), distToGoal, ballRange, kickDir, angleGoodForKick, brain->data->tmImLead
         ),
         color
     );
