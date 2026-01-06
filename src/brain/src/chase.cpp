@@ -376,9 +376,12 @@ NodeStatus DribbleToGoal::onRunning() {
     
     // 공과 골대 사이의 거리
     double ballDistToGoal = hypot(goalX - ballPos.x, goalY - ballPos.y);
-    
+
     // 도달 확인
-    if (ballDistToGoal < distToGoalThresh) {
+    // StrikerDecide와 일관성을 위해 골대 중앙까지의 거리도 확인
+    double distToGoalCenter = hypot(goalX - ballPos.x, -ballPos.y);
+
+    if (ballDistToGoal < distToGoalThresh || distToGoalCenter < distToGoalThresh) {
         brain->client->setVelocity(0, 0, 0);
         log("Success: Ball reached target distance");
         return NodeStatus::SUCCESS;
