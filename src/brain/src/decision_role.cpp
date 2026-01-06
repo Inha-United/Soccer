@@ -70,10 +70,10 @@ NodeStatus StrikerDecide::tick() {
     
     double headingError = toPInPI(kickDir - brain->data->robotPoseToField.theta);
 
-    // 킥 정렬 조건 강화
+
     bool reachedKickDir = 
-        fabs(errorDir) < 0.05 // 2.9도 이내 정밀 정렬 (위치)
-        && fabs(headingError) < 0.1 // 약 5.7도 이내 방향 정렬 (자세) - Impact 개선
+        fabs(errorDir) < 0.08 // 4.6도 이내 정밀 정렬 (위치)
+        && fabs(headingError) < 0.15 // 약 8.6도 이내 방향 정렬 (자세)
         && dt < 100;
     
     // reachedKickDir = reachedKickDir || fabs(errorDir) < 0.02; 
@@ -82,8 +82,7 @@ NodeStatus StrikerDecide::tick() {
     lastDeltaDir = deltaDir;
    
     // 킥 동작 중이라도 틀어지면 멈추고 다시 정렬하도록 강화
-    // 0.2 rad = 약 11도
-    bool maintainKick = (lastDecision == "kick" && fabs(errorDir) < 0.1 && fabs(headingError) < 0.2); 
+    bool maintainKick = (lastDecision == "kick" && fabs(errorDir) < 0.15 && fabs(headingError) < 0.25); 
 
     string newDecision;
     auto color = 0xFFFFFFFF; 
