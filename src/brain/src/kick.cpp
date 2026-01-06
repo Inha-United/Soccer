@@ -423,6 +423,8 @@ NodeStatus Kick::onRunning(){
          auto [vx, vy, _] = _calcSpeed();
          
          // 공을 보지 말고, 골대(KickDir)를 봐야 함 -> Bias 적용 (Adjust와 동일)
+         double kickYOffset;
+         getInput("kick_y_offset", kickYOffset);
          double targetAngleOffset = atan2(kickYOffset, brain->data->ball.range); // Kick::_calcSpeed의 targetYaw와 유사
          double headingBias = -targetAngleOffset * 0.3; 
          double desiredHeading = brain->data->kickDir + headingBias;

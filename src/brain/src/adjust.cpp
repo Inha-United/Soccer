@@ -87,7 +87,6 @@ NodeStatus Adjust::tick(){
     
     // 오프셋 킥 사용 시, 로봇이 공을 바라보는 것이 아니라(ballYaw=0), 
     // 킥 방향(골대)과 평행하게 서야 함. (kickDir - robotTheta = Heading Error)
-    // [수정] "몸이 너무 오른쪽을 본다"는 피드백 수용 -> 완전 평행보다는 '공 쪽으로 살짝(30%)' 틀어줌
     double headingBias = -targetAngleOffset * 0.3; // 30% 정도 공을 바라보게 보정
     double desiredHeading = kickDir + headingBias;
     double headingError = toPInPI(desiredHeading - theta_robot_f);
