@@ -68,7 +68,9 @@ NodeStatus StrikerDecide::tick() {
     auto now = brain->get_clock()->now();
     auto dt = brain->msecsSince(timeLastTick);
     
-    double headingError = toPInPI(kickDir - brain->data->robotPoseToField.theta);
+    double headingBias = -targetAngleOffset * 0.3; // Adjust와 동일하게 30% 보정
+    double desiredHeading = kickDir + headingBias;
+    double headingError = toPInPI(desiredHeading - brain->data->robotPoseToField.theta);
 
 
     bool reachedKickDir = 

@@ -422,8 +422,12 @@ NodeStatus Kick::onRunning(){
     if(brain->data->ballDetected){
          auto [vx, vy, _] = _calcSpeed();
          
-         // 공을 보지 말고, 골대를 봐야 함
-         double headingError = toPInPI(brain->data->kickDir - brain->data->robotPoseToField.theta);
+         // 공을 보지 말고, 골대(KickDir)를 봐야 함 -> Bias 적용 (Adjust와 동일)
+         double targetAngleOffset = atan2(kickYOffset, brain->data->ball.range); // Kick::_calcSpeed의 targetYaw와 유사
+         double headingBias = -targetAngleOffset * 0.3; 
+         double desiredHeading = brain->data->kickDir + headingBias;
+         
+         double headingError = toPInPI(desiredHeading - brain->data->robotPoseToField.theta);
          double vtheta = headingError * 1.5; // P-gain 1.5
          
          brain->client->setVelocity(vx, vy, vtheta);
