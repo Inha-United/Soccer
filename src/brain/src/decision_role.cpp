@@ -73,7 +73,7 @@ NodeStatus StrikerDecide::tick() {
 
     bool reachedKickDir = 
         fabs(errorDir) < 0.08 // 4.6도 이내 정밀 정렬 (위치)
-        && fabs(headingError) < 0.15 // 약 8.6도 이내 방향 정렬 (자세)
+        && fabs(headingError) < 0.08 // 약 4.6도 이내 방향 정렬 (방향)
         && dt < 100;
     
     // reachedKickDir = reachedKickDir || fabs(errorDir) < 0.02; 
@@ -94,38 +94,39 @@ NodeStatus StrikerDecide::tick() {
         color = 0xFFFFFFFF;
     } 
     // 세트피스 상황이거나, 일반 경기에서도 골대랑 가까우면 one_touch
-    else if (
-        (
-            (
-                (
-                    (brain->tree->getEntry<string>("gc_game_sub_state_type") == "CORNER_KICK"
-                    || brain->tree->getEntry<string>("gc_game_sub_state_type") == "GOAL_KICK"
-                    || brain->tree->getEntry<string>("gc_game_sub_state_type") == "DIRECT_FREE_KICK"
-                    || brain->tree->getEntry<string>("gc_game_sub_state_type") == "THROW_IN")
-                    && brain->tree->getEntry<bool>("gc_is_sub_state_kickoff_side")
-                )
-                || (
-                    angleGoodForKick          
-                    && !avoidKick             
-                )
-            )
-            && brain->data->ballDetected
-            && ball.range < 0.5 
-            && fabs(brain->data->ball.yawToRobot) < 0.3 
-        )
-        // || // 일반 경기 + 골대 근처
-        // (
-        //     brain->data->ballDetected
-        //     && ball.range < 0.5 
-        //     && fabs(brain->data->ball.yawToRobot) < 0.3 
-        //     && norm(brain->data->robotPoseToField.x - (-brain->config->fieldDimensions.length/2), brain->data->robotPoseToField.y) < oneTouchGoalDist
-        //     // 킥 방향(kickDir)과 로봇 방향(dir_rb_f)이 대략적으로 일치할 때 one_touch 실행
-        //     && fabs(toPInPI(brain->data->kickDir - brain->data->robotBallAngleToField)) < 0.5
-        // )
-    ) {
-        newDecision = "one_touch";
-        color = 0xFF0000FF; // Red color
-    } else if (!brain->data->tmImLead) {
+    // else if (
+    //     (
+    //         (
+    //             (
+    //                 (brain->tree->getEntry<string>("gc_game_sub_state_type") == "CORNER_KICK"
+    //                 || brain->tree->getEntry<string>("gc_game_sub_state_type") == "GOAL_KICK"
+    //                 || brain->tree->getEntry<string>("gc_game_sub_state_type") == "DIRECT_FREE_KICK"
+    //                 || brain->tree->getEntry<string>("gc_game_sub_state_type") == "THROW_IN")
+    //                 && brain->tree->getEntry<bool>("gc_is_sub_state_kickoff_side")
+    //             )
+    //             || (
+    //                 angleGoodForKick          
+    //                 && !avoidKick             
+    //             )
+    //         )
+    //         && brain->data->ballDetected
+    //         && ball.range < 0.5 
+    //         && fabs(brain->data->ball.yawToRobot) < 0.3 
+    //     )
+    //     || // 일반 경기 + 골대 근처
+    //     (
+    //         brain->data->ballDetected
+    //         && ball.range < 0.5 
+    //         && fabs(brain->data->ball.yawToRobot) < 0.3 
+    //         && norm(brain->data->robotPoseToField.x - (-brain->config->fieldDimensions.length/2), brain->data->robotPoseToField.y) < oneTouchGoalDist
+    //         // 킥 방향(kickDir)과 로봇 방향(dir_rb_f)이 대략적으로 일치할 때 one_touch 실행
+    //         && fabs(toPInPI(brain->data->kickDir - brain->data->robotBallAngleToField)) < 0.5
+    //     )
+    // ) {
+    //     newDecision = "one_touch";
+    //     color = 0xFF0000FF; // Red color
+    // } 
+    else if (!brain->data->tmImLead) {
         newDecision = "offtheball";
         color = 0x00FFFFFF;
     } else if (ballRange > chaseRangeThreshold * (lastDecision == "chase" ? 0.9 : 1.0))
@@ -137,7 +138,6 @@ NodeStatus StrikerDecide::tick() {
     // 반대로 이미 세트피스 범위라면 adjust 생략 가능
     
     else {
-        // 골대 중앙과 *공* 사이 거리 계산 (DribbleToGoal과 일관성 유지)
         distToGoal = norm(ball.posToField.x - (-brain->config->fieldDimensions.length/2), ball.posToField.y);
 
         // 2.0m 보다 멀거나 1.5m보다 멀면서 슛길이 막혀있으면 -> 드리블
