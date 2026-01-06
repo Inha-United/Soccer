@@ -40,7 +40,7 @@ NodeStatus Adjust::tick(){
     getInput("vtheta_limit", vthetaLimit);
     getInput("range", range);
     double kickYOffset;
-    if(!getInput("kick_y_offset", kickYOffset)) kickYOffset = 0.13;
+    if(!getInput("kick_y_offset", kickYOffset)) kickYOffset = -0.077;
 
     log(format("ballX: %.1f ballY: %.1f ballYaw: %.1f", brain->data->ball.posToRobot.x, brain->data->ball.posToRobot.y, brain->data->ball.yawToRobot));
     double NO_TURN_THRESHOLD, TURN_FIRST_THRESHOLD;
