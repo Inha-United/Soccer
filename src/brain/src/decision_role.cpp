@@ -36,6 +36,7 @@ NodeStatus StrikerDecide::tick() {
     double ballYaw = ball.yawToRobot;
     double ballX = ball.posToRobot.x;
     double ballY = ball.posToRobot.y;
+    double distToGoal = 0.0; // Initialize for logging logging scope
     
     const double goalpostMargin = 0.3; 
     bool angleGoodForKick = brain->isAngleGood(goalpostMargin, "kick");
@@ -130,15 +131,15 @@ NodeStatus StrikerDecide::tick() {
     
     else {
         // 골대 중앙과 *공* 사이 거리 계산 (DribbleToGoal과 일관성 유지)
-        double distToGoal = norm(ball.posToField.x - (-brain->config->fieldDimensions.length/2), ball.posToField.y);
-        // 골대를 향하는 직선거리에 장애물이 있나 확인하는 로직 제거됨 (사용자 요청)
+        distToGoal = norm(ball.posToField.x - (-brain->config->fieldDimensions.length/2), ball.posToField.y);
 
-    // 2.0m 보다 멀거나 1.5m보다 멀면서 슛길이 막혀있으면 -> 드리블
-    if (distToGoal > 2.0)// || (!isShotPathClear && distToGoal > 1.5))
-    {
-        newDecision = "dribble";
-        color = 0x00FFFF00; 
-    } 
+        // 2.0m 보다 멀거나 1.5m보다 멀면서 슛길이 막혀있으면 -> 드리블
+        bool shotPathBlocked = false; // 현재 경로 계산은 제거되었으므로 항상 false
+        if (distToGoal > 2.0)
+        {
+            newDecision = "dribble";
+            color = 0x00FFFF00; 
+        } 
 
     else if (
         (
