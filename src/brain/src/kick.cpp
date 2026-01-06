@@ -311,7 +311,14 @@ NodeStatus Kick::onStart(){
         return NodeStatus::SUCCESS;
     }
 
-    // [원본 그대로] 운동 지령 (게걸음 시작)
+    getInput("msecs_stablize", _msecs_stablize);
+    if (_msecs_stablize > 0) {
+        _state = "stabilize";
+        brain->client->setVelocity(0, 0, 0);
+        return NodeStatus::RUNNING;
+    }
+
+    _state = "kick";
     double angle = brain->data->ball.yawToRobot;
     brain->client->crabWalk(angle, _speed);
     
@@ -325,6 +332,17 @@ NodeStatus Kick::onRunning(){
     };
     string kickType = getInput<string>("kick_type").value();
     brain->log->logToScreen("debug/Action", "Action: " + kickType, 0x00FF00FF);
+
+    if (_state == "stabilize") {
+        if (brain->msecsSince(_startTime) > _msecs_stablize) {
+            _state = "kick";
+            _startTime = brain->get_clock()->now();
+            log("stabilize done");
+        } else {
+            brain->client->setVelocity(0, 0, 0);
+            return NodeStatus::RUNNING;
+        }
+    }
 
     // if(brain->tree->getEntry<string>("striker_state") != "kick") return NodeStatus::SUCCESS;
 

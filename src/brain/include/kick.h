@@ -95,5 +95,6 @@ private:
     int _msecKick = 1000;    
     double _speed; 
     double _minRange; 
+    double _msecs_stablize;
     tuple<double, double, double> _calcSpeed();
 };
