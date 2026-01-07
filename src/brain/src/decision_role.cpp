@@ -73,6 +73,7 @@ NodeStatus StrikerDecide::tick() {
     double headingError = toPInPI(desiredHeading - brain->data->robotPoseToField.theta);
 
 
+    // 킥으로 넘어가는(정렬 종료) 조건
     bool reachedKickDir = 
         fabs(errorDir) < 0.07
         && fabs(headingError) < 0.07
