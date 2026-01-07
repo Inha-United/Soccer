@@ -601,6 +601,13 @@ NodeStatus OfftheballPosition::onRunning()
     double errY = targetY - robotY;
     double dist = norm(errX, errY); // 목표 지점까지의 거리
 
+    brain->log->log("field/offtheball_target", 
+        rerun::Points2D({{static_cast<float>(targetX), static_cast<float>(targetY)}})
+        .with_colors({0x00FFFF00}) // Cyan/Yellow mix?
+        .with_radii({0.05})
+        .with_labels({"Target"})
+    );
+
     double vX_field = errX * 1.0;
     double vY_field = errY * 1.0;
 

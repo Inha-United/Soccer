@@ -455,7 +455,11 @@ NodeStatus Kick::onRunning(){
          double desiredHeading = brain->data->kickDir + headingBias; // 몸통이 바라볼 최종 각도
          
          double headingError = toPInPI(desiredHeading - brain->data->robotPoseToField.theta);
+         
          double vtheta = headingError * 1.5; // P-gain 1.5
+         
+         // Adjust와 동일하게 미세한 오차는 무시 (0.01 rad = 약 0.57도)
+         if(fabs(headingError) < 0.01) vtheta = 0.0;
          
          brain->client->setVelocity(vx, vy, vtheta);
     }
