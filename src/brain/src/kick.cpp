@@ -289,8 +289,6 @@ tuple<double, double, double> Kick::_calcSpeed() {
     double kickYOffset;
     getInput("kick_y_offset", kickYOffset);
 
-    // [중요 수정] 이제 Offset을 고려해서 목표 Yaw를 설정함
-    // 단순 yawToRobot이 0이 되도록 하는게 아니라, Offset 위치로 공이 오도록 함
     double targetYaw = atan2(kickYOffset, brain->data->ball.range);
     double errorYaw = brain->data->ball.yawToRobot - targetYaw;
 
@@ -299,16 +297,34 @@ tuple<double, double, double> Kick::_calcSpeed() {
     double tx = cos(adjustedYaw) * brain->data->ball.range; 
     double ty = sin(adjustedYaw) * brain->data->ball.range;
 
-    if (fabs(ty) < 0.01 && fabs(adjustedYaw) < 0.01){ 
-        vx = vxLimit;
-        vy = 0.0;
-    }
-    else{ 
-        vy = ty > 0 ? vyLimit : -vyLimit;
-        vx = vy / ty * tx * vxFactor;
-        if (fabs(vx) > vxLimit){
-            vy *= vxLimit / vx;
+    string kickType;
+    getInput("kick_type", kickType);
+    
+    if (kickType == "one_touch") {
+        // 1. 전진 속도 (vx): 무조건 전력 질주
+        vx = vxLimit; 
+        if (tx < 0) vx = -vxLimit;
+
+        // 2. 횡이동 속도 (vy): 오차(ty)에 비례하여 이동 (P제어)
+        double ky = 2.0; // gain
+        vy = ty * ky;
+
+        // 속도 제한 (vyLimit)
+        if (vy > vyLimit) vy = vyLimit;
+        if (vy < -vyLimit) vy = -vyLimit;
+
+    } else {
+        // 기존 로직 (직선 경로 유지)
+        if (fabs(ty) < 0.01 && fabs(adjustedYaw) < 0.01){ 
             vx = vxLimit;
+            vy = 0.0;
+        } else {
+            vy = ty > 0 ? vyLimit : -vyLimit;
+            vx = vy / ty * tx * vxFactor;
+            if (fabs(vx) > vxLimit){
+                vy *= vxLimit / vx;
+                vx = vxLimit;
+            }
         }
     }
 
