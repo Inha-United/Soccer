@@ -112,13 +112,15 @@ NodeStatus StrikerDecide::tick() {
                     && !avoidKick             
                 )
             )
+            && brain->data->tmImLead
             && brain->data->ballDetected
             && ball.range < 0.6 
             && fabs(brain->data->ball.yawToRobot) < 1.5  // 약 85도까지 허용 (옆에서 오는 패스도 반응) 
         )
         || // 일반 경기 + 골대 근처
         (
-            brain->data->ballDetected
+            brain->data->tmImLead
+            && brain->data->ballDetected
             && ball.range < 1.0  // [수정] 0.5 -> 1.0으로 완화하여 조금 멀리 있는 공도 적극적으로 슛 시도 
             && fabs(brain->data->ball.yawToRobot) < 1.0  // 약 60도까지 허용
             && norm(brain->data->robotPoseToField.x - (-brain->config->fieldDimensions.length/2), brain->data->robotPoseToField.y) < oneTouchGoalDist

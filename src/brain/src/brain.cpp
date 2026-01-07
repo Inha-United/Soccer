@@ -1609,12 +1609,12 @@ void Brain::handleCooperation() {
 
         data->tmImLead = false;
         tree->setEntry<bool>("is_lead", false);
-        log_("I am not lead");
+        log_(format("I am NOT Lead. (tmMinCost: %.2f < %.1f && myCost: %.2f > tmMinCost)", tmMinCost, BALL_CONTROL_COST_THRESHOLD, data->tmMyCost));
 
     } else {
         data->tmImLead = true;
         tree->setEntry<bool>("is_lead", true);
-        log_("I am Lead");
+        log_(format("I am Lead! (tmMinCost: %.2f, myCost: %.2f)", tmMinCost, data->tmMyCost));
     }
     log_(format("tmMinCost: %.1f, myCost: %.1f", tmMinCost, data->tmMyCost));
 
