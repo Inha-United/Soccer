@@ -291,6 +291,8 @@ NodeStatus DribbleToGoal::onRunning() {
     getInput("max_speed", maxSpeed);
     getInput("slow_dist_far", slowDistFar);
     getInput("slow_dist_near", slowDistNear);
+    double circleBackDist = 0.5;
+    getInput("circle_back_dist", circleBackDist);
 
     if (!brain->tree->getEntry<bool>("ball_location_known")){
         brain->client->setVelocity(0, 0, 0);
@@ -419,8 +421,8 @@ NodeStatus DribbleToGoal::onRunning() {
         // 공 뒤에 제대로 서지 못했다면 CircleBack으로 공뒤로 이동할 수 있게
         phase = "CircleBack";
 
-        // 목표 : 공 뒤 50cm 위치 + 골대 반대 방향
-        double targetX = ballPos.x - 0.5 * cos(angleBallToGoal);
+        // 목표 : 공 뒤 circleBackDist 위치 + 골대 반대 방향
+        double targetX = ballPos.x - circleBackDist * cos(angleBallToGoal);
         double targetY = ballPos.y - 0.5 * sin(angleBallToGoal);
         
         double errX = targetX - robotPos.x;
