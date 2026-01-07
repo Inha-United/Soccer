@@ -6,6 +6,7 @@
     <include path="./subtrees/striker.xml" />
     <include path="./subtrees/defender.xml" />
     <include path="./subtrees/sub_test.xml" />
+    <include path="./subtrees/auto_standup_and_locate.xml" />
 
 
     <!-- 시작 -->
@@ -14,7 +15,7 @@
             <RunOnce><Script code="control_state=1" /></RunOnce>
 
             <ReactiveSequence _while="control_state==1">
-
+                <SubTree ID="AutoGetUpAndLocate" _autoremap="true" />
                 <ReactiveSequence _while="gc_is_under_penalty" name="Penalty">
                     <SetVelocity x="0.0" y="0.0" theta="0.0" />
                     <SelfLocateEnterField />
