@@ -29,7 +29,7 @@ void BrainTree::init(){
     brain->registerAdjustNodes(factory); // adjust 관련 노드 등록
     brain->registerDecisionRoleNodes(factory); // decision role 관련 노드 등록
     brain->registerGotoposeNodes(factory); // Gotopose 관련 노드 등록
-    
+    brain->registerCheckAndStandUpNodes(factory); // CheckAndStandUp 관련 노드 등록
     
     factory.registerBehaviorTreeFromFile(brain->config->treeFilePath);
     tree = factory.createTree("MainTree");
