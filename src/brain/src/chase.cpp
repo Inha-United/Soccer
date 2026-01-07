@@ -511,9 +511,9 @@ NodeStatus OfftheballPosition::onRunning()
 
     // 기본 설정값
     auto fd = brain->config->fieldDimensions;
-    double distFromGoal = 2.0; 
+    double distFromGoal = 1.0; 
     if (!getInput("dist_from_goal", distFromGoal)) {
-        distFromGoal = 2.0;
+        distFromGoal = 1.0;
     }
     
     // 기본 목표 선언 -> 골대 앞 2m
@@ -686,12 +686,25 @@ NodeStatus OfftheballPosition::onRunning()
         vtheta = 0.0;
     }
     
-    // 위치도 잡히고 각도도 잡혔으면 정지
-    if (dist < 0.20 && fabs(angleDiff) < 0.1) {
+    // [Holding Logic] Hysteresis 적용
+    // 1. 진입 조건: 위치 15cm 이내, 각도 3도 이내 (아주 안정적일 때)
+    if (!_is_holding && dist < 0.15 && fabs(angleDiff) < 0.05) {
+        _is_holding = true;
+        brain->log->logToScreen("debug/Offtheball", "Holding Position (Brake ON)", 0x00FF00FF);
+    }
+    
+    // 2. 탈출 조건: 위치 40cm 이상 벗어나거나, 각도가 10도 이상 틀어졌을 때 (큰 변화 필요)
+    if (_is_holding && (dist > 0.40 || fabs(angleDiff) > 0.2)) {
+        _is_holding = false;
+        brain->log->logToScreen("debug/Offtheball", "Moving to New Position (Brake OFF)", 0x00FF00FF);
+    }
+
+    // 3. Holding 상태면 강제 정지
+    if (_is_holding) {
         vx_robot = 0.0;
         vy_robot = 0.0;
         vtheta = 0.0;
-        brain->client->setVelocity(0, 0, 0); // 강제 정지
+        brain->client->setVelocity(0, 0, 0); 
     }
     
     // 각도가 45도 이상 틀어져 있으면 멈추고 제자리 회전

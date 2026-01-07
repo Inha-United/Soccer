@@ -95,8 +95,6 @@ public:
             BT::InputPort<double>("max_speed", 0.8, "Maximum approach speed"),
             BT::InputPort<double>("slow_dist_far", 0.8, "Distance to start speeding up"),
             BT::InputPort<double>("slow_dist_near", 0.4, "Distance to start slowing down"),
-            BT::InputPort<double>("slow_dist_near", 0.4, "Distance to start slowing down"),
-            BT::InputPort<double>("circle_back_dist", 0.5, "Distance behind ball to start/circle back"),
         };
     }
 
@@ -126,4 +124,5 @@ public:
 
 private:
     Brain *brain;
+    bool _is_holding = false;
 };
