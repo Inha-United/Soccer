@@ -143,8 +143,22 @@ NodeStatus StrikerDecide::tick() {
     else {
         distToGoal = norm(ball.posToField.x - (-brain->config->fieldDimensions.length/2), ball.posToField.y);
 
-        // 2.0m 보다 멀거나 1.5m보다 멀면서 슛길이 막혀있으면 -> 드리블
-        bool shotPathBlocked = false; // 현재 경로 계산은 제거되었으므로 항상 false
+        // 로봇 기준으로 보정 추가 -> 골대가 눈에 보이고, 그 거리가 Localization 계산보다 작다면(더 가깝다면) 눈을 믿도록
+        auto gps = brain->data->getGoalposts();
+        double visibleMinDist = 999.0;
+        for(const auto& gp : gps){
+            if (gp.posToRobot.x > 0) { // 정면에 있는 골대만 신뢰 (후면에 있는건 혼동 가능성)
+                if(gp.range < visibleMinDist) visibleMinDist = gp.range;
+            }
+        }
+        //시각이 더 확실하다면 덮어씀
+        if(visibleMinDist < 10.0 && visibleMinDist < distToGoal){
+             distToGoal = visibleMinDist;
+        }
+
+        brain->log->logToScreen("debug/DistCheck", format("DistToGoal: %.2f (Vis: %.2f)", distToGoal, visibleMinDist), 0x00FFFF00);
+
+        bool shotPathBlocked = false;
         if (distToGoal > 3.0) // 실제 경기 드리블에도 정렬이 필요할까? dribbleadjust를 만든다
         {
             newDecision = "dribble";
