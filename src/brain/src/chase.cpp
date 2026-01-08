@@ -264,10 +264,6 @@ NodeStatus DribbleChase::tick() {
     return NodeStatus::SUCCESS;
 }
 
-// DribbleToGoal
-void DribbleToGoal::halt() {
-    // Cleanup if needed
-}
 
 NodeStatus DribbleToGoal::tick() {
     auto log = [=](string msg) {
@@ -489,15 +485,10 @@ NodeStatus DribbleToGoal::tick() {
         .with_labels({"DribbleDir"})
     );
     
-    return NodeStatus::RUNNING;
+    return NodeStatus::SUCCESS;
 }
 
 // 패스 받기 전 오프더볼 무브 추후, 오프사이드 보완해야함 (opponent보다는 앞으로 가지 않도록)
-
-void OfftheballPosition::halt() {
-    // Empty implementation
-}
-
 NodeStatus OfftheballPosition::tick(){
     // LOGGING START
     brain->log->logToScreen("debug/Offtheball", "Tick Start", 0xFFFFFFFF);
@@ -674,7 +665,7 @@ NodeStatus OfftheballPosition::tick(){
 
     // LOGGING END
     brain->log->logToScreen("debug/Offtheball", "Tick End", 0xFFFFFFFF);
-    return NodeStatus::RUNNING;
+    return NodeStatus::SUCCESS;
 }
 
 // // 승재욱 - 직접 만든 Chase
