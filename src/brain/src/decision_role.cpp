@@ -163,11 +163,15 @@ NodeStatus StrikerDecide::tick() {
     }
 
     setOutput("decision_out", newDecision);
+
+    static int tickCount = 0;
+    tickCount++;
+
     brain->log->logToScreen(
         "tree/Decide",
         format(
-            "Decision: %s dist: %.2f range: %.2f errPos: %.2f errHead: %.2f kicking: %d lead: %d", 
-            newDecision.c_str(), distToGoal, ballRange, errorDir, headingError, (lastDecision.find("kick") != string::npos), brain->data->tmImLead
+            "Cnt: %d Decision: %s dist: %.2f range: %.2f errPos: %.2f errHead: %.2f kicking: %d lead: %d", 
+            tickCount, newDecision.c_str(), distToGoal, ballRange, errorDir, headingError, (lastDecision.find("kick") != string::npos), brain->data->tmImLead
         ),
         color
     );

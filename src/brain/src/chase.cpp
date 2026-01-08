@@ -512,9 +512,9 @@ NodeStatus OfftheballPosition::onRunning()
 
     // 기본 설정값
     auto fd = brain->config->fieldDimensions;
-    double distFromGoal = 1.0; 
+    double distFromGoal = 2.0; 
     if (!getInput("dist_from_goal", distFromGoal)) {
-        distFromGoal = 1.0;
+        distFromGoal = 2.0;
     }
     
     // 기본 목표 선언 -> 골대 앞 2m
@@ -538,56 +538,21 @@ NodeStatus OfftheballPosition::onRunning()
     static double lastBestY = 0.0;
     
     for (double y = -maxY; y <= maxY; y += 0.2) { // 폭 0.2m 마다
-        // 패스 경로가 안전한지 : Ball -> Target점을 잇는 선과 장애물 사이 거리 측정
-        double laneClearance = 100.0;
+        // Simplified scoring as requested by user
+        // Removed laneClearance and posClearance logic
         
-        for (const auto& obs : obstacles) { // obstacle 마다
-            double obsX = obs.posToField.x;
-            double obsY = obs.posToField.y;
-            
-            // 점과 선 사이의 거리 dx, dy
-            double dx = baseX - ballPos.x;
-            double dy = y - ballPos.y;
-            
-            // 공과 타겟이 겹치면 패스 불가능 -> 무시
-            if (hypot(dx, dy) < 1e-3) continue; 
+        double score = 0.0
+                     - (fabs(y) * 0.3) // 중앙 선호
+                     - (fabs(y - lastBestY) * 0.5); // Hysteresis
 
-            // 투영 계수 t 계산 (0.0 ~ 1.0 범위로 클램핑)
-            double t = ((obsX - ballPos.x) * dx + (obsY - ballPos.y) * dy) / (dx*dx + dy*dy);
-            t = max(0.0, min(1.0, t));
-            
-            // t를 반영한 선 위의 가장 가까운 점
-            double closestX = ballPos.x + t * dx;
-            double closestY = ballPos.y + t * dy;
-            
-            // 장애물과 패스 경로 사이의 거리
-            double d = hypot(obsX - closestX, obsY - closestY);
-            if (d < laneClearance) laneClearance = d;
-        }
-
-        // 위치 안전성 -> 현재 서있는 자리 자체가 장애물과 얼마나 떨어져 있는지
-        double posClearance = 100.0;
-        for (const auto& obs : obstacles) {
-             double d = hypot(baseX - obs.posToField.x, y - obs.posToField.y);
-             if (d < posClearance) posClearance = d;
-        }
-        
-        double score = 0.0 // (laneClearance * 2.0) // 패스길 확보 -> 가중치 높게
-                     // + (posClearance * 1.0) // 위치 안전성 -> 장애물 없음 가정으로 삭제
-                     - (fabs(y) * 0.3) // 중앙 선호 -> 실험적으로 패스 받기 좋은 위치가 중앙이라 우선 중앙 선호 추가
-                     - (fabs(y - lastBestY) * 0.5); // 안정성 -> 현재 목표 위치 유지하려는 관성 (2.0 -> 0.5로 완화)
-                     
         if (score > maxScore) {
             maxScore = score;
             bestY = y;
         }
     }
-    
-    // LOGGING LOOP DONE
-    brain->log->logToScreen("debug/Offtheball", "Loop Done", 0xFFFFFFFF);
 
-    // 목표 위치가 0.3m 이상 차이나거나, 공이 가까우면(2.5m 이내) 즉시 업데이트
-    bool forceUpdate = brain->data->ball.range < 2.5; 
+    // 목표 위치가 0.3m 이상 차이나거나, 공이 가까우면(1.0m 이내) 즉시 업데이트
+    bool forceUpdate = brain->data->ball.range < 1.5; 
     if (forceUpdate || fabs(bestY - lastBestY) > 0.3) {
         lastBestY = bestY;
         brain->log->logToScreen("debug/Offtheball", "Target Updated", 0x00FF00FF);
@@ -623,28 +588,13 @@ NodeStatus OfftheballPosition::onRunning()
     double postY_left = fd.goalWidth / 2.0;
     double postY_right = -fd.goalWidth / 2.0;
 
-    // 왼쪽 기둥 회피
+    // 기둥 회피 (User requested removal)
+    /*
     double distToLeftPost = norm(postX - robotX, postY_left - robotY);
-    if (distToLeftPost < 0.5) { 
-        double pushX = robotX - postX;
-        double pushY = robotY - postY_left;
-        double pushDist = norm(pushX, pushY);
-        if (pushDist > 1e-3) {
-             vX_field += (pushX / pushDist) * 1.5 * (0.5 - distToLeftPost);
-             vY_field += (pushY / pushDist) * 1.5 * (0.5 - distToLeftPost);
-        }
-    }
-    // 오른쪽 기둥 회피
+    if (distToLeftPost < 0.5) { ... }
     double distToRightPost = norm(postX - robotX, postY_right - robotY);
-    if (distToRightPost < 0.5) {
-        double pushX = robotX - postX;
-        double pushY = robotY - postY_right;
-        double pushDist = norm(pushX, pushY);
-        if (pushDist > 1e-3) {
-             vX_field += (pushX / pushDist) * 1.5 * (0.5 - distToRightPost);
-             vY_field += (pushY / pushDist) * 1.5 * (0.5 - distToRightPost);
-        }
-    }
+    if (distToRightPost < 0.5) { ... }
+    */
 
     // 속도 제한
     double vLimit = 0.6;
@@ -669,24 +619,24 @@ NodeStatus OfftheballPosition::onRunning()
     string headingMode;
     
     // 거리가 있으면 이동 방향을 보고 걸음
-    if (dist > 0.5) {
-        targetTheta = atan2(errY, errX);
-        headingMode = "FaceTarget";
-    } 
-    // 가까우면 골대를 보고 슛 바로 할 수 있도록 (One-touch 준비)
-    else {
+    // 방향 제어 (Simplified: Always Face Goal for One-Touch)
+    // if (dist > 0.5) {
+    //     targetTheta = atan2(errY, errX);
+    //     headingMode = "FaceTarget";
+    // } 
+    // else {
         double angleToGoal = atan2(0.0 - robotY, goalX - robotX);
         targetTheta = angleToGoal;
         headingMode = "FaceGoal";
-    }
+    // }
 
     double angleDiff = toPInPI(targetTheta - robotTheta);
     double vtheta = angleDiff * 1.0; 
     
     // 방향 Deadzone (약 5도 -> 3도 정도로 완화하되, 위치가 잡혔으면 더 관대하게)
-    if (fabs(angleDiff) < 0.05) { 
-        vtheta = 0.0;
-    }
+    // if (fabs(angleDiff) < 0.05) { 
+    //     vtheta = 0.0;
+    // }
 
     // 1. 진입 조건: 위치 15cm 이내, 각도 3도 이내 (아주 안정적일 때)
     // _is_holding 관련 로직 삭제
