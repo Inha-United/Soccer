@@ -73,9 +73,9 @@ NodeStatus StrikerDecide::tick() {
     double headingError = toPInPI(desiredHeading - brain->data->robotPoseToField.theta);
 
 
-    // 거리별 정렬 관대함 조정 (가까우면 0.15, 멀면 0.05) -> adjust_quick(0.1)과 호환성 확보
+    // [수정] 거리 상관없이 항상 정밀하게(0.05rad 약 3도) 정렬 확인 후 킥
     double kickTolerance = 0.05;
-    if (distToGoal < oneTouchGoalDist) kickTolerance = 0.15;
+    // if (distToGoal < oneTouchGoalDist) kickTolerance = 0.15; // Quick Adjust 폐기로 삭제
 
     // 킥으로 넘어가는(정렬 종료) 조건
     bool reachedKickDir = 
@@ -103,6 +103,7 @@ NodeStatus StrikerDecide::tick() {
     //세트피스 상황이거나, 일반 경기에서도 골대랑 가까우면 one_touch
 
     // [Hysteresis] 한 번 one_touch가 시작되면, 공이 사라지거나 너무 멀어지지 않는 한 계속 유지 (Kick 완료 보장)
+    /*
     if (lastDecision == "one_touch" && brain->data->ballDetected && ball.range < 1.2) {
         newDecision = "one_touch";
         color = 0xFF0000FF;
@@ -141,7 +142,8 @@ NodeStatus StrikerDecide::tick() {
         newDecision = "one_touch";
         color = 0xFF0000FF; // Red color
     } 
-    else if (!brain->data->tmImLead) {
+    else */ 
+    if (!brain->data->tmImLead) {
         newDecision = "offtheball";
         color = 0x00FFFFFF;
     } else if (ballRange > chaseRangeThreshold * (lastDecision == "chase" ? 0.9 : 1.0))
@@ -191,7 +193,8 @@ NodeStatus StrikerDecide::tick() {
     }
     else
     {
-        // 골대와 가까우면(2.5m) 정밀 조준보다는 빠른 슈팅을 위한 Quick Adjust 사용
+        // 골대와 가까우면(2.5m) 정밀 조준보다는 빠른 슈팅을 위한 Quick Adjust 사용 -> 원터치 포기, 정렬 사용
+        /*
         if (distToGoal < oneTouchGoalDist) {
             newDecision = "adjust_quick";
             color = 0xFFFF00FF;
@@ -199,6 +202,9 @@ NodeStatus StrikerDecide::tick() {
             newDecision = "adjust";
             color = 0xFFFF00FF;
         }
+        */
+        newDecision = "adjust";
+        color = 0xFFFF00FF;
     }
     }
 
