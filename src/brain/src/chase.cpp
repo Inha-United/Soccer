@@ -656,10 +656,10 @@ NodeStatus OfftheballPosition::onRunning()
     }
     
     // 위치 Deadzone (20cm 이내면 정지) - 기존 10cm에서 완화하여 불필요한 움직임 감소
-    if (dist < 0.20) {
-        vX_field = 0.01;
-        vY_field = 0.01;
-    }
+    // if (dist < 0.20) {
+    //     vX_field = 0.01;
+    //     vY_field = 0.01;
+    // }
 
     // 로봇 좌표계 변환
     double vx_robot = cos(robotTheta) * vX_field + sin(robotTheta) * vY_field;
