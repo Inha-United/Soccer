@@ -130,7 +130,6 @@ NodeStatus StrikerDecide::tick() {
         lastDeltaDir = deltaDir;
 
         /* ----------------- 6. Kick 정렬 완료 & 장애물 없음 & 공 가까움 ----------------- */
-        // Quick Mode에서는 0.9m(OffTheBall 탈출 거리)에서도 바로 킥 가능하게 사거리 증가
         double kickRange = 0.7;
         if (distToGoal < setPieceGoalDist + 0.5) kickRange = 0.95;
 
