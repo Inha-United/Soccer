@@ -73,12 +73,7 @@ NodeStatus StrikerDecide::tick() {
     double headingBias = -targetAngleOffset * 0.3; // 오른발로 차기에 골대를 정면으로 보는 것보단 몸을 살짝 안쪽으로 돌리고 차야함 targetAngleOffset의 30퍼센트만큼 (휴리스틱이니 해보고 수정..)
     double desiredHeading = kickDir + headingBias; // 바라봐야할 이상적인 헤딩 각도
     double headingError = toPInPI(desiredHeading - brain->data->robotPoseToField.theta); // 로봇이 골대를 정확히 보고있나 - 최종 각도 오차
-    double deltaDir = toPInPI(kickDir - dir_rb_f);
-    double targetAngleOffset = atan2(kickYOffset, ballRange);
-    double errorDir = toPInPI(deltaDir + targetAngleOffset); // 공을 차기 위한 위치인가
-    double headingBias = -targetAngleOffset * 0.3; 
-    double desiredHeading = kickDir + headingBias;
-    double headingError = toPInPI(desiredHeading - brain->data->robotPoseToField.theta); // 로봇이 골대를 정확히 보고있나
+
 
 
     bool iKnowBallPos = brain->tree->getEntry<bool>("ball_location_known");
@@ -123,7 +118,7 @@ NodeStatus StrikerDecide::tick() {
             yawTolerance = 0.4;   // 가까우면 23도 정도까지 허용 (공이 약간 옆에 있어도 슛)
         }
 
-        double kickTolerance = 0.05; // 로봇 골대 정렬 각도
+
         auto now = brain->get_clock()->now();
         auto dt = brain->msecsSince(timeLastTick);
         bool reachedKickDir = fabs(errorDir) < kickTolerance && fabs(headingError) < kickTolerance && dt < 100; // 정렬 완료 상태 bool 값
