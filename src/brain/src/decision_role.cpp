@@ -106,32 +106,29 @@ NodeStatus StrikerDecide::tick() {
 
     /* ----------------- 5. 공 슛/정렬 ----------------- */
     else {
-        // 거리에 따라 허용 오차 다르게 적용 -> 공이 발 옆에 있나를 각도가 아니라 실제 거리(Lateral Error)로 판단
-        double kickTolerance = 0.05; // 로봇이 골대를 얼마나 정확히 보고 있나 정렬 오차 3도
-        double latTolerance = 0.04;  // latError를 얼마까지 봐줄 것인지
+        // [Kick Conditions] 거리(SetPiece)에 따라 허용 오차 다르게 적용
+        // 가까우면(SetPiece) 좀 더 관대하게(빨리 차게), 멀면 정밀하게
+        double kickTolerance = 0.05; // 기본: 3도
+        double yawTolerance = 0.35;  // 기본: 20도
         
         if (distToGoal < setPieceGoalDist) {
-            kickTolerance = 0.15; // 세트피스면 8도까지 허용
-            latTolerance = 0.08;  // 세트피스면 8cm까지 허용
+            kickTolerance = 0.15; // 가까우면 8도 정도까지 허용
+            yawTolerance = 0.61;   // 가까우면 35도 정도까지 허용 (공이 약간 옆에 있어도 슛)
         }
 
         auto now = brain->get_clock()->now();
         auto dt = brain->msecsSince(timeLastTick);
-        bool reachedKickDir = fabs(errorDir) < kickTolerance && fabs(headingError) < kickTolerance && dt < 100; // 정렬 끝났나 최종 조건 1. 위치가 좋은가 2. 각도가 좋은가 3. 데이터 잘 들어오나
+        bool reachedKickDir = fabs(errorDir) < kickTolerance && fabs(headingError) < kickTolerance && dt < 100; // 정렬 완료 상태 bool 값
         bool maintainKick = (lastDecision == "kick" || lastDecision == "kick_quick") && fabs(errorDir) < 0.10 && fabs(headingError) < 0.10;
 
         timeLastTick = now;
         lastDeltaDir = deltaDir;
-        
-        double latError = ball.range * sin(ballYaw - targetAngleOffset); // 공을 찰 발에서 얼마나 벗어났는지 오차 (거리 * sin(공각도 - 목표각도))
-
-        log(format("LatCheck: Err=%.3f Tol=%.3f Range=%.2f", latError, latTolerance, ball.range));
 
         /* ----------------- 6. Kick 정렬 완료 & 장애물 없음 & 공 가까움 ----------------- */
         if (
             ((reachedKickDir || maintainKick) && !brain->data->isFreekickKickingOff) 
             && brain->data->ballDetected
-            && fabs(latError) < latTolerance 
+            && fabs(brain->data->ball.yawToRobot) < yawTolerance // 
             && !avoidKick
             && ball.range < 0.7
         ) {
