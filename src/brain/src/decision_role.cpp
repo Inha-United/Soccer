@@ -111,19 +111,19 @@ NodeStatus StrikerDecide::tick() {
     /* ----------------- 5. 공 슛/정렬 ----------------- */
     else {
         // 거리(SetPiece)에 따라 허용 오차 다르게 적용 - 가까우면(SetPiece) 좀 더 관대하게(빨리 차게), 멀면 정밀하게
-        double kickTolerance = 0.5; // 기본: 3도
-        double yawTolerance = 1.4;  // 기본: 20도
+        double kickTolerance = 0.5;
+        double yawTolerance = 0.5;  
         
         if (distToGoal < setPieceGoalDist + 1.0) {
-            kickTolerance = 1.5; // 가까우면 8도 정도까지 허용
-            yawTolerance = 1.5;   // 가까우면 23도 정도까지 허용 (공이 약간 옆에 있어도 슛)
+            kickTolerance = 1.0; 
+            yawTolerance = 1.0;
         }
 
 
         auto now = brain->get_clock()->now();
         auto dt = brain->msecsSince(timeLastTick);
         bool reachedKickDir = fabs(errorDir) < kickTolerance && fabs(headingError) < kickTolerance && dt < 100; // 정렬 완료 상태 bool 값
-        bool maintainKick = (lastDecision == "kick" || lastDecision == "kick_quick") && fabs(errorDir) < 0.10 && fabs(headingError) < 0.10;
+        // bool maintainKick = (lastDecision == "kick" || lastDecision == "kick_quick") && fabs(errorDir) < 0.10 && fabs(headingError) < 0.10;
 
         timeLastTick = now;
         lastDeltaDir = deltaDir;
@@ -133,7 +133,7 @@ NodeStatus StrikerDecide::tick() {
         if (distToGoal < setPieceGoalDist + 0.5) kickRange = 3.0;
 
         if (
-            ((reachedKickDir || maintainKick) && !brain->data->isFreekickKickingOff) 
+            (reachedKickDir) 
             && brain->data->ballDetected
 
             && fabs(brain->data->ball.yawToRobot) < yawTolerance 
