@@ -688,8 +688,7 @@ NodeStatus OfftheballPosition::onRunning()
     if (fabs(angleDiff) < 0.05) { 
         vtheta = 0.0;
     }
-    
-    // [Holding Logic] Hysteresis 적용
+
     // 1. 진입 조건: 위치 15cm 이내, 각도 3도 이내 (아주 안정적일 때)
     if (!_is_holding && dist < 0.15 && fabs(angleDiff) < 0.05) {
         _is_holding = true;
@@ -708,15 +707,15 @@ NodeStatus OfftheballPosition::onRunning()
     }
 
     // 안전장치
-    if (!isfinite(vtheta) || !isfinite(vx_robot)) {
-        static int errCount = 0;
-        if (errCount++ % 50 == 0) brain->log->logToScreen("error/Offtheball", "NaN/Inf detected", 0xFF0000FF);
-        vtheta = 0.0; vx_robot = 0.0; vy_robot = 0.0;
-    } else {
-        // 회전 속도 제한 (1.0 rad/s)
-        if (vtheta > 1.0) vtheta = 1.0;
-        if (vtheta < -1.0) vtheta = -1.0;
-    }
+    // if (!isfinite(vtheta) || !isfinite(vx_robot)) {
+    //     static int errCount = 0;
+    //     if (errCount++ % 50 == 0) brain->log->logToScreen("error/Offtheball", "NaN/Inf detected", 0xFF0000FF);
+    //     vtheta = 0.0; vx_robot = 0.0; vy_robot = 0.0;
+    // } else {
+    //     // 회전 속도 제한 (1.0 rad/s)
+    //     if (vtheta > 1.0) vtheta = 1.0;
+    //     if (vtheta < -1.0) vtheta = -1.0;
+    // }
     
     // LOGGING VELOCITY
     brain->log->logToScreen("debug/Offtheball", format("SetVel: %.2f %.2f %.2f", vx_robot, vy_robot, vtheta), 0xFFFFFFFF);
