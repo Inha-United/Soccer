@@ -47,7 +47,7 @@
                      </ReactiveSequence>
                      
                      <!-- 행동 실행 -->
-
+                     </ReactiveSequence>
                      <!--위치로 돌아가기-->
                      <GoToPose _while="decision == 'return'" target_pos_x="{return_x}" target_pos_y="2.5" target_pos_theta="-1.5708" turn_threshold="0.5" stop_threshold="0.15" v_limit="0.6"/>
                      
@@ -68,7 +68,7 @@
                      <!-- <Kick _while="decision == 'pass'" speed_limit="{pass_speed_limit}" vx_limit="0.8" vy_limit="0.3" min_msec_kick="1000" msecs_stablize="1000" kick_type="pass" /> -->
                      
                      <Kick _while="decision == 'kick'" speed_limit="0.8" vx_limit="0.8" vy_limit="0.3" min_msec_kick="1000" msecs_stablize="1000" kick_type="shoot" />
-                     
+                     <ReactiveSequence>
                   </Sequence>
                </ReactiveSequence>
             </ReactiveSequence>
