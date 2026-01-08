@@ -1722,6 +1722,12 @@ void Brain::updateCostToKick() {
 
 
     cost += data->ball.range;
+    
+    // [Possession Bonus] 공을 소유하고 있으면(0.5m 이내) 코스트를 대폭 낮춤 -> Striker 유지
+    if (data->ball.range < 0.5) {
+        cost -= 10.0;
+    }
+
     log_(format("ball range cost: %.1f", data->ball.range));
     
     
