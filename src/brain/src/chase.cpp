@@ -212,7 +212,7 @@ NodeStatus DribbleChase::tick() {
 
     if (!brain->tree->getEntry<bool>("ball_location_known")){
         brain->client->setVelocity(0, 0, 0);
-        return NodeStatus::FAILURE;
+        return NodeStatus::SUCCESS;
     }
 
     double dist = brain->data->ball.range;
@@ -288,7 +288,7 @@ NodeStatus DribbleToGoal::tick() {
 
     if (!brain->tree->getEntry<bool>("ball_location_known")){
         brain->client->setVelocity(0, 0, 0);
-        return NodeStatus::FAILURE;
+        return NodeStatus::SUCCESS;
     }
 
     auto fd = brain->config->fieldDimensions;
