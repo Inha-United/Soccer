@@ -73,10 +73,14 @@ NodeStatus StrikerDecide::tick() {
     double headingError = toPInPI(desiredHeading - brain->data->robotPoseToField.theta);
 
 
+    // 거리별 정렬 관대함 조정 (가까우면 0.15, 멀면 0.05) -> adjust_quick(0.1)과 호환성 확보
+    double kickTolerance = 0.05;
+    if (distToGoal < oneTouchGoalDist) kickTolerance = 0.15;
+
     // 킥으로 넘어가는(정렬 종료) 조건
     bool reachedKickDir = 
-        fabs(errorDir) < 0.07
-        && fabs(headingError) < 0.07
+        fabs(errorDir) < kickTolerance
+        && fabs(headingError) < kickTolerance
         && dt < 100;
     
     // reachedKickDir = reachedKickDir || fabs(errorDir) < 0.02; 
@@ -127,11 +131,11 @@ NodeStatus StrikerDecide::tick() {
         (
             brain->data->ballDetected
             && (brain->data->tmImLead || ball.range < 0.9) 
-            && fabs(brain->data->ball.yawToRobot) < 1.2
+            && fabs(brain->data->ball.yawToRobot) < 0.35 // 0.7 -> 0.35 (약 20도) 정밀화: 공이 정면에 있어야 함
             && norm(brain->data->robotPoseToField.x - (-brain->config->fieldDimensions.length/2), brain->data->robotPoseToField.y) < oneTouchGoalDist
             
-            // 골대 방향과 공 방향이 어느정도 일치해야 함 (엉뚱한 방향 슛 방지) -> 정렬 조건 삭제 (킥이 안나가는 문제 해결 우선)
-            // && fabs(toPInPI(brain->data->kickDir - brain->data->robotBallAngleToField)) < 0.8
+            // 골대 방향과 공 방향이 어느정도 일치해야 함 (엉뚱한 방향 슛 방지) -> 정렬 조건 부활 (adjust_quick이 있으므로)
+            && fabs(toPInPI(brain->data->kickDir - brain->data->robotBallAngleToField)) < 0.6 // 0.6 (약 35도) 이내일 때만 바로 슛
         )
     ) {
         newDecision = "one_touch";
