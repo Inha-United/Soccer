@@ -33,7 +33,7 @@ NodeStatus StrikerDecide::tick() {
     double dir_rb_f = brain->data->robotBallAngleToField; 
     auto ball = brain->data->ball;
     double ballRange = ball.range;
-    double ballYaw = ball.yawToRobot;
+    double ballYaw = ball.yawToRobot; // 공이 내 정면에 있나
     double ballX = ball.posToRobot.x;
     double ballY = ball.posToRobot.y;
     double distToGoal = 0.0;
@@ -54,7 +54,7 @@ NodeStatus StrikerDecide::tick() {
     double kickAoSafeDist;
     brain->get_parameter("obstacle_avoidance.avoid_during_kick", avoidPushing);
     brain->get_parameter("obstacle_avoidance.kick_ao_safe_dist", kickAoSafeDist);
-    bool avoidKick = avoidPushing 
+    bool avoidKick = avoidPushing // 전방에 장애물 있나
         && brain->data->robotPoseToField.x < brain->config->fieldDimensions.length / 2 - brain->config->fieldDimensions.goalAreaLength
         && brain->distToObstacle(brain->data->ball.yawToRobot) < kickAoSafeDist;
 
@@ -68,10 +68,10 @@ NodeStatus StrikerDecide::tick() {
     // 정렬 오차 계산
     double deltaDir = toPInPI(kickDir - dir_rb_f);
     double targetAngleOffset = atan2(kickYOffset, ballRange);
-    double errorDir = toPInPI(deltaDir + targetAngleOffset);
+    double errorDir = toPInPI(deltaDir + targetAngleOffset); // 공을 차기 위한 위치인가
     double headingBias = -targetAngleOffset * 0.3; 
     double desiredHeading = kickDir + headingBias;
-    double headingError = toPInPI(desiredHeading - brain->data->robotPoseToField.theta);
+    double headingError = toPInPI(desiredHeading - brain->data->robotPoseToField.theta); // 로봇이 골대를 정확히 보고있나
 
 
     bool iKnowBallPos = brain->tree->getEntry<bool>("ball_location_known");
@@ -106,22 +106,22 @@ NodeStatus StrikerDecide::tick() {
 
     /* ----------------- 5. 공 슛/정렬 ----------------- */
     else {
-        double kickTolerance = 0.05;
+        double kickTolerance = 0.05; // 로봇 골대 정렬 각도
         auto now = brain->get_clock()->now();
         auto dt = brain->msecsSince(timeLastTick);
-        bool reachedKickDir = fabs(errorDir) < kickTolerance && fabs(headingError) < kickTolerance && dt < 100;
+        bool reachedKickDir = fabs(errorDir) < kickTolerance && fabs(headingError) < kickTolerance && dt < 100; // 정렬 완료 상태 bool 값
         bool maintainKick = (lastDecision == "kick" || lastDecision == "kick_quick") && fabs(errorDir) < 0.10 && fabs(headingError) < 0.10;
 
         timeLastTick = now;
         lastDeltaDir = deltaDir;
 
-        // 정렬 완료 & 장애물 없음 & 공 가까움
+        /* ----------------- 6. Kick 정렬 완료 & 장애물 없음 & 공 가까움 ----------------- */
         if (
             ((reachedKickDir || maintainKick) && !brain->data->isFreekickKickingOff) 
             && brain->data->ballDetected
-            && fabs(brain->data->ball.yawToRobot) < M_PI / 2.
+            && fabs(brain->data->ball.yawToRobot) < 0.35 // 0.35 (약 20도) 공이 정면에 있어야 슛
             && !avoidKick
-            && ball.range < 0.8
+            && ball.range < 0.7
         ) {
             // 골대 거리(setPieceGoalDist)에 따라 Quick vs Normal Kick 결정
             if (distToGoal < setPieceGoalDist) newDecision = "kick_quick"; 
