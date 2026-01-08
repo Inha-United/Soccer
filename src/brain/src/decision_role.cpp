@@ -29,8 +29,8 @@ NodeStatus StrikerDecide::tick() {
     getInput("decision_in", lastDecision);
     getInput("position", position);
 
-    double kickDir = brain->data->kickDir;
-    double dir_rb_f = brain->data->robotBallAngleToField; 
+    double kickDir = brain->data->kickDir; // 현재 골대 중심 방향
+    double dir_rb_f = brain->data->robotBallAngleToField; // 로봇 -> 공 벡터 방향
     auto ball = brain->data->ball;
     double ballRange = ball.range;
     double ballYaw = ball.yawToRobot; // 공이 내 정면에 있나
@@ -66,12 +66,12 @@ NodeStatus StrikerDecide::tick() {
     getInput("set_piece_goal_dist", setPieceGoalDist);
     
     // 정렬 오차 계산
-    double deltaDir = toPInPI(kickDir - dir_rb_f);
-    double targetAngleOffset = atan2(kickYOffset, ballRange);
-    double errorDir = toPInPI(deltaDir + targetAngleOffset); // 공을 차기 위한 위치인가
-    double headingBias = -targetAngleOffset * 0.3; 
-    double desiredHeading = kickDir + headingBias;
-    double headingError = toPInPI(desiredHeading - brain->data->robotPoseToField.theta); // 로봇이 골대를 정확히 보고있나
+    double deltaDir = toPInPI(kickDir - dir_rb_f); // 로봇이 공 뒤에 일직선으로 서있으면 0으로 계산됨
+    double targetAngleOffset = atan2(kickYOffset, ballRange); // 오른 발로 차야하니까 공보다 약간 왼쪽에 있어야함 - 그 왼쪽에 해당하는 각도
+    double errorDir = toPInPI(deltaDir + targetAngleOffset); // 공을 차기 위한 위치인가 - 최종 위치 오차
+    double headingBias = -targetAngleOffset * 0.3; // 오른발로 차기에 골대를 정면으로 보는 것보단 몸을 살짝 안쪽으로 돌리고 차야함 targetAngleOffset의 30퍼센트만큼 (휴리스틱이니 해보고 수정..)
+    double desiredHeading = kickDir + headingBias; // 바라봐야할 이상적인 헤딩 각도
+    double headingError = toPInPI(desiredHeading - brain->data->robotPoseToField.theta); // 로봇이 골대를 정확히 보고있나 - 최종 각도 오차
 
 
     bool iKnowBallPos = brain->tree->getEntry<bool>("ball_location_known");
@@ -117,7 +117,7 @@ NodeStatus StrikerDecide::tick() {
 
         auto now = brain->get_clock()->now();
         auto dt = brain->msecsSince(timeLastTick);
-        bool reachedKickDir = fabs(errorDir) < kickTolerance && fabs(headingError) < kickTolerance && dt < 100; // 정렬 끝났나 조건
+        bool reachedKickDir = fabs(errorDir) < kickTolerance && fabs(headingError) < kickTolerance && dt < 100; // 정렬 끝났나 최종 조건 1. 위치가 좋은가 2. 각도가 좋은가 3. 데이터 잘 들어오나
         bool maintainKick = (lastDecision == "kick" || lastDecision == "kick_quick") && fabs(errorDir) < 0.10 && fabs(headingError) < 0.10;
 
         timeLastTick = now;
