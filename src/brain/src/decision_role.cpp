@@ -106,25 +106,24 @@ NodeStatus StrikerDecide::tick() {
 
     /* ----------------- 5. 공 슛/정렬 ----------------- */
     else {
-        // [Kick Conditions] 거리(SetPiece)에 따라 허용 오차 다르게 적용
-        // "공이 발 옆에 있나"를 각도(Yaw)가 아니라 실제 거리(Lateral Error)로 판단 -> 더 정확함
-        double kickTolerance = 0.05; // 기본: 3도 (정렬 오차)
-        double latTolerance = 0.04;  // 4cm
+        // 거리에 따라 허용 오차 다르게 적용 -> 공이 발 옆에 있나를 각도가 아니라 실제 거리(Lateral Error)로 판단
+        double kickTolerance = 0.05; // 로봇이 골대를 얼마나 정확히 보고 있나 정렬 오차 3도
+        double latTolerance = 0.04;  // latError를 얼마까지 봐줄 것인지
         
         if (distToGoal < setPieceGoalDist) {
-            kickTolerance = 0.15; // 가까우면 8도까지 허용
-            latTolerance = 0.08;  // 가까우면 8cm까지 허용 (절대 10cm를 넘지 않게)
+            kickTolerance = 0.15; // 세트피스면 8도까지 허용
+            latTolerance = 0.08;  // 세트피스면 8cm까지 허용
         }
 
         auto now = brain->get_clock()->now();
         auto dt = brain->msecsSince(timeLastTick);
-        bool reachedKickDir = fabs(errorDir) < kickTolerance && fabs(headingError) < kickTolerance && dt < 100;
+        bool reachedKickDir = fabs(errorDir) < kickTolerance && fabs(headingError) < kickTolerance && dt < 100; // 정렬 끝났나 조건
         bool maintainKick = (lastDecision == "kick" || lastDecision == "kick_quick") && fabs(errorDir) < 0.10 && fabs(headingError) < 0.10;
 
         timeLastTick = now;
         lastDeltaDir = deltaDir;
         
-        double latError = ball.range * sin(ballYaw - targetAngleOffset);
+        double latError = ball.range * sin(ballYaw - targetAngleOffset); // 공을 찰 발에서 얼마나 벗어났는지 오차 (거리 * sin(공각도 - 목표각도))
 
         log(format("LatCheck: Err=%.3f Tol=%.3f Range=%.2f", latError, latTolerance, ball.range));
 
@@ -137,8 +136,12 @@ NodeStatus StrikerDecide::tick() {
             && ball.range < 0.7
         ) {
             // 골대 거리(setPieceGoalDist)에 따라 Quick vs Normal Kick 결정
-            if (distToGoal < setPieceGoalDist) newDecision = "kick_quick"; 
-            else newDecision = "kick";      
+            if (distToGoal < setPieceGoalDist) {
+                newDecision = "kick_quick"; 
+            }
+            else {
+                newDecision = "kick";      
+            }
             
             color = 0x00FF00FF;
             brain->data->isFreekickKickingOff = false; 

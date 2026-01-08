@@ -86,14 +86,12 @@ NodeStatus Adjust::tick(){
     // vtheta = toPInPI(ballYaw + st / R * (deltaDir > 0 ? 1.0 : -1.0)); 
     // vtheta = ballYaw;
     
-    // 오프셋 킥 사용 시, 로봇이 공을 바라보는 것이 아니라(ballYaw=0), 
-    // 킥 방향(골대)과 평행하게 서야 함. (kickDir - robotTheta = Heading Error)
-    double headingBias = -targetAngleOffset * 0.3; // 30% 정도 공을 바라보게 보정
-    double desiredHeading = kickDir + headingBias;
+    // 오프셋 킥 사용 시, 로봇이 공을 바라보는 것이 아니라(ballYaw=0) 킥 방향(골대)과 평행하게 서야 함(kickDir - robotTheta = Heading Error)
+    double headingBias = -targetAngleOffset * 0.3; // 30% 정도 공(몸을 안쪽으로)을 바라보게 보정
+    double desiredHeading = kickDir + headingBias; // 목표 헤딩 -> 기본적으로 골대를 봐야 잘맞지만 오른발로 차기 위해 몸을 비틀기 때문에 헤딩편향을 섞어줌
     double headingError = toPInPI(desiredHeading - theta_robot_f);
     vtheta = headingError;
     vtheta *= vtheta_factor; 
-    // if (fabs(ballYaw) < NO_TURN_THRESHOLD) vtheta = 0.;
     // 회전 제어 조건도 ballYaw(공 방향)가 아닌 headingError(골대 방향 + Bias) 기준
     if (fabs(headingError) < NO_TURN_THRESHOLD) vtheta = 0.; 
     
