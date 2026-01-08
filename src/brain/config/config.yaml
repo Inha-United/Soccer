@@ -81,7 +81,7 @@ brain_node:
       sound_pack: "espeak" 
 
     rerunLog:
-      enable_tcp: true # 리런에 연결 할 지
+      enable_tcp: false # 리런에 연결 할 지
 
       server_ip: "192.168.50.67:9876" 
       enable_file: true  # 리런 로그 파일을 만들지
