@@ -311,12 +311,6 @@ NodeStatus DefenderDecide::tick() {
         newDecision = "return";
         color = 0xFFFF00FF; // 노란색
 
-        // 저장된 좌표가 없으면 현재 위치를 기본값으로 설정 (첫 기동 시 안전장치)
-        if (!brain->tree->isDefined("return_x")) {
-            brain->tree->setEntry("return_x", pose.x);
-            brain->tree->setEntry("return_y", pose.y);
-        }
-        
         double tx = brain->tree->getEntry<double>("return_x");
         double ty = brain->tree->getEntry<double>("return_y");
         brain->log->logToScreen("debug/ReturnTarget", 
