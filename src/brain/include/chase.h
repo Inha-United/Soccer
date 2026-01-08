@@ -77,11 +77,11 @@ private:
     Brain *brain;
 };
 
-class DribbleToGoal : public BT::StatefulActionNode
+class DribbleToGoal : public BT::SyncActionNode
 {
 public:
     DribbleToGoal(const string &name, const BT::NodeConfig &config, Brain *brain)
-        : BT::StatefulActionNode(name, config), brain(brain) {}
+        : BT::SyncActionNode(name, config), brain(brain) {}
 
     static BT::PortsList providedPorts()
     {
@@ -99,29 +99,25 @@ public:
         };
     }
 
-    BT::NodeStatus onStart() override;
-    BT::NodeStatus onRunning() override;
-    void onHalted() override;
+    BT::NodeStatus tick() override;
 
 private:
     Brain *brain;
 };
 
-class OfftheballPosition : public StatefulActionNode
+class OfftheballPosition : public SyncActionNode
 {
 public:
-    OfftheballPosition(const string &name, const NodeConfig &config, Brain *_brain) : StatefulActionNode(name, config), brain(_brain) {}
+    OfftheballPosition(const string &name, const NodeConfig &config, Brain *_brain) : SyncActionNode(name, config), brain(_brain) {}
 
     static PortsList providedPorts()
     {
         return {
-            InputPort<double>("dist_from_goal", 1.0, "goal 앞에서 대기할 거리"),
+            InputPort<double>("dist_from_goal", 2.0, "goal 앞에서 대기할 거리"),
         };
     }
 
-    NodeStatus onStart() override;
-    NodeStatus onRunning() override;
-    void onHalted() override;
+    NodeStatus tick() override;
 
 
 private:
