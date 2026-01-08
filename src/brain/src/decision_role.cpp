@@ -115,8 +115,8 @@ NodeStatus StrikerDecide::tick() {
         double yawTolerance = 0.5;  
         
         if (distToGoal < setPieceGoalDist + 1.0) {
-            kickTolerance = 1.0; 
-            yawTolerance = 1.0;
+            kickTolerance = 0.3; 
+            yawTolerance = 0.3;
         }
 
 
