@@ -384,7 +384,7 @@ NodeStatus Kick::onRunning(){
     brain->log->logToScreen("debug/Action", "Action: " + kickType, 0x00FF00FF);
 
     if (_state == "stabilize") {
-        if (brain->msecsSince(_startTime) > _msecs_stablize) {
+        if (kickType == "one_touch" || brain->msecsSince(_startTime) > _msecs_stablize) {
             _state = "kick";
             _startTime = brain->get_clock()->now();
             log("stabilize done");
