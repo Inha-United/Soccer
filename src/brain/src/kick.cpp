@@ -222,8 +222,16 @@ NodeStatus CalcPassDir::tick(){
         }
     }
 
-    // 패스가 가능한지 ? 아니라면 다음으로
-    bool passFound = (bestTeammateIdx != -1);
+    //영상용 추가
+    if (bestTeammateIdx == -1) {
+    setOutput("pass_found", false);
+    return NodeStatus::SUCCESS;}
+    //영상용 추가
+
+    auto tmPos = brain->data->tmStatus[bestTeammateIdx].robotPoseToField;
+
+    // 패스가 가능한지 ? 아니라면 다음으로 (bestTeammateIdx가 한명이라도 있고, 목표 범위 내에 로봇이 왔는지 확인)
+    bool passFound = (std::pow(3 + tmPos.x, 2) + std::pow(tmPos.y, 2)) <= 1.0;
     setOutput("pass_found", passFound);
 
     if(!passFound){
@@ -231,9 +239,8 @@ NodeStatus CalcPassDir::tick(){
     }
 
     brain->data->kickType = "pass"; // 킥 타입 설정
-    auto tmPos = brain->data->tmStatus[bestTeammateIdx].robotPoseToField;
 
-    double offset = 0.8;
+    double offset = 0.0;
     // 골대 중심 좌표
     double gx = -fd.length / 2.0;
     double gy = 0.0;
@@ -249,8 +256,12 @@ NodeStatus CalcPassDir::tick(){
     double ug_y = vg_y / vg_norm;
 
     // 팀원 앞 타겟 (팀원 위치에서 골대 방향으로 offset만큼)
-    double tx = tmPos.x + offset * ug_x;
-    double ty = tmPos.y + offset * ug_y;
+    // double tx = tmPos.x + offset * ug_x;
+    // double ty = tmPos.y + offset * ug_y;
+    double tx = -3.0;
+    double ty = 0.0;
+
+
 
     // 공 -> 타겟 방향으로 킥
     brain->data->kickDir = atan2(ty - bPos.y, tx - bPos.x);
