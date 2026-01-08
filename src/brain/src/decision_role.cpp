@@ -59,8 +59,8 @@ NodeStatus StrikerDecide::tick() {
     double kickYOffset = -0.077; 
     getInput("kick_y_offset", kickYOffset);
 
-    double oneTouchGoalDist = 2.0;
-    getInput("one_touch_goal_dist", oneTouchGoalDist);
+    double setPieceGoalDist = 2.0;
+    getInput("set_piece_goal_dist", setPieceGoalDist);
     
     double targetAngleOffset = atan2(kickYOffset, ballRange);
     double errorDir = toPInPI(deltaDir + targetAngleOffset);
@@ -132,7 +132,7 @@ NodeStatus StrikerDecide::tick() {
             brain->data->ballDetected
             && (brain->data->tmImLead || ball.range < 0.9) 
             && fabs(brain->data->ball.yawToRobot) < 0.35 // 0.7 -> 0.35 (약 20도) 정밀화: 공이 정면에 있어야 함
-            && norm(brain->data->robotPoseToField.x - (-brain->config->fieldDimensions.length/2), brain->data->robotPoseToField.y) < oneTouchGoalDist
+            && norm(brain->data->robotPoseToField.x - (-brain->config->fieldDimensions.length/2), brain->data->robotPoseToField.y) < setPieceGoalDist
             
             // 골대 방향과 공 방향이 어느정도 일치해야 함 (엉뚱한 방향 슛 방지) -> 정렬 조건 부활 (adjust_quick이 있으므로)
             && fabs(toPInPI(brain->data->kickDir - brain->data->robotBallAngleToField)) < 0.6 // 0.6 (약 35도) 이내일 때만 바로 슛
@@ -142,7 +142,8 @@ NodeStatus StrikerDecide::tick() {
         color = 0xFF0000FF; // Red color
     } 
     else */ 
-    if (!brain->data->tmImLead) {
+    // 내가 리드가 아니면 무조건 오프더볼 vs 내가 리드가 아니고 거리도 멀어야 오프더볼 and라 거리 조건 안맞으면 바로 풀릴 수 있게되나
+    if (!brain->data->tmImLead && ballRange > 0.9) {
         newDecision = "offtheball";
         color = 0x00FFFFFF;
     } 
@@ -188,7 +189,7 @@ NodeStatus StrikerDecide::tick() {
         if (brain->data->kickType == "cross") newDecision = "cross";
         else {
              // 가까우면(2.5m) 딜레이 적은 kick_quick 사용
-             if (distToGoal < oneTouchGoalDist) newDecision = "kick_quick"; 
+             if (distToGoal < setPieceGoalDist) newDecision = "kick_quick"; 
              else newDecision = "kick";      
         }
         // newDecision = "kick"; // Striker는 Cross 없이 무조건 슛
@@ -198,7 +199,7 @@ NodeStatus StrikerDecide::tick() {
     else
     {
         // 골대와 가까우면(2.5m) 정밀 조준보다는 빠른 슈팅을 위한 Quick Adjust 사용 -> 원터치 포기, 정렬 사용
-        if (distToGoal < oneTouchGoalDist) {
+        if (distToGoal < setPieceGoalDist) {
             newDecision = "adjust_quick";
             color = 0xFFFF00FF;
         } else {
