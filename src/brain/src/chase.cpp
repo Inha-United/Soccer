@@ -265,7 +265,15 @@ NodeStatus DribbleChase::tick() {
 }
 
 // DribbleToGoal
-NodeStatus DribbleToGoal::tick() {
+NodeStatus DribbleToGoal::onStart() {
+    return NodeStatus::RUNNING;
+}
+
+void DribbleToGoal::onHalted() {
+    // Cleanup if needed
+}
+
+NodeStatus DribbleToGoal::onRunning() {
     auto log = [=](string msg) {
         brain->log->setTimeNow();
         brain->log->log("debug/DribbleToGoal", rerun::TextLog(msg));
@@ -490,7 +498,15 @@ NodeStatus DribbleToGoal::tick() {
 
 // 패스 받기 전 오프더볼 무브 추후, 오프사이드 보완해야함 (opponent보다는 앞으로 가지 않도록)
 
-NodeStatus OfftheballPosition::tick(){
+NodeStatus OfftheballPosition::onStart() {
+    return NodeStatus::RUNNING;
+}
+
+void OfftheballPosition::onHalted() {
+    // Empty implementation
+}
+
+NodeStatus OfftheballPosition::onRunning(){
     // LOGGING START
     brain->log->logToScreen("debug/Offtheball", "Tick Start", 0xFFFFFFFF);
 
