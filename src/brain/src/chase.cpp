@@ -522,7 +522,7 @@ NodeStatus OfftheballPosition::onRunning()
     double baseX = goalX + distFromGoal; 
 
     // 공 위치
-    Point ballPos = brain->data->ball.posToField;
+    // Point ballPos = brain->data->ball.posToField; (Removed unused variable)
 
     // max는 경기장 폭 기준 가장자리 마진 준 영역으로
     double maxY = fd.width / 2.0 - 0.5;
