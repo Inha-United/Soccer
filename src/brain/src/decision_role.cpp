@@ -133,7 +133,7 @@ NodeStatus StrikerDecide::tick() {
             && brain->data->ballDetected
 
             && fabs(brain->data->ball.yawToRobot) < yawTolerance // 
-            && fabs(brain->data->ball.yawToRobot) < 0.35 // 0.35 (약 20도) 공이 정면에 있어야 슛
+
             && !avoidKick
             && ball.range < 0.7
         ) {
