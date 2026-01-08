@@ -185,16 +185,19 @@ NodeStatus StrikerDecide::tick() {
         && !avoidKick
         && ball.range < 0.8
     ) {
-        // if (brain->data->kickType == "cross") newDecision = "cross";
-        // else newDecision = "kick";      
-        newDecision = "kick"; // Striker는 Cross 없이 무조건 슛
+        if (brain->data->kickType == "cross") newDecision = "cross";
+        else {
+             // 가까우면(2.5m) 딜레이 적은 kick_quick 사용
+             if (distToGoal < oneTouchGoalDist) newDecision = "kick_quick"; 
+             else newDecision = "kick";      
+        }
+        // newDecision = "kick"; // Striker는 Cross 없이 무조건 슛
         color = 0x00FF00FF;
         brain->data->isFreekickKickingOff = false; 
     }
     else
     {
-        /*
-        
+        // 골대와 가까우면(2.5m) 정밀 조준보다는 빠른 슈팅을 위한 Quick Adjust 사용 -> 원터치 포기, 정렬 사용
         if (distToGoal < oneTouchGoalDist) {
             newDecision = "adjust_quick";
             color = 0xFFFF00FF;
@@ -202,9 +205,6 @@ NodeStatus StrikerDecide::tick() {
             newDecision = "adjust";
             color = 0xFFFF00FF;
         }
-        */
-        newDecision = "adjust";
-        color = 0xFFFF00FF;
     }
     }
 
