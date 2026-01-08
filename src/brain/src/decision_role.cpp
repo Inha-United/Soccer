@@ -59,7 +59,7 @@ NodeStatus StrikerDecide::tick() {
     double kickYOffset = -0.077; 
     getInput("kick_y_offset", kickYOffset);
 
-    double oneTouchGoalDist = 1.2;
+    double oneTouchGoalDist = 2.0;
     getInput("one_touch_goal_dist", oneTouchGoalDist);
     
     double targetAngleOffset = atan2(kickYOffset, ballRange);
@@ -187,8 +187,14 @@ NodeStatus StrikerDecide::tick() {
     }
     else
     {
-        newDecision = "adjust";
-        color = 0xFFFF00FF;
+        // 골대와 가까우면(2.5m) 정밀 조준보다는 빠른 슈팅을 위한 Quick Adjust 사용
+        if (distToGoal < oneTouchGoalDist) {
+            newDecision = "adjust_quick";
+            color = 0xFFFF00FF;
+        } else {
+            newDecision = "adjust";
+            color = 0xFFFF00FF;
+        }
     }
     }
 
