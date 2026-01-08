@@ -276,7 +276,7 @@ NodeStatus DefenderDecide::tick() {
         }
         // 킥(패스) 조건
         else if (
-            ((angleGoodForKick && !brain->data->isFreekickKickingOff) || reachedKickDir) &&
+            (reachedKickDir) &&
             brain->data->ballDetected &&
             std::fabs(brain->data->ball.yawToRobot) < 0.1 &&
             !avoidKick &&
