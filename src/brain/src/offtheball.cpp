@@ -77,7 +77,7 @@ NodeStatus OfftheballPosition::tick(){
         }
         double score = 0.0
                      - (fabs(y) * 0.3) // 중앙 선호 (0.0)이 골대 중앙선
-                     + (distToDefender * 0.5) // 수비수 거리가 멀수록 선호
+                     + (distToDefender * 0.5); // 수비수 거리가 멀수록 선호
                      // - (fabs(y - lastBestY) * 0.5); 이전 위치 선호 -> 생각해보면 어차피 로봇인데 계속 하고있는게 이득
         if (score > maxScore) {
             maxScore = score;
