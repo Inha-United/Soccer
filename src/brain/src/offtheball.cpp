@@ -50,19 +50,44 @@ NodeStatus OfftheballPosition::tick(){
     // 최종 위치 계산
     static double lastBestY = 0.0;
 
-    // y축을 따라 0.2m 간격으로 후보 지점 탐색
+    // 현재 로봇 위치
+    double robotX = brain->data->robotPoseToField.x;
+    double robotY = brain->data->robotPoseToField.y;
+    double robotTheta = brain->data->robotPoseToField.theta;
+
+    // 상대선수들
+    auto Opponents = brain->data->getRobots();
+    bool hasOpponent = false;
+
+    std::vector<int> defenderIndices;
+    int idx=0;
+
+    for (const auto& Opponent : Opponents) {
+        idx++;
+        if (Opponent.label != "Opponent") continue;
+        hasOpponent = true;
+        if (std::abs(Opponent.posToField.x - goalX) < 4.0) {
+            defenderIndices.push_back(idx); // 인덱스 저장
+        }
+    }
+
+    // Y축을 따라 0.2m 간격으로 후보 지점 탐색
     for (double y = -maxY; y <= maxY; y += 0.2) { 
+        double distToDefender = 0.0;
+        for (const auto& defenderIndex : defenderIndices) {
+            double dist = norm(y - Opponents[defenderIndex].posToField.y, baseX - Opponents[defenderIndex].posToField.x);    
+            distToDefender += (dist*dist);
+        }
         double score = 0.0
                      - (fabs(y) * 0.3) // 중앙 선호 (0.0)이 골대 중앙선
+                     + (distToDefender * 1.0) // 수비수 거리가 멀수록 선호
                      // - (fabs(y - lastBestY) * 0.5); 이전 위치 선호 -> 생각해보면 어차피 로봇인데 계속 하고있는게 이득
-                     // 수비수 위치 고려
-                     // 골키퍼 위치 고려
-
         if (score > maxScore) {
             maxScore = score;
             bestY = y; // 가장 점수가 높은 y좌표 선택
         }
-    }
+    } // TODO: if maxScore is below ?.?, it's not proper to stay at baseX.
+    // TODO: in this case, we need whole new logic
 
     // 공이 1.5m 이내로 오거나 새로 계산된 위치가 이전 위치보다 1.0m 이상 차이나면 업데이트
     bool forceUpdate = brain->data->ball.range < 1.5; 
@@ -73,11 +98,6 @@ NodeStatus OfftheballPosition::tick(){
     // 최종 목표 위치 설정
     double targetX = baseX;
     double targetY = lastBestY;
-    
-    // 현재 로봇 위치
-    double robotX = brain->data->robotPoseToField.x;
-    double robotY = brain->data->robotPoseToField.y;
-    double robotTheta = brain->data->robotPoseToField.theta;
 
     // 이동 벡터 계산
     double errX = targetX - robotX; // X축 이동 필요량
@@ -106,7 +126,7 @@ NodeStatus OfftheballPosition::tick(){
     double angleDiff = toPInPI(targetTheta - robotTheta);
     
     // 회전 속도 계산
-    double vtheta = angleDiff * 4.0; 
+    double vtheta = angleDiff * 1.0; 
     
     // 안전하게 돌기 위해 최대 회전 속도 제한
     if (vtheta > 1.0) vtheta = 1.0;
