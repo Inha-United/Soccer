@@ -385,9 +385,12 @@ void BrainCommunication::unicastCommunication() {
         msg.cmdId = brain->data->tmMyCmdId;
         msg.cmd = brain->data->tmMyCmd;
         msg.target = brain->data->target; //pass 목표지점 주고받기용 (추후 cmd통신을 통해 패스 요청도 확인가능) (수현 추가)
-
-        log(format("ImAlive: %d, ImLead: %d, myCost: %.1f, myCmdId: %d, myCmd: %d", msg.isAlive, msg.isLead, msg.cost, msg.cmdId, msg.cmd));
-
+        
+        // 테스트용
+        msg.target.x = 1.23;
+        msg.target.y = 4.56;
+        
+        log(format("ImAlive: %d, ImLead: %d, myCost: %.1f, myCmdId: %d, myCmd: %d, (target x: %d, target y: %d)", msg.isAlive, msg.isLead, msg.cost, msg.cmdId, msg.cmd, msg.target.x, msg.target.y));
         std::lock_guard<std::mutex> lock(_teammate_addresses_mutex);
         for (auto it = _teammate_addresses.begin(); it != _teammate_addresses.end(); ++it) {
             auto ip = it->second.ip;
@@ -539,7 +542,7 @@ void BrainCommunication::spinCommunicationReceiver() {
         //     continue;
         // }
 
-        log(format("TMID: %.d, alive: %d, lead: %d, cost: %.1f, CmdId: %d, Cmd: %d", msg.playerId, msg.isAlive, msg.isLead, msg.cost, msg.cmdId, msg.cmd));
+        log(format("TMID: %.d, alive: %d, lead: %d, cost: %.1f, CmdId: %d, Cmd: %d, (target x: %d, target y: %d)", msg.playerId, msg.isAlive, msg.isLead, msg.cost, msg.cmdId, msg.cmd, msg.target.x, msg.target.y));
 
         /* ---------------- 데이터 업데이트 ---------------- */
         // 수신된 패킷 내용을 BrainData의 tmStatus에 저장 -> 이 데이터는 전략(누가 공을 찰지)과 시각화(Rerun에서 Teammate 표시)에 사용됨
