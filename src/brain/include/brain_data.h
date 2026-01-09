@@ -101,6 +101,7 @@ struct BrainData {
     bool tmImLead = true; 
     bool tmImAlive = true; 
     double tmMyCost = 0.;
+    Point2D tmtarget;
     
     // Team Discovery 추적 (BrainCommunication 용)
     int discoveryMsgId = 0;
