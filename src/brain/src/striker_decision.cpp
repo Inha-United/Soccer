@@ -52,7 +52,7 @@ NodeStatus StrikerDecision::tick() {
     double setPieceGoalDist = 2.0;
     getInput("set_piece_goal_dist", setPieceGoalDist);
 
-    // 절대값으로 양발
+    // 절대값으로 양발 -> 그냥 절대값이면 항상 양수로 들어갈테니 ball.posToRobot.y로 공이 왼쪽에 있는지 오른쪽에 있는지 판단하고 부호 변경
     if (kickYOffset > 0) {
         if (brain->data->ball.posToRobot.y > 0) kickYOffset = fabs(kickYOffset);
         else kickYOffset = -fabs(kickYOffset);
@@ -60,9 +60,9 @@ NodeStatus StrikerDecision::tick() {
 
     // 정렬 오차 계산
     double deltaDir = toPInPI(kickDir - dir_rb_f);                              // 로봇이 공 뒤에 일직선으로 서있으면 0이라 생각할 수 있음
-    double targetAngleOffset = atan2(kickYOffset, ballRange);                    // 오른 발로 차야하니까 공보다 약간 왼쪽에 있어야함 - 그 왼쪽에 해당하는 각도
-    double errorDir = toPInPI(deltaDir + targetAngleOffset);                     // 공을 차기 위한 위치인가 - 최종 위치 오차
-    double headingError = toPInPI(kickDir - brain->data->robotPoseToField.theta); // 로봇이 골대를 정확히 보고있나 - 최종 각도 오차
+    double targetAngleOffset = atan2(kickYOffset, ballRange);                    // 오른 발로 차야하니까 공보다 약간 왼쪽에 있어야함 -> 그 왼쪽에 해당하는 각도
+    double errorDir = toPInPI(deltaDir + targetAngleOffset);                     // 공을 차기 위한 위치인가 -> 최종 위치 오차
+    double headingError = toPInPI(kickDir - brain->data->robotPoseToField.theta); // 로봇이 골대를 정확히 보고있나 -> 최종 각도 오차
 
     bool iKnowBallPos = brain->tree->getEntry<bool>("ball_location_known");
     bool tmBallPosReliable = brain->tree->getEntry<bool>("tm_ball_pos_reliable");
@@ -95,13 +95,14 @@ NodeStatus StrikerDecision::tick() {
     }
 
     /* ----------------------- 5. 공 슛/정렬 ----------------------- */
+    // 멀면 정밀하게
     else {
-        // 세트피스 상황이면 더 여유롭게 (0.1라디안은 5.7도)
-        double kickTolerance = 0.1; // 멀면 정밀하게
-        double yawTolerance = 0.1;  
+        double kickTolerance = 0.1; // 로봇이 골대를 얼마나 정확히 보고있나
+        double yawTolerance = 0.1;  // 공이 내 발 앞에 있는가? 
         
+        // 가까우면(세트피스 거리면) 여유롭게
         if (distToGoal < setPieceGoalDist) {
-            kickTolerance = 0.3; // 가까우면 여유롭게
+            kickTolerance = 0.3; 
             yawTolerance = 0.5;
         }
 
