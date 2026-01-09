@@ -28,6 +28,6 @@ public:
 
 private:
     Brain *brain;
-    double lastDeltaDir = 0.0; 
+ 
     rclcpp::Time timeLastTick; 
 };

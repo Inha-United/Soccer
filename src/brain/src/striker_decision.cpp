@@ -34,7 +34,6 @@ NodeStatus StrikerDecision::tick() {
     double distToGoal = 0.0;
     
     distToGoal = norm(ball.posToField.x - (-brain->config->fieldDimensions.length/2), ball.posToField.y);
-    auto gps = brain->data->getGoalposts();
 
     // 장애물 회피 로직
     bool avoidPushing;
@@ -84,7 +83,7 @@ NodeStatus StrikerDecision::tick() {
     } 
 
     /* ----------------- 3. 공 chase ----------------- */
-    else if (ballRange > chaseRangeThreshold) { // * (lastDecision == "chase" ? 0.9 : 1.0)) {
+    else if (ballRange > chaseRangeThreshold) {
         newDecision = "chase";
         color = 0x0000FFFF;
     } 
@@ -98,11 +97,11 @@ NodeStatus StrikerDecision::tick() {
     /* ----------------- 5. 공 슛/정렬 ----------------- */
     else {
         // 세트피스 상황이면 더 여유롭게 (0.1라디안은 5.7도)
-        double kickTolerance = 0.1; // 멀면 정밀하게 (기본값)
+        double kickTolerance = 0.1; // 멀면 정밀하게
         double yawTolerance = 0.1;  
         
         if (distToGoal < setPieceGoalDist) {
-            kickTolerance = 0.3; // 가까우면 관대하게
+            kickTolerance = 0.3; // 가까우면 여유롭게
             yawTolerance = 0.5;
         }
 
@@ -111,7 +110,7 @@ NodeStatus StrikerDecision::tick() {
         bool reachedKickDir = fabs(errorDir) < kickTolerance && fabs(headingError) < kickTolerance && dt < 100; // 정렬 완료 상태 bool 값
 
         timeLastTick = now;
-        lastDeltaDir = deltaDir;
+
 
         /* ----------------- 6. Kick 정렬 완료 & 장애물 없음 & 공 가까움 ----------------- */
         double kickRange = 1.0;
@@ -129,7 +128,7 @@ NodeStatus StrikerDecision::tick() {
 
             && ball.range < kickRange
         ) {
-            // 골대 거리(setPieceGoalDist)에 따라 Quick vs Normal Kick 결정
+            // 골대 거리에 따라 Quick vs Normal Kick 결정
             if (distToGoal < setPieceGoalDist) {
                 newDecision = "kick_quick"; 
             }
