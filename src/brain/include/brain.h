@@ -94,6 +94,8 @@ public:
     void registerAdjustNodes(BT::BehaviorTreeFactory &factory){RegisterAdjustNodes(factory, this);}
     void registerSpeakNodes(BT::BehaviorTreeFactory &factory){RegisterSpeakNodes(factory, this);}
     void registerOfftheballNodes(BT::BehaviorTreeFactory &factory){RegisterOfftheballNodes(factory, this);}
+    void registerDefenderDecisionNodes(BT::BehaviorTreeFactory &factory){RegisterDefenderDecisionNodes(factory, this);}
+    void registerStrikerDecisionNodes(BT::BehaviorTreeFactory &factory){RegisterStrikerDecisionNodes(factory, this);}
     
     // ROS callback 함수
     void gameControlCallback(const game_controller_interface::msg::GameControlData &msg);
