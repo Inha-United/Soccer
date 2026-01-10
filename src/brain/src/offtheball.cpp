@@ -146,7 +146,7 @@ NodeStatus OfftheballPosition::tick(){
         // 2. 이동 경로 화살표 (로봇 -> 목표)
         brain->log->log("debug/offtheball/path", 
             rerun::Arrows2D::from_vectors({{targetX - robotX, -(targetY - robotY)}})
-            .with_origins({{robotX, robotY}})
+            .with_origins({{robotX, -robotY}})
             .with_colors(0x00FF00FF)
             .with_labels({"Path"})
         );
