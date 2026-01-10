@@ -43,9 +43,10 @@
 #include "chase.h"
 #include "kick.h"
 #include "adjust.h"
-#include "decision_role.h"
 #include "speak.h"
 #include "offtheball.h"
+#include "striker_decision.h"
+#include "defender_decision.h"
 #include "checkandstandup.h"
 
 // Forward declaration to avoid circular dependency
@@ -95,9 +96,8 @@ public:
     void registerAdjustNodes(BT::BehaviorTreeFactory &factory){RegisterAdjustNodes(factory, this);}
     void registerSpeakNodes(BT::BehaviorTreeFactory &factory){RegisterSpeakNodes(factory, this);}
     void registerOfftheballNodes(BT::BehaviorTreeFactory &factory){RegisterOfftheballNodes(factory, this);}
-    void registerDefenderDecisionNodes(BT::BehaviorTreeFactory &factory){RegisterDefenderDecisionNodes(factory, this);}
-    void registerStrikerDecisionNodes(BT::BehaviorTreeFactory &factory){RegisterStrikerDecisionNodes(factory, this);}
-    
+    void registerCheckAndStandUpNodes(BT::BehaviorTreeFactory &factory){RegisterCheckAndStandUpNodes(factory, this);}
+
     // ROS callback 함수
     void gameControlCallback(const game_controller_interface::msg::GameControlData &msg);
     void detectionsCallback(const vision_interface::msg::Detections &msg);
@@ -113,9 +113,10 @@ public:
     void logDepth(int grid_x_count, int grid_y_count, vector<vector<int>> &grid_occupied, vector<rerun::Vec3D> &points_robot);
 
     /* ----------------------------- role 결정을 위한 함수 ----------------------------- */
-    void registerDecisionRoleNodes(BT::BehaviorTreeFactory &factory){RegisterDecisionRoleNodes(factory, this);}
     bool isAngleGood(double goalPostMargin = 0.3, string type = "kick");
-    
+    void registerDefenderDecisionNodes(BT::BehaviorTreeFactory &factory){RegisterDefenderDecisionNodes(factory, this);}
+    void registerStrikerDecisionNodes(BT::BehaviorTreeFactory &factory){RegisterStrikerDecisionNodes(factory, this);}
+     
 
 
 
