@@ -380,6 +380,7 @@ NodeStatus SelfLocate::tick()
         brain->log->log("debug/SelfLocate", rerun::TextLog(msg));
     };
     double interval = getInput<double>("msecs_interval").value();
+    prtDebug("SelfLocate::tick called. Interval: " + to_string(interval) + ", Elapsed: " + to_string(brain->msecsSince(brain->data->lastSuccessfulLocalizeTime)));
     if (brain->msecsSince(brain->data->lastSuccessfulLocalizeTime) < interval) return NodeStatus::SUCCESS;
 
     string mode = getInput<string>("mode").value();
