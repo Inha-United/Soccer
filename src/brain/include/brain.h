@@ -46,6 +46,7 @@
 #include "decision_role.h"
 #include "speak.h"
 #include "offtheball.h"
+#include "checkandstandup.h"
 
 // Forward declaration to avoid circular dependency
 class BrainCommunication;

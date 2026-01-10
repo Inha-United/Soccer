@@ -32,7 +32,8 @@ void BrainTree::init(){
     brain->registerOfftheballNodes(factory); // offtheball 관련 노드 등록
     brain->registerDefenderDecisionNodes(factory); // defender decision 관련 노드 등록
     brain->registerStrikerDecisionNodes(factory); // striker decision 관련 노드 등록
-    
+    brain->registerCheckAndStandUpNodes(factory); // CheckAndStandUp 관련 노드 등록
+
     
     factory.registerBehaviorTreeFromFile(brain->config->treeFilePath);
     tree = factory.createTree("MainTree");
