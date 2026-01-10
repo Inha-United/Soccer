@@ -87,7 +87,7 @@ NodeStatus OfftheballPosition::tick(){
                      + (distToDefender * 1.0) // 수비수 거리가 멀수록 선호
                      - (fabs(y - robotY) * 0.5); // 로봇 위치 선호(이전 위치 선호)
                      
-                    
+
         // 공을 알고 있을 때만 패스 경로 계산이 의미가 있음 -> 공을 바라보고 있지만 안보일 수도 있기에
         // 생각해보면 메모리가 필수일 거 같아서 우선 추가만 함 봐보고 아니다 싶으면 지우죠
 
@@ -108,14 +108,14 @@ NodeStatus OfftheballPosition::tick(){
             if (brain->data->ballDetected) { 
                 double distToPassPath = pointMinDistToLine({opponent.posToField.x, opponent.posToField.y}, passPath);
                 if (distToPassPath < 1.0) {
-                    score -= (1.0 - distToPassPath) * 2.0 * confidenceFactor; 
+                    score -= (1.0 - distToPassPath) * 5.0 * confidenceFactor; // 패스길 막히면 감점
                 }
             }
 
             // 3. 골대 슈팅각 cost 계산 (공 안보여도 수행)
             double distToShotPath = pointMinDistToLine({opponent.posToField.x, opponent.posToField.y}, shotPath);
             if (distToShotPath < 1.0) { 
-                score -= (1.0 - distToShotPath) * 5.0 * confidenceFactor; // 슛 각이 막히면 큰 감점
+                score -= (1.0 - distToShotPath) * 5.0 * confidenceFactor; // 슛 각이 막히면 감점
             }
         }
 
