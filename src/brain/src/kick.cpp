@@ -286,7 +286,7 @@ NodeStatus CalcPassDir::tick(){
         brain->data->tmStatus[myPlayerId].passSignal = false;
         brain->data->tmStatus[myPlayerId].passTargetX = 0.;
         brain->data->tmStatus[myPlayerId].passTargetY = 0.;
-        return NodeStatus::SUCCESS;
+        return NodeStatus::RUNNING;
     }
     brain->data->tmStatus[myPlayerId].passSignal = true;
     brain->data->tmStatus[myPlayerId].passTargetX = tx;
