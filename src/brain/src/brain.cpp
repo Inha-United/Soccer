@@ -1830,7 +1830,7 @@ void Brain::updateRobotMemory() {
         auto r = robots[i];
 
 
-        if (msecsSince(r.timePoint) > 3000)  continue;
+        if (msecsSince(r.timePoint) > 5000)  continue;
 
 
         updateRelativePos(r);

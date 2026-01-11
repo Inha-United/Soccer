@@ -88,8 +88,8 @@ NodeStatus OfftheballPosition::tick(){
                         - (fabs(x - baseX) * 0.1) // baseX 약한 선호
                         - (fabs(y) * 0.6) // 중앙 선호
                         + (distToDefender * 1.0) // 수비수 거리가 멀수록 선호
-                        - (fabs(x - robotX) * 0.5) // 로봇 위치 선호(이전 위치 선호)
-                        - (fabs(y - robotY) * 0.5); // 로봇 위치 선호(이전 위치 선호)
+                        - (fabs(x - robotX) * 1.0) // 로봇 위치 선호(이전 위치 선호)
+                        - (fabs(y - robotY) * 1.0); // 로봇 위치 선호(이전 위치 선호)
                         
 
             // 공을 알고 있을 때만 패스 경로 계산이 의미가 있음 -> 공을 바라보고 있지만 안보일 수도 있기에
@@ -101,10 +101,10 @@ NodeStatus OfftheballPosition::tick(){
             for (const auto& opponent : Opponents) {
                 if (opponent.label != "Opponent") continue; // 모든 상대편에 대해?
 
-                // 메모리 기반 신뢰도 계산 -> 3초가 지나면 0이 되어 영향력 없음
+                // 메모리 기반 신뢰도 계산 -> 5초가 지나면 0이 되어 영향력 없음
                 rclcpp::Time now = brain->get_clock()->now();
                 double elapsed = (now - opponent.timePoint).seconds(); // 수비수를 마지막으로 본 지 몇 초 지났나
-                double confidenceFactor = std::max(0.0, (3.0 - elapsed) / 3.0);  // 시간이 지날수록 신뢰도가 떨어지게
+                double confidenceFactor = std::max(0.0, (5.0 - elapsed) / 5.0);  // 시간이 지날수록 신뢰도가 떨어지게
 
                 if (confidenceFactor <= 0.0) continue;
 
