@@ -114,6 +114,9 @@ Brain::Brain() : rclcpp::Node("brain_node"){
     // sound
     declare_parameter<bool>("sound.enable", false);
     declare_parameter<string>("sound.sound_pack", "espeak");
+
+    //recovery 관련
+    declare_parameter<int>("recovery.retry_max_count", 2);
 }
 
 Brain::~Brain(){}
