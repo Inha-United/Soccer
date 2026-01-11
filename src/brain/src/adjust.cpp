@@ -83,7 +83,9 @@ NodeStatus Adjust::tick(){
     vx = st * cos(thetat_r) + sr * cos(thetar_r); 
     vy = st * sin(thetat_r) + sr * sin(thetar_r); 
     // vtheta = toPInPI(ballYaw + st / R * (deltaDir > 0 ? 1.0 : -1.0)); 
-    vtheta = ballYaw;
+    // vtheta = ballYaw;
+    double currentTheta = brain->data->robotPoseToField.theta;
+    vtheta = toPInPI(kickDir - currentTheta);
     vtheta *= vtheta_factor; 
     if (fabs(ballYaw) < NO_TURN_THRESHOLD) vtheta = 0.;
     

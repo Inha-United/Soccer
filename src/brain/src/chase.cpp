@@ -136,9 +136,9 @@ NodeStatus Chase::tick(){
         // [수정]
         double goalLineAngle = toPInPI(kickDir + M_PI); // 공 뒤쪽 슛 대기 각도
         // 로봇 위치(theta_br)와 슛 대기 각도를 7:3 정도로 섞음 (멀리서부터 30% 정도는 슛 라인을 의식)
-        // double blendedTheta = theta_br * 0.7 + goalLineAngle * 0.3;
-        // double tanTheta = blendedTheta + circleBackDir * acos(min(1.0, safeDist/max(ballRange, 1e-5))); 
-        double tanTheta = theta_br + circleBackDir * acos(min(1.0, safeDist/max(ballRange, 1e-5))); 
+        double blendedTheta = theta_br * 0.7 + goalLineAngle * 0.3;
+        double tanTheta = blendedTheta + circleBackDir * acos(min(1.0, safeDist/max(ballRange, 1e-5))); 
+        // double tanTheta = theta_br + circleBackDir * acos(min(1.0, safeDist/max(ballRange, 1e-5))); 
         target_f.x = ballPos.x + safeDist * cos(tanTheta);
         target_f.y = ballPos.y + safeDist * sin(tanTheta);
     }
