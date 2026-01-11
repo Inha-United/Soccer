@@ -89,7 +89,7 @@ NodeStatus OfftheballPosition::tick(){
                         - (fabs(y) * 0.6) // 중앙 선호
                         + (distToDefender * 1.0) // 수비수 거리가 멀수록 선호
                         - (fabs(x - robotX) * 1.0) // 로봇 위치 선호(이전 위치 선호)
-                        - (fabs(y - robotY) * 1.0); // 로봇 위치 선호(이전 위치 선호)
+                        - (fabs(y - robotY) * 1.5); // 로봇 위치 선호(이전 위치 선호)
                         
 
             // 공을 알고 있을 때만 패스 경로 계산이 의미가 있음 -> 공을 바라보고 있지만 안보일 수도 있기에
@@ -153,7 +153,7 @@ NodeStatus OfftheballPosition::tick(){
     // 로봇 좌표계로 변환
     double vx_robot = cos(robotTheta) * vX_field + sin(robotTheta) * vY_field;
     double vy_robot = -sin(robotTheta) * vX_field + cos(robotTheta) * vY_field;
-    vx_robot = cap(vx_robot, 1.0, -0.5); // 최대 1m/s, 최소 0.5m/s
+    vx_robot = cap(vx_robot, 1.0, -0.3); // 최대 1m/s, 최소 0.5m/s
     vy_robot = cap(vy_robot, 0.3, -0.3); // 최대 0.5m/s, 최소 0.5m/s
 
     // 회전 제어
