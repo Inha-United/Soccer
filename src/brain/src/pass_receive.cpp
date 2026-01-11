@@ -36,7 +36,7 @@ NodeStatus PassReceive::onRunning()
     double target_rx = target_r.x;
     double target_ry = target_r.y;
 
-    brain->log->log("debug/pass_calcs", rerun::TextLog(std::format("dx: {:.2f}, theta: {:.2f}, tgt_rx: {:.2f}", target_r.x, target_r.theta, target_rx)));
+    brain->log->log("debug/pass_calcs", rerun::TextLog(format("dx: {:.2f}, theta: {:.2f}, tgt_rx: {:.2f}", target_r.x, target_r.theta, target_rx)));
 
     double distToTarget = hypot(target_rx, target_ry);
     
