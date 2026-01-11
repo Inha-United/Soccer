@@ -99,7 +99,7 @@ NodeStatus Chase::tick(){
     Pose2D target_f, target_r; 
     static string targetType = "direct"; 
     static double circleBackDir = 1.0; 
-    double dirThreshold = M_PI / 2;
+    double dirThreshold = M_PI / 6;
     if (targetType == "direct") dirThreshold *= 1.2;
     
     //side chase용 추가
