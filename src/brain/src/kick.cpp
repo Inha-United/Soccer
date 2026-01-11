@@ -194,12 +194,15 @@ NodeStatus CalcKickDirWithGoalkeeper::tick(){
 NodeStatus CalcPassDir::tick(){
     double maxpassThreshold;
     double minpassThreshold;
+    double scoreThreshold;
     getInput("max_pass_threshold", maxpassThreshold);    
     getInput("min_pass_threshold", minpassThreshold);
+    getInput("score_threshold", scoreThreshold);
 
     auto bPos = brain->data->ball.posToField; // 공 위치
     int bestTeammateIdx = -1;
-    double minDist = 9999.0;
+    int myPlayerId = brain->config->playerId;
+    double maxTmSelectScore = -99999.0;
     auto fd = brain->config->fieldDimensions; // 필드 정보
     auto color = 0xFFFFFFFF;
 
@@ -215,10 +218,14 @@ NodeStatus CalcPassDir::tick(){
         // 거리 계산
         double dist = norm(bPos.x - tmPos.x, bPos.y - tmPos.y);
 
-        // 유효 거리 내에 있고, 가장 가까운 팀원 선택 (단순 거리 기준)
-        if( dist > minpassThreshold && dist < maxpassThreshold && dist < minDist){
-            minDist = dist;
-            bestTeammateIdx = i;
+        // 유효 거리 내에 있고, 가장 score가 높은 팀원 선택
+        // 나랑 가까울 수록 높은 score, 전방에 있는(x좌표가 낮음) 선수일수록 높은 score
+        if( dist > minpassThreshold && dist < maxpassThreshold){
+            double score = -dist - tmPos.x;
+            if(score > maxTmSelectScore){
+                maxTmSelectScore = score;
+                bestTeammateIdx = i;
+            }
         }
     }
 
@@ -231,37 +238,65 @@ NodeStatus CalcPassDir::tick(){
     }
     
     brain->data->kickType = "pass"; // 킥 타입 설정
-    auto tmPos = brain->data->tmStatus[bestTeammateIdx].robotPoseToField;
+    auto tmPos = brain->data->tmStatus[bestTeammateIdx].robotPoseToField; // 패스를 주기로 결정한 그 팀원 위치
+    auto Opponents = brain->data->getRobots(); // Opponents. 사용하려면 label == Opponent 확인해야함
     
-    double offset = 0.8;
-    // 골대 중심 좌표
-    double gx = -fd.length / 2.0;
-    double gy = 0.0;
-
-    // 팀원 -> 골대
-    double vg_x = gx - tmPos.x;
-    double vg_y = gy - tmPos.y;
-
-    double vg_norm = std::hypot(vg_x, vg_y);
+    double fieldlimitx = fd.length / 2.0;
+    double fieldlimity = fd.width / 2.0;
+    double maxScore = -99999.0;
+    double tx, ty; // 타겟 좌표
     
-    // 팀원->골대 단위벡터
-    double ug_x = vg_x / vg_norm;
-    double ug_y = vg_y / vg_norm;
+    for (double x = tmPos.x - 2; x <= tmPos.x + 2; x += 0.2){
+        for (double y = tmPos.y - 2; y <= tmPos.y + 2; y += 0.2){
+            if (fabs(x) > fieldlimitx || fabs(y) > fieldlimity) continue; // 필드 범위를 벗어난다면 continue
+            
+            double score = 10.0
+                        - (fabs(x - tmPos.x) * 0.5) // 팀원과의 거리
+                        - (fabs(y - tmPos.y) * 0.5) // 팀원과의 거리
+                        - x * 0.3; // x좌표가 낮을수록 높은 score
+            
+            Line passPath = {bPos.x, bPos.y, x, y};
 
-    // 팀원 앞 타겟 (팀원 위치에서 골대 방향으로 offset만큼)
-    double tx = tmPos.x + offset * ug_x;
-    double ty = tmPos.y + offset * ug_y;
+            for (const auto& opponent : Opponents){
+                if (opponent.label != "Opponent") continue; // 상대팀이 아니면 스킵
+                
+                // TODO : striker 코드에서 메모리 부분 받아오고 나면 아래 주석해제 -> 적용합시다
+                rclcpp::Time now = brain->get_clock()->now();
+                double elapsed = (now - opponent.timePoint).seconds(); // 수비수를 마지막으로 본지 몇초 지났나
+                double confidenceFactor = std::max(0.0, (5.0 - elapsed) / 5.0); // 시간이 지날수록 신뢰도 떨어지게
+                if (confidenceFactor <= 0.0) continue;
 
+                double distToPassPath = pointMinDistToLine({opponent.posToField.x, opponent.posToField.y}, passPath);
+                if (distToPassPath < 1.0){ // 경로선분 1미터 이내에 opponent가 있다면
+                    score -= (1.0 - distToPassPath) * 20.0; // * confidenceFactor 나중에 추가합시다
+                }
+                
+            }
 
+            // score가 가장 높은 타겟 선택
+            if (score > maxScore){
+                maxScore = score;
+                tx = x;
+                ty = y;
+            }
+        }
+    }
+    if (maxScore < scoreThreshold){ // 패스결심이 안선다면 패스하지 않음
+        setOutput("pass_found", false);
+        brain->data->tmStatus[myPlayerId].passSignal = false;
+        brain->data->tmStatus[myPlayerId].passTargetX = 0.;
+        brain->data->tmStatus[myPlayerId].passTargetY = 0.;
+        return NodeStatus::SUCCESS;
+    }
+    brain->data->tmStatus[myPlayerId].passSignal = true;
+    brain->data->tmStatus[myPlayerId].passTargetX = tx;
+    brain->data->tmStatus[myPlayerId].passTargetY = ty;
 
     // 공 -> 타겟 방향으로 킥
     brain->data->kickDir = atan2(ty - bPos.y, tx - bPos.x);
-    // 공에서 팀원 방향으로 킥 방향 설정
-    // brain->data->kickDir = atan2(tmPos.y - bPos.y, tmPos.x - bPos.x);
     
     // 거리에 비례한 speed limit 설정
-    // pass일때만 해주고 kick일때는 그냥 config에 설정된 값으로 세게 찬다
-    double d = norm(bPos.x - tmPos.x, bPos.y - tmPos.y);
+    double d = norm(bPos.x - tx, bPos.y - ty);
 
     // 파라미터
     double k = 1.7;        // 감도
@@ -288,7 +323,7 @@ NodeStatus CalcPassDir::tick(){
     brain->log->setTimeNow();
     brain->log->log(
         "field/pass_dir",
-        rerun::Arrows2D::from_vectors({{10 * cos(brain->data->kickDir), -10 * sin(brain->data->kickDir)}})
+        rerun::Arrows2D::from_vectors({{(tx - bPos.x), -(ty - bPos.y)}})
             .with_origins({{brain->data->ball.posToField.x, -brain->data->ball.posToField.y}})
             .with_colors({color}) // Cyan color for pass
             .with_radii(0.01)
