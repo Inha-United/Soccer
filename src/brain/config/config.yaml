@@ -14,7 +14,7 @@ brain_node:
       vx_factor: 1.0
       yaw_offset: 0.0 
       vx_limit: 1.0 
-      vy_limit: 0.4
+      vy_limit: 0.5
       vtheta_limit: 1.2 
 
     strategy:
