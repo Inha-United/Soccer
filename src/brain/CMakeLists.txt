@@ -61,6 +61,7 @@ set(SOURCE_FILES
   src/offtheball.cpp
   src/defender_decision.cpp
   src/striker_decision.cpp
+  src/pass_receive.cpp
 )
 
 add_executable(brain_node ${SOURCE_FILES})

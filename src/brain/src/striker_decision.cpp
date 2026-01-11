@@ -75,26 +75,41 @@ NodeStatus StrikerDecision::tick() {
         newDecision = "find";
         color = 0xFFFFFFFF;
     }
+
+    // Check for pass signal
+    bool passsignal = false;
+    for(int i=0; i<HL_MAX_NUM_PLAYERS; i++) {
+        if (brain->data->tmStatus[i].passSignal) {
+            passsignal = true;
+            break;
+        }
+    }
+
+    /* ----------------------- 2. 패스 받기 ----------------------- */ 
+    else if (passsignal && ballRange > 0.5){
+        newDecision = "receive";
+        color = 0x00FFFFFF;
+    }
     
-    /* ----------------------- 2. OffTheBall ----------------------- */
+    /* ----------------------- 3. OffTheBall ----------------------- */
     else if (!brain->data->tmImLead && ballRange >= 1.0) {
         newDecision = "offtheball";
         color = 0x00FFFFFF;
     } 
 
-    /* ----------------------- 3. 공 chase ----------------------- */
+    /* ----------------------- 4. 공 chase ----------------------- */
     else if (ballRange > chaseRangeThreshold) {
         newDecision = "chase";
         color = 0x0000FFFF;
     } 
 
-    /* ----------------------- 4. 공 드리블 ----------------------- */
+    /* ----------------------- 5. 공 드리블 ----------------------- */
     else if (distToGoal > 4.0) {
         newDecision = "dribble";
         color = 0x00FFFF00; 
     }
 
-    /* ----------------------- 5. 공 슛/정렬 ----------------------- */
+    /* ----------------------- 6. 공 슛/정렬 ----------------------- */
     // 멀면 정밀하게
     else {
         double kickTolerance = 0.3; // 로봇이 골대를 얼마나 정확히 보고있나
@@ -113,7 +128,7 @@ NodeStatus StrikerDecision::tick() {
         timeLastTick = now;
 
 
-        /* ----------------------- 6. Kick ----------------------- */
+        /* ----------------------- 7. Kick ----------------------- */
         double kickRange = 1.0;
         if (distToGoal < setPieceGoalDist){
             kickRange = 3.0;
@@ -141,7 +156,7 @@ NodeStatus StrikerDecision::tick() {
             brain->data->isFreekickKickingOff = false; 
         }
         
-        /* ----------------------- 7. Adjust ----------------------- */
+        /* ----------------------- 8. Adjust ----------------------- */
         else {
             // 골대 거리에 따라 Quick vs Normal Adjust 결정
             if (distToGoal < setPieceGoalDist) newDecision = "adjust_quick";

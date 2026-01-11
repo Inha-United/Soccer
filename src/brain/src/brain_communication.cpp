@@ -559,6 +559,10 @@ void BrainCommunication::spinCommunicationReceiver() {
         tmStatus.cmd = msg.cmd; // 명령
         tmStatus.cmdId = msg.cmdId; // 명령 ID
 
+        tmStatus.passSignal = msg.passSignal; // defender의 패스 신호
+        tmStatus.passTargetX = msg.passTargetX; // defender의 패스 위치 X
+        tmStatus.passTargetY = msg.passTargetY; // defender의 패스 위치 Y
+
         // 새로운 명령 수신 확인
         if (msg.cmdId > brain->data->tmCmdId) {
             brain->data->tmCmdId = msg.cmdId;

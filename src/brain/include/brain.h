@@ -47,6 +47,7 @@
 #include "offtheball.h"
 #include "defender_decision.h"
 #include "striker_decision.h"
+#include "pass_receive.h"
 
 // Forward declaration to avoid circular dependency
 class BrainCommunication;
@@ -97,6 +98,7 @@ public:
     void registerOfftheballNodes(BT::BehaviorTreeFactory &factory){RegisterOfftheballNodes(factory, this);}
     void registerDefenderDecisionNodes(BT::BehaviorTreeFactory &factory){RegisterDefenderDecisionNodes(factory, this);}
     void registerStrikerDecisionNodes(BT::BehaviorTreeFactory &factory){RegisterStrikerDecisionNodes(factory, this);}
+    void registerPassReceiveNodes(BT::BehaviorTreeFactory &factory){RegisterPassReceiveNodes(factory, this);}
     
     // ROS callback 함수
     void gameControlCallback(const game_controller_interface::msg::GameControlData &msg);
