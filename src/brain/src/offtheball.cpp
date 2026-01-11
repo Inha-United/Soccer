@@ -41,6 +41,7 @@ NodeStatus OfftheballPosition::tick(){
 
     // 최적의 Y좌표 계산 (경기장 폭의 절반에서 0.5m 안쪽)
     double maxY = fd.width / 2.0 - 0.5;
+    double bestX = baseX;
     double bestY = 0.0;
 
     double maxScore = -1e9;
@@ -126,6 +127,7 @@ NodeStatus OfftheballPosition::tick(){
 
             if (score > maxScore) {
                 maxScore = score;
+                bestX = x;
                 bestY = y; // 가장 점수가 높은 y좌표 선택
             }
         }
