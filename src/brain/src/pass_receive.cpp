@@ -27,11 +27,16 @@ NodeStatus PassReceive::onRunning()
 
     brain->log->log("field/pass_target", rerun::Points2D({{static_cast<float>(targetX), static_cast<float>(targetY)}}).with_colors({0x00FF00FF}).with_labels({"PassTarget"}).with_radii({0.1f}));
 
-    // target 좌표를 로봇 좌표로 변환
-    double target_rx, target_ry, __;
-    transCoord(targetX, targetY, 0, 
-               brain->data->robotPoseToField.x, brain->data->robotPoseToField.y, brain->data->robotPoseToField.theta, 
-               target_rx, target_ry, __);
+    Pose2D targetPoint;
+    targetPoint.x = targetX;
+    targetPoint.y = targetY;
+    targetPoint.theta = 0.0;
+
+    Pose2D target_r = brain->data->field2robot(targetPoint);
+    double target_rx = target_r.x;
+    double target_ry = target_r.y;
+
+    brain->log->log("debug/pass_calcs", rerun::TextLog(std::format("dx: {:.2f}, theta: {:.2f}, tgt_rx: {:.2f}", target_r.x, target_r.theta, target_rx)));
 
     double distToTarget = hypot(target_rx, target_ry);
     
