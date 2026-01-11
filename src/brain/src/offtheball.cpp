@@ -70,62 +70,68 @@ NodeStatus OfftheballPosition::tick(){
     }
 
     // Y축을 따라 0.2m 간격으로 후보 지점 탐색
-    for (double y = -maxY; y <= maxY; y += 0.1) { 
-        double distToDefender = 0.0;
-        double normalizer = (defenderIndices.size() > 0 ? defenderIndices.size() : 1.0);
+    for (double x = baseX-1; x <= baseX+1; x += 0.1) {
+        for (double y = -maxY; y <= maxY; y += 0.1) {
+            double distToDefender = 0.0;
+            double normalizer = (defenderIndices.size() > 0 ? defenderIndices.size() : 1.0);
 
-        for (const auto& defenderIndex : defenderIndices) {
-            double dist = norm(y - Opponents[defenderIndex].posToField.y, baseX - Opponents[defenderIndex].posToField.x);
-            dist = cap(dist, 3.0, 0.0); // 3m 면 충분히 멀다. 그 이상 떨어져 있다고 cost를 더 주진 않을것
-            distToDefender += dist;
-        }
+            for (const auto& defenderIndex : defenderIndices) {
+                double dist = norm(y - Opponents[defenderIndex].posToField.y, baseX - Opponents[defenderIndex].posToField.x);
+                dist = cap(dist, 3.0, 0.0); // 3m 면 충분히 멀다. 그 이상 떨어져 있다고 cost를 더 주진 않을것
+                distToDefender += dist;
+            }
 
-        distToDefender /= normalizer;
-        
-        double score = 0.0
-                     - (fabs(y) * 0.4) // 중앙 선호
-                     + (distToDefender * 1.0) // 수비수 거리가 멀수록 선호
-                     - (fabs(y - robotY) * 0.5); // 로봇 위치 선호(이전 위치 선호)
-                     
+            distToDefender /= normalizer;
+            
+            double score = 0.0
+                        - (fabs(x - baseX) * 0.2) // baseX 약한 선호
+                        - (fabs(y) * 0.6) // 중앙 선호
+                        + (distToDefender * 1.0) // 수비수 거리가 멀수록 선호
+                        - (fabs(x - robotX) * 0.2) // 로봇 위치 선호(이전 위치 선호)
+                        - (fabs(y - robotY) * 0.2); // 로봇 위치 선호(이전 위치 선호)
+                        
 
-        // 공을 알고 있을 때만 패스 경로 계산이 의미가 있음 -> 공을 바라보고 있지만 안보일 수도 있기에
-        // 생각해보면 메모리가 필수일 거 같아서 우선 추가만 함 봐보고 아니다 싶으면 지우죠
+            // 공을 알고 있을 때만 패스 경로 계산이 의미가 있음 -> 공을 바라보고 있지만 안보일 수도 있기에
+            // 생각해보면 메모리가 필수일 거 같아서 우선 추가만 함 봐보고 아니다 싶으면 지우죠
 
-        Line passPath = {brain->data->ball.posToField.x, brain->data->ball.posToField.y, baseX, y};
-        Line shotPath = {baseX, y, goalX, 0.0}; // 후보 위치에서 골대까지의 경로
+            Line passPath = {brain->data->ball.posToField.x, brain->data->ball.posToField.y, baseX, y};
+            Line shotPath = {baseX, y, goalX, 0.0}; // 후보 위치에서 골대까지의 경로
 
-        for (const auto& opponent : Opponents) {
-            if (opponent.label != "Opponent") continue;
+            for (const auto& opponent : Opponents) {
+                if (opponent.label != "Opponent") continue; // 모든 상대편에 대해?
 
-            // 메모리 기반 신뢰도 계산 -> 3초가 지나면 0이 되어 영향력 없음
-            rclcpp::Time now = brain->get_clock()->now();
-            double elapsed = (now - opponent.timePoint).seconds(); // 수비수를 마지막으로 본 지 몇 초 지났나
-            double confidenceFactor = std::max(0.0, (3.0 - elapsed) / 3.0);  // 시간이 지날수록 신뢰도가 떨어지게
+                // 메모리 기반 신뢰도 계산 -> 3초가 지나면 0이 되어 영향력 없음
+                rclcpp::Time now = brain->get_clock()->now();
+                double elapsed = (now - opponent.timePoint).seconds(); // 수비수를 마지막으로 본 지 몇 초 지났나
+                double confidenceFactor = std::max(0.0, (3.0 - elapsed) / 3.0);  // 시간이 지날수록 신뢰도가 떨어지게
 
-            if (confidenceFactor <= 0.0) continue;
+                if (confidenceFactor <= 0.0) continue;
 
-            // 패스 경로 cost 계산 (공이 보일 때만)
-            if (brain->data->ballDetected) { 
-                // 수비수가 패스 경로 직선에서 얼마나 떨어져 있나
-                double distToPassPath = pointMinDistToLine({opponent.posToField.x, opponent.posToField.y}, passPath);
-                if (distToPassPath < 1.0) { // 경로 1m 이내 opponent가 있다면 cost 계산에 포함
-                    score -= (1.0 - distToPassPath) * 5.0 * confidenceFactor; // (1.0 - 거리) * 5.0 * 신뢰도 만큼 감점
-                    // 패스길 막히면 감점 -> confidenceFactor를 포함한 이유는 공을 따라가다 보면 시야에서 수비수가 사라질 수 있기에 여기도 메모리 적용해봄
+                // 패스 경로 cost 계산 (공이 보일 때만)
+                if (brain->data->ballDetected) { 
+                    // 수비수가 패스 경로 직선에서 얼마나 떨어져 있나
+                    double distToPassPath = pointMinDistToLine({opponent.posToField.x, opponent.posToField.y}, passPath);
+                    if (distToPassPath < 1.0) { // 경로 1m 이내 opponent가 있다면 cost 계산에 포함
+                        score -= (1.0 - distToPassPath) * 5.0 * confidenceFactor; // (1.0 - 거리) * 5.0 * 신뢰도 만큼 감점
+                        // 패스길 막히면 감점 -> confidenceFactor를 포함한 이유는 공을 따라가다 보면 시야에서 수비수가 사라질 수 있기에 여기도 메모리 적용해봄
+                    }
+                }
+
+                // 골대 슈팅각 cost 계산 (공 안보여도 수행)
+                double distToShotPath = pointMinDistToLine({opponent.posToField.x, opponent.posToField.y}, shotPath); // 패스 경로 계산과 거의 같게 골대 슈팅각 계산
+                if (distToShotPath < 1.0) { 
+                    score -= (1.0 - distToShotPath) * 5.0 * confidenceFactor; // 슛 각이 막히면 감점
                 }
             }
 
-            // 골대 슈팅각 cost 계산 (공 안보여도 수행)
-            double distToShotPath = pointMinDistToLine({opponent.posToField.x, opponent.posToField.y}, shotPath); // 패스 경로 계산과 거의 같게 골대 슈팅각 계산
-            if (distToShotPath < 1.0) { 
-                score -= (1.0 - distToShotPath) * 5.0 * confidenceFactor; // 슛 각이 막히면 감점
+            if (score > maxScore) {
+                maxScore = score;
+                bestY = y; // 가장 점수가 높은 y좌표 선택
             }
         }
-
-        if (score > maxScore) {
-            maxScore = score;
-            bestY = y; // 가장 점수가 높은 y좌표 선택
-        }
-    } // TODO: if maxScore is below ?.?, it's not proper to stay at baseX.
+    }
+    // score loop ends here    
+    // TODO: if maxScore is below ?.?, it's not proper to stay at baseX.
     // TODO: in this case, we need whole new logic
 
     lastBestY = bestY;
