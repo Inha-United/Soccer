@@ -153,6 +153,8 @@ NodeStatus OfftheballPosition::tick(){
     // 로봇 좌표계로 변환
     double vx_robot = cos(robotTheta) * vX_field + sin(robotTheta) * vY_field;
     double vy_robot = -sin(robotTheta) * vX_field + cos(robotTheta) * vY_field;
+    vx_robot = cap(vx_robot, 1.0, -0.5); // 최대 1m/s, 최소 0.5m/s
+    vy_robot = cap(vy_robot, 0.5, -0.5); // 최대 0.5m/s, 최소 0.5m/s
 
     // 회전 제어
     double targetTheta;
@@ -169,14 +171,13 @@ NodeStatus OfftheballPosition::tick(){
     double angleDiff = toPInPI(targetTheta - robotTheta);
     
     // 회전 속도 계산
-    double vtheta = angleDiff * 1.0; 
+    double vtheta = angleDiff * 4.0; 
     
     // 안전하게 돌기 위해 최대 회전 속도 제한
-    if (vtheta > 1.0) vtheta = 1.0;
-    if (vtheta < -1.0) vtheta = -1.0;
+    vtheta = cap(vtheta, 1.0, -1.0);
 
     // 최종 속도 명령 전송
-    brain->client->setVelocity(vx_robot, vy_robot, vtheta);
+    brain->client->setVelocity(vx_robot, vy_robot, vtheta, false, false, false);
 
     // rerun 로그
     {
