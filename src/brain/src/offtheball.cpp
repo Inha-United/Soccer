@@ -154,7 +154,7 @@ NodeStatus OfftheballPosition::tick(){
     double vx_robot = cos(robotTheta) * vX_field + sin(robotTheta) * vY_field;
     double vy_robot = -sin(robotTheta) * vX_field + cos(robotTheta) * vY_field;
     vx_robot = cap(vx_robot, 1.0, -0.5); // 최대 1m/s, 최소 0.5m/s
-    vy_robot = cap(vy_robot, 0.5, -0.5); // 최대 0.5m/s, 최소 0.5m/s
+    vy_robot = cap(vy_robot, 0.3, -0.3); // 최대 0.5m/s, 최소 0.5m/s
 
     // 회전 제어
     double targetTheta;
