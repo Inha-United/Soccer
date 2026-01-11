@@ -1,6 +1,10 @@
 #pragma once
 
+#include <string>
 #include "behaviortree_cpp/action_node.h"
+#include "behaviortree_cpp/bt_factory.h"
+
+using std::string;
 
 class Brain;
 

@@ -1,4 +1,5 @@
 #include "pass_receive.h"
+#include "brain.h"
 #include "utils/math.h"
 
 using namespace std;
