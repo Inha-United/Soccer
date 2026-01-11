@@ -89,7 +89,7 @@ NodeStatus StrikerDecision::tick() {
     } 
 
     /* ----------------------- 4. 공 드리블 ----------------------- */
-    else if (distToGoal > 3.0) {
+    else if (distToGoal > 2.0) {
         newDecision = "dribble";
         color = 0x00FFFF00; 
     }
