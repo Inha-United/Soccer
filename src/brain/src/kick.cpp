@@ -268,7 +268,7 @@ NodeStatus CalcPassDir::tick(){
 
                 double distToPassPath = pointMinDistToLine({opponent.posToField.x, opponent.posToField.y}, passPath);
                 if (distToPassPath < 1.0){ // 경로선분 1미터 이내에 opponent가 있다면
-                    score -= (1.0 - distToPassPath) * 20.0; * confidenceFactor // 추가
+                    score -= (1.0 - distToPassPath) * 20.0 * confidenceFactor; // 추가
                 }
                 
             }
