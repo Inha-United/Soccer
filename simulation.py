@@ -309,11 +309,11 @@ def compute_striker_score(tx: float, ty: float,
 
         dist_pass = point_to_segment_distance(opp.pos.x, opp.pos.y, *pass_path)
         if dist_pass < params["path_margin"]:
-            score -= (1.0 - dist_pass) * params["penalty_weight"] * cf
+            score -= (params["path_margin"] - dist_pass) * params["penalty_weight"] * cf
 
         dist_shot = point_to_segment_distance(opp.pos.x, opp.pos.y, *shot_path)
         if dist_shot < params["path_margin"]:
-            score -= (1.0 - dist_shot) * params["penalty_weight"] * cf
+            score -= (params["path_margin"] - dist_shot) * params["penalty_weight"] * cf
 
     dist_robot_target = np.hypot(tx - robot.x, ty - robot.y)
     if dist_robot_target > 0.1:
