@@ -96,10 +96,10 @@ NodeStatus OfftheballPosition::tick(){
             
             double score = 0.0;
             score -= (fabs(x - baseX) * 0.0); // 기준 X좌표 선호 가중치 (0.0)
-            score -= (fabs(y) * 0.6);         // 중앙(Y=0) 선호 가중치 (0.6)
+            score -= (fabs(y) * 3.0);         // 중앙(Y=0) 선호 가중치 (0.6)
             score -= (fabs(x - robotX) * 3.0); // 현재 위치 유지 선호 가중치 (3.0)
             score -= (fabs(y - robotY) * 3.0); // 현재 위치 유지 선호 가중치 (3.0)
-            score += (distToDefender * 1.0);   // 수비수와의 거리 확보 가중치 (1.0)
+            score += (distToDefender * 5.0);   // 수비수와의 거리 확보 가중치 (1.0)
 
             // [대칭 위치 선호]
             if (!defenderIndices.empty()) {

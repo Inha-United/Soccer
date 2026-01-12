@@ -28,7 +28,7 @@ PARAMS = {
     "dist_from_goal": 2.0,       # 오프더볼 거리
     "base_x_weight": 0.0,        # X축 위치 선호도 (baseX 근처 선호)
     "center_y_weight": 0.6,      # Y축 중앙 선호도
-    "defender_dist_weight": 1.0, # 수비수와의 거리 가중치 (멀수록 좋음)
+    "defender_dist_weight": 20.0, # 수비수와의 거리 가중치 (멀수록 좋음)
     "defender_dist_cap": 3.0,    # 수비수 거리 이득 최대치 제한 (3m 이상은 동일 취급)
     
     "hysteresis_x_weight": 3.0,  # 현재 로봇 위치 유지 선호도 (X축)
@@ -64,7 +64,7 @@ SCENARIO = {
     
     "opponents": [
         {"x": -3.8, "y": 0.5}, # 골키퍼
-        {"x": -3.0, "y": -0.5}, # 상대 수비수 1 
+        {"x": -3.0, "y": -2.5}, # 상대 수비수 1 
         {"x": -2.0, "y": 1.0}, # 상대 수비수 2
     ]
 }
