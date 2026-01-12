@@ -249,6 +249,8 @@ NodeStatus CalcPassDir::tick(){
     for (double x = tmPos.x - 2; x <= tmPos.x + 2; x += 0.2){
         for (double y = tmPos.y - 2; y <= tmPos.y + 2; y += 0.2){
             if (fabs(x) > fieldlimitx || fabs(y) > fieldlimity) continue; // 필드 범위를 벗어난다면 continue
+            double passDist = norm(x - bPos.x, y - bPos.y);
+            if (passDist < minpassThreshold || passDist > maxpassThreshold) continue; // 너무 숏패스, 롱패스는 시도안함
             
             double score = 10.0
                         - (fabs(x - tmPos.x) * 0.5) // 팀원과의 거리
