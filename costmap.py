@@ -323,18 +323,18 @@ def main():
     # Example scenario (바꿔서 쓰시면 됩니다)
     my_player_id = 1
 
-    ball = Pose2D(x=0.9, y=0.5)
+    ball = Pose2D(x=-2.0, y=-1.9)
 
     teammates = [
-        Teammate(player_id=1, pos=Pose2D(1.0,  0.5), is_alive=True),  # me (ignored)
+        Teammate(player_id=1, pos=Pose2D(-2.0,  -2.0), is_alive=True),  # me (ignored)
         Teammate(player_id=2, pos=Pose2D(3.5,  0.0), is_alive=True),
-        Teammate(player_id=3, pos=Pose2D(-0.5, 0.5), is_alive=True),
+        Teammate(player_id=3, pos=Pose2D(0.0, 1.0), is_alive=True),
     ]
 
     opponents = [
         Opponent(pos=Pose2D(-3.5, 0.0), last_seen_sec_ago=1.0),
-        Opponent(pos=Pose2D(0.0, 1.5), last_seen_sec_ago=0.0),
-        Opponent(pos=Pose2D(0.5, -0.5), last_seen_sec_ago=1.5),
+        Opponent(pos=Pose2D(-2.5, -1.0), last_seen_sec_ago=0.0),
+        Opponent(pos=Pose2D(-1.5, 0.5), last_seen_sec_ago=1.0),
     ]
 
     visualize(ball, teammates, opponents, my_player_id, PARAMS)
