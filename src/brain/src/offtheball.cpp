@@ -70,8 +70,8 @@ NodeStatus OfftheballPosition::tick(){
         }
     }
 
-    // Y축을 따라 0.2m 간격으로 후보 지점 탐색
-    for (double x = baseX-1; x <= baseX+1; x += 0.1) {
+    // Y축을 따라 0.2m 간격으로 후보 지점 탐색 (범위 확장: +/- 2.0m)
+    for (double x = baseX-2.0; x <= baseX+2.0; x += 0.1) {
         for (double y = -maxY; y <= maxY; y += 0.1) {
             double distToDefender = 0.0;
             double normalizer = (defenderIndices.size() > 0 ? defenderIndices.size() : 1.0);
@@ -121,7 +121,17 @@ NodeStatus OfftheballPosition::tick(){
                 // 골대 슈팅각 cost 계산 (공 안보여도 수행)
                 double distToShotPath = pointMinDistToLine({opponent.posToField.x, opponent.posToField.y}, shotPath); // 패스 경로 계산과 거의 같게 골대 슈팅각 계산
                 if (distToShotPath < 1.0) { 
-                    score -= (1.0 - distToShotPath) * 5.0 * confidenceFactor; // 슛 각이 막히면 감점
+                    score -= (1.0 - distToShotPath) * 3.0 * confidenceFactor; // 슛 각이 막히면 감점 (Updated: 5.0->3.0)
+                }
+
+                // 이동 경로 cost 계산 (New) - 로봇이 후보 위치로 가는 길이 막히면 감점
+                Line movementPath = {robotX, robotY, x, y}; // 현재 로봇 위치에서 후보 위치까지의 이동 경로
+                double distRobotTarget = norm(x - robotX, y - robotY);
+                if (distRobotTarget > 0.1) { // 0.1m 이상 이동해야 할 때만 체크
+                     double distToMovementPath = pointMinDistToLine({opponent.posToField.x, opponent.posToField.y}, movementPath);
+                     if (distToMovementPath < 1.0) {
+                         score -= (1.0 - distToMovementPath) * 3.0 * confidenceFactor; // 이동 경로 막히면 꽤 큰 감점 (시뮬레이터: 3.0)
+                     }
                 }
             }
 
