@@ -26,13 +26,13 @@ PARAMS = {
     
     # 로직 가중치 및 설정
     "dist_from_goal": 2.0,       # 오프더볼 거리
-    "base_x_weight": 0.1,        # X축 위치 선호도 (baseX 근처 선호)
+    "base_x_weight": 0.0,        # X축 위치 선호도 (baseX 근처 선호)
     "center_y_weight": 0.6,      # Y축 중앙 선호도
     "defender_dist_weight": 1.0, # 수비수와의 거리 가중치 (멀수록 좋음)
     "defender_dist_cap": 3.0,    # 수비수 거리 이득 최대치 제한 (3m 이상은 동일 취급)
     
-    "hysteresis_x_weight": 1.3,  # 현재 로봇 위치 유지 선호도 (X축)
-    "hysteresis_y_weight": 1.5,  # 현재 로봇 위치 유지 선호도 (Y축)
+    "hysteresis_x_weight": 3.0,  # 현재 로봇 위치 유지 선호도 (X축)
+    "hysteresis_y_weight": 3.0,  # 현재 로봇 위치 유지 선호도 (Y축)
     
     "penalty_weight": 10.0,       # 경로 막힘 패널티 기본값
     "path_margin": 1.5,          # 경로 방해 판단 거리
@@ -43,12 +43,12 @@ PARAMS = {
     "shot_penalty_weight": 3.0,  # 슛 경로 막힘 감점 가중치
     "movement_penalty_weight": 30.0, # 이동 경로 막힘 감점 가중치
     "symmetry_weight": 10.0,      # 대칭 위치 선호 가중치
-    "ball_dist_weight": 2.0,     # 공과의 거리 선호 가중치
-    "forward_weight": 2.0,       # 공격 방향(전진) 선호 가중치 x가 작아질 수록 가중치
+    "ball_dist_weight": 1.5,     # 공과의 거리 선호 가중치
+    "forward_weight": 5.2,       # 공격 방향(전진) 선호 가중치 x좌표 작아질 수록 가중치
     
     "path_confidence": 0.5,      # 경로 신뢰도 (0~1)
     
-    "search_x_margin": 1.8,      # 검색 범위 (x)
+    "search_x_margin": 1.7,      # 검색 범위 (x)
     "grid_step": 0.1,            # 그리드 간격
     
     # 시각화 설정
@@ -59,13 +59,13 @@ PARAMS = {
 # 2. 시나리오 설정 (좌표 튜닝)
 # =========================
 SCENARIO = {
-    "robot": {"x": -3.0, "y": 3.0}, # 로봇 현재 위치
-    "ball":  {"x": -0.1, "y": 0.0}, # 공 위치
+    "robot": {"x": -3.0, "y": -3.0}, # 로봇 현재 위치
+    "ball":  {"x": -1.0, "y": 1.0}, # 공 위치
     
     "opponents": [
-        {"x": -3.8, "y": -0.5}, # 골키퍼
-        {"x": -3.0, "y": 2.0}, # 상대 수비수 1 
-        {"x": -2.0, "y": 0.5}, # 상대 수비수 2
+        {"x": -3.8, "y": 0.5}, # 골키퍼
+        {"x": -3.0, "y": -0.5}, # 상대 수비수 1 
+        {"x": -2.0, "y": 1.0}, # 상대 수비수 2
     ]
 }
 
