@@ -253,7 +253,8 @@ NodeStatus CalcPassDir::tick(){
             double score = 10.0
                         - (fabs(x - tmPos.x) * 0.5) // 팀원과의 거리
                         - (fabs(y - tmPos.y) * 0.5) // 팀원과의 거리
-                        - x * 0.3; // x좌표가 낮을수록 높은 score
+                        - x * 0.3 // x좌표가 낮을수록 높은 score
+                        - (fabs(y) * 0.1); // y좌표가 낮을수록 높은 score
             
             Line passPath = {bPos.x, bPos.y, x, y};
 
