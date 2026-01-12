@@ -95,11 +95,11 @@ NodeStatus OfftheballPosition::tick(){
             distToDefender /= normalizer;
             
             double score = 0.0;
-            score -= (fabs(x - baseX) * 3.0); // 기준 X좌표 선호 가중치 (0.0)
-            score -= (fabs(y) * 3.0);         // 중앙(Y=0) 선호 가중치 (0.6)
+            score -= (fabs(x - baseX) * 5.0); // 기준 X좌표 선호 가중치 (5.0)
+            score -= (fabs(y) * 5.0);         // 중앙(Y=0) 선호 가중치 (3.0)
             score -= (fabs(x - robotX) * 3.0); // 현재 위치 유지 선호 가중치 (3.0)
             score -= (fabs(y - robotY) * 3.0); // 현재 위치 유지 선호 가중치 (3.0)
-            score += (distToDefender * 5.0);   // 수비수와의 거리 확보 가중치 (1.0)
+            score += (distToDefender * 20.0);   // 수비수와의 거리 확보 가중치 (20.0)
 
             // [대칭 위치 선호]
             if (!defenderIndices.empty()) {
@@ -109,7 +109,7 @@ NodeStatus OfftheballPosition::tick(){
             // [공 거리 선호] X축 거리(깊이) 2.5m 유지
             // 공을 보고 있지 않아도 ball info는 유효하다고 가정 (추정값)
             double distXToBall = std::abs(x - brain->data->ball.posToField.x);
-            score -= std::abs(distXToBall - 2.5) * 1.5; // 공과의 거리(X축 깊이) 2.5m 유지 가중치 (1.5)
+            score -= std::abs(distXToBall - 2.5) * 3.0; // 공과의 거리(X축 깊이) 2.5m 유지 가중치 (3.0)
 
             // [공격 방향 선호] 전진할수록 이득
             // x가 음수이므로, -x는 양수. 즉 전진할수록 점수 증가
@@ -134,9 +134,9 @@ NodeStatus OfftheballPosition::tick(){
                 // 패스 경로 cost 계산 (공이 보일 때만)
                 if (brain->data->ballDetected) { 
                     double distToPassPath = pointMinDistToLine({opponent.posToField.x, opponent.posToField.y}, passPath);
-                    // Sim uses 'penalty_weight' (10.0) and 'path_margin' (1.5)
+                    // Sim uses 'pass_penalty_weight' (15.0) and 'path_margin' (1.5)
                     if (distToPassPath < 1.5) { 
-                        score -= (1.5 - distToPassPath) * 10.0 * confidenceFactor;
+                        score -= (1.5 - distToPassPath) * 15.0 * confidenceFactor;
                     }
                 }
 
@@ -144,7 +144,7 @@ NodeStatus OfftheballPosition::tick(){
                 double distToShotPath = pointMinDistToLine({opponent.posToField.x, opponent.posToField.y}, shotPath); 
                 // Sim uses 'penalty_weight' (10.0) and 'path_margin' (1.5)
                 if (distToShotPath < 1.5) { 
-                     score -= (1.5 - distToShotPath) * 10.0 * confidenceFactor; 
+                     score -= (1.5 - distToShotPath) * 3.0 * confidenceFactor; 
                 }
 
                 // 이동 경로 cost 계산 - 로봇이 후보 위치로 가는 길이 막히면 감점
@@ -158,6 +158,19 @@ NodeStatus OfftheballPosition::tick(){
                          score -= (1.5 - distToMovementPath) * 30.0 * confidenceFactor; 
                      }
                 }
+            }
+
+            // 골대 위치: (goalX, +/- goalWidth/2)
+            double halfGoalW = brain->config->fieldDimensions.goalWidth / 2.0;
+            double distToLeftPost = norm(x - goalX, y - halfGoalW);
+            double distToRightPost = norm(x - goalX, y + halfGoalW);
+            
+            // 0.5m 이내 접근 시 골대 충돌 피하기
+            if (distToLeftPost < 0.5) {
+                score -= (0.5 - distToLeftPost) * 20.0; 
+            }
+            if (distToRightPost < 0.5) {
+                score -= (0.5 - distToRightPost) * 20.0;
             }
 
             if (score > maxScore) {
