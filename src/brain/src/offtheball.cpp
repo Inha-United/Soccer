@@ -123,7 +123,8 @@ NodeStatus OfftheballPosition::tick(){
 
                 if (confidenceFactor <= 0.0) continue;
 
-                if (brain->data->ballDetected) { 
+                double timeSinceBall = brain->msecsSince(brain->data->ball.lastSeenTime);
+                if (timeSinceBall < 3000) { // 공을 놓쳐도 3초간은 패스 경로 페널티 유지
                     double distToPassPath = pointMinDistToLine({opponent.posToField.x, opponent.posToField.y}, passPath);
                     if (distToPassPath < 1.5) { 
                         score -= (1.5 - distToPassPath) * 15.0 * confidenceFactor; // 9. 공 사이 패스 경로 페널티 (15.0)
