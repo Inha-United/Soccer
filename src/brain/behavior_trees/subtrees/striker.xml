@@ -31,7 +31,8 @@
             <ReactiveSequence _while="!ball_out">
                <ReactiveSequence>
                   <!-- 공 추적 -->
-                  <SubTree ID="CamFindAndTrackBall" _autoremap="true" />
+                  <!-- <SubTree ID="CamFindAndTrackBall" _autoremap="true" /> -->
+                  <SubTree ID="CamFindAndTrackBall" _while="decision != 'offtheball'" _autoremap="true" />
                   
                   <!-- 킥 방향 개선 (골키퍼 고려) -->
                   <CalcKickDir />
