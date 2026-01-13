@@ -98,8 +98,8 @@ NodeStatus OfftheballPosition::tick(){
             double score = 0.0;
             score -= (fabs(x - baseX) * 5.0);   // 1. 기준 X좌표 선호 가중치 (5.0)
             score -= (fabs(y) * 5.0);           // 2. Y축 중앙 선호 가중치 (5.0)
-            score -= (fabs(x - robotX) * 3.0);  // 3. 현재 위치 유지(X) 가중치 (3.0)
-            score -= (fabs(y - robotY) * 3.0);  // 4. 현재 위치 유지(Y) 가중치 (3.0)
+            score -= (fabs(x - robotX) * 6.0);  // 3. 현재 위치 유지(X) 가중치 (3.0 -> 6.0)
+            score -= (fabs(y - robotY) * 6.0);  // 4. 현재 위치 유지(Y) 가중치 (3.0 -> 6.0)
             score += (distToDefender * 20.0);   // 5. 수비수와의 거리 확보 가중치 (20.0)
 
             if (!defenderIndices.empty()) {
@@ -109,7 +109,7 @@ NodeStatus OfftheballPosition::tick(){
             double distXToBall = std::abs(x - brain->data->ball.posToField.x);
             score -= std::abs(distXToBall - 2.5) * 3.0; // 7. 공과의 거리(X축 깊이) 2.5m 유지 가중치 (3.0)
 
-            score += (-x) * 5.2; // 8. 공격 방향(전진) 선호 가중치 (5.2)
+            score += (-x) * 1.5; // 8. 공격 방향(전진) 선호 가중치 (5.2 -> 1.5)
 
             Line passPath = {brain->data->ball.posToField.x, brain->data->ball.posToField.y, x, y};
             Line shotPath = {baseX, y, goalX, 0.0};
@@ -231,7 +231,7 @@ NodeStatus OfftheballPosition::tick(){
     
     double targetHeadYaw = 0.0;
 
-    if (timeSinceScan < 2.0) {
+    if (timeSinceScan < 2.0 && !brain->data->ballDetected) {
         // sin파로 0.8 rad 범위로 2.0초 주기 (왼쪽 1초, 오른쪽 1초)
         targetHeadYaw = 0.8 * sin(2.0 * M_PI * timeSinceScan / 2.0);
     } else {
