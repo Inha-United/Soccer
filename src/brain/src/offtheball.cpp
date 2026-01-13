@@ -195,7 +195,9 @@ NodeStatus OfftheballPosition::tick(){
         targetTheta = brain->data->ball.yawToRobot + robotTheta; // 공 각도
     } 
     else {
-        targetTheta = atan2(0.0 - robotY, goalX - robotX); // 공 모르면 중앙 보기
+        // targetTheta = atan2(0.0 - robotY, goalX - robotX); // 공 모르면 중앙 보기
+        // 공을 놓쳤을 때도 마지막 기억된 공 위치를 바라보도록 수정
+        targetTheta = atan2(brain->data->ball.posToField.y - robotY, brain->data->ball.posToField.x - robotX);
     }
 
     // 각도 오차 계산
