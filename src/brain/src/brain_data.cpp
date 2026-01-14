@@ -75,24 +75,58 @@ void BrainData::updateRobots(const vector<GameObject>& newObservations, double r
         now = rclcpp::Clock(RCL_ROS_TIME).now();
     }
 
-    // 1. 새 관측값으로 기존 로봇 업데이트 혹은 추가
-    for (const auto& newObj : newObservations) {
-        // Opponent만 처리 (필수는 아니지만 명시적으로)
-        // if (newObj.label != "Opponent") continue; 
+    // 1. Clean up stale robots first
+    // retentionTime이 0보다 크면 사용
+    if (retentionTime > 0) {
+        for (auto it = _robots.begin(); it != _robots.end(); ) {
+            double age = (now - it->timePoint).seconds();
+            if (age > retentionTime) {
+                it = _robots.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
 
-        bool matched = false;
+    // 2. 새 관측값으로 기존 로봇 업데이트 혹은 추가
+    // Best Match Strategy: 가장 가까운 로봇 하나만 업데이트
+    for (const auto& newObj : newObservations) {
+        int bestIdx = -1;
         double minDistance = 1.0; // 매칭 임계값 (1m)
 
         for (int i = 0; i < _robots.size(); i++) {
             double dist = norm(newObj.posToField.x - _robots[i].posToField.x, 
                                newObj.posToField.y - _robots[i].posToField.y);
             if (dist < minDistance) {
-                _robots[i] = newObj;
-                matched = true;
+                minDistance = dist;
+                bestIdx = i;
             }
         }
-        if (!matched) {
+
+        if (bestIdx != -1) {
+             _robots[bestIdx] = newObj;
+        } else {
             _robots.push_back(newObj);
+        }
+    }
+
+    // 3. 중복 제거 (Self-Merge)
+    // 메모리 상의 로봇들이 서로 너무 가까우면 병합
+    for (int i = 0; i < (int)_robots.size(); i++) {
+        for (int j = i + 1; j < (int)_robots.size(); ) {
+             double dist = norm(_robots[i].posToField.x - _robots[j].posToField.x, 
+                                _robots[i].posToField.y - _robots[j].posToField.y);
+             
+             if (dist < 1.0) { // 1m 이내면 같은 로봇으로 간주
+                 // 최신 정보로 병합 (Keep the newer one)
+                 if (_robots[i].timePoint.nanoseconds() < _robots[j].timePoint.nanoseconds()) {
+                     _robots[i] = _robots[j]; 
+                 }
+                 // Remove j
+                 _robots.erase(_robots.begin() + j);
+             } else {
+                 j++;
+             }
         }
     }
 }
