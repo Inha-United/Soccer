@@ -231,14 +231,18 @@ NodeStatus OfftheballPosition::tick(){
     
     double targetHeadYaw = 0.0;
 
-    if (timeSinceScan < 2.0 && !brain->data->ballDetected) {
-        // sin파로 0.8 rad 범위로 2.0초 주기 (왼쪽 1초, 오른쪽 1초)
-        targetHeadYaw = 0.8 * sin(2.0 * M_PI * timeSinceScan / 2.0);
+    double angleToBallRel = toPInPI(angleToBall - robotTheta); // 로봇 몸통 기준 공의 각도
+
+    if (timeSinceScan < 2.0) {
+        // 공을 중심으로 좌우로 고개를 움직이게 -> 공을 놓치지 않으면서도 주변 수비수를 확인할 수 있음
+        double scanOffset = 0.5 * sin(2.0 * M_PI * timeSinceScan / 2.0);
+        targetHeadYaw = angleToBallRel + scanOffset;
     } else {
-        // headYaw는 (공 각도 - 로봇의 현재 몸통 각도)
-        targetHeadYaw = toPInPI(angleToBall - robotTheta);
-        targetHeadYaw = cap(targetHeadYaw, 1.35, -1.35);
+        // 공을 주시
+        targetHeadYaw = angleToBallRel;
     }
+    
+    targetHeadYaw = cap(targetHeadYaw, 1.35, -1.35);
 
     // EMA Smoothing (Low Pass Filter) -> alpha가 클수록 기존 값 유지 성향이 강함 (= 부드러움, 반응 느림)
     // 0.6 정도면 적절한 반응성과 부드러움
