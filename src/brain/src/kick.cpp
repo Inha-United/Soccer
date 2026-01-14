@@ -293,7 +293,7 @@ NodeStatus CalcPassDir::tick(){
         brain->log->log("field/pass_dir", 
             rerun::TextLog(format("Decided not to pass. Score: %.2f", maxScore))
         );
-        return NodeStatus::RUNNING;
+        return NodeStatus::SUCCESS;
     }
     brain->data->tmStatus[myPlayerId].passSignal = true;
     brain->data->tmStatus[myPlayerId].passTargetX = tx;
