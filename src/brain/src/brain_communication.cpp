@@ -384,6 +384,9 @@ void BrainCommunication::unicastCommunication() {
         msg.thetaRb = brain->data->robotBallAngleToField;
         msg.cmdId = brain->data->tmMyCmdId;
         msg.cmd = brain->data->tmMyCmd;
+        msg.passSignal = brain->data->tmStatus[brain->config->playerId].passSignal;
+        msg.passTargetX = brain->data->tmStatus[brain->config->playerId].passTargetX;
+        msg.passTargetY = brain->data->tmStatus[brain->config->playerId].passTargetY;
         log(format("ImAlive: %d, ImLead: %d, myCost: %.1f, myCmdId: %d, myCmd: %d", msg.isAlive, msg.isLead, msg.cost, msg.cmdId, msg.cmd));
 
         std::lock_guard<std::mutex> lock(_teammate_addresses_mutex);

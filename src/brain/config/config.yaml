@@ -5,8 +5,8 @@ brain_node:
       player_id: 1 # 1 | 2 | 3 | 4 | 5
       field_type: "inha_size" # kid_size | adult_size | inha_size
       player_role: "striker" # striker | defender | goal_keeper
-      treat_person_as_robot: true 
-      number_of_players: 4
+      treat_person_as_robot: false
+      number_of_players: 2
      
     robot: # 로봇 제어할 때 clapping 등 동작을 위한 파라미터 -> robot_client.cpp 에서 사용
       robot_height: 0.9 

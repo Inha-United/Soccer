@@ -17,7 +17,9 @@ NodeStatus PassReceive::onRunning()
     double targetY = 0.0;
 
     int myId = brain->config->playerId;
-    int partnerIdx = (myId == 1) ? 1 : 2;
+    // If I am 1 (Striker), partner is 2 (Index 1). 
+    // If I am 2 (Defender), partner is 1 (Index 0).
+    int partnerIdx = (myId == 1) ? 1 : 0;
     
     if (brain->data->tmStatus[partnerIdx].passSignal)
     {
