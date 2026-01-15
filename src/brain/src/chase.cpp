@@ -386,6 +386,14 @@ NodeStatus DribbleToGoal::tick() {
          .with_radii({0.2f})
     );
 
+    // [User Request] Visualize Dribble Direction Arrow
+    brain->log->log("debug/dribble_arrow", 
+        rerun::Arrows2D::from_vectors({{(float)(goalX - ballPos.x), (float)(goalY - ballPos.y)}})
+            .with_origins({{(float)ballPos.x, (float)ballPos.y}})
+            .with_colors({0x00FFFF00}) // Cyan/Yellowish
+            .with_labels({"Dribble Path"})
+    );
+
     // 공과 골대 사이의 거리
     double ballDistToGoal = hypot(goalX - ballPos.x, goalY - ballPos.y);
 
