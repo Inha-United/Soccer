@@ -55,7 +55,7 @@
 
                         <ReactiveSequence _while="gc_game_state=='SET'" name="Set">
                             <!-- Dribble Figure-8 Sequence during SET with Parallel Tracking -->
-                            <Parallel success_threshold="1" failure_threshold="1">
+                            <Parallel threshold="1">
                                 <!-- Daemon: Track Ball (Always Running) -->
                                 <Repeat num_cycles="-1">
                                     <SubTree ID="CamFindAndTrackBall" _autoremap="true" />
