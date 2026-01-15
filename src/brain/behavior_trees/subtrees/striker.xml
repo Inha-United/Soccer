@@ -41,7 +41,7 @@
                   <ReactiveSequence>
                      
                      <ReactiveSequence>
-                        <StrikerDecision decision_out="{decision}" decision_in="{decision}" chase_threshold="0.80" kick_y_offset="0.077" set_piece_goal_dist="2.0" />
+                        <StrikerDecision decision_out="{decision}" decision_in="{decision}" chase_threshold="0.80" set_piece_goal_dist="2.0" />
                         
                         <!-- 공 찾기 -->
                         <SubTree ID="FindBall" _while="decision=='find'" _autoremap="true" />
@@ -85,10 +85,10 @@
                      -->
 
                      <!-- 일반 킥 -->
-                     <Kick _while="decision == 'kick'" speed_limit="1.3" vx_limit="1.3" vy_limit="0.5" min_msec_kick="500" msecs_stablize="500" kick_type="kick" kick_y_offset="0.077" />
+                     <Kick _while="decision == 'kick'" speed_limit="1.3" vx_limit="1.3" vy_limit="0.5" min_msec_kick="500" msecs_stablize="500" kick_type="kick" />
 
                      <!-- 빠른 킥 -->
-                     <Kick _while="decision == 'kick_quick'" speed_limit="1.3" vx_limit="1.3" vy_limit="0.5" min_msec_kick="500" msecs_stablize="500" kick_type="kick" kick_y_offset="0.077" />
+                     <Kick _while="decision == 'kick_quick'" speed_limit="1.3" vx_limit="1.3" vy_limit="0.5" min_msec_kick="500" msecs_stablize="500" kick_type="kick" />
                      
                      <!-- Cross (측면 패스)
                      <Kick _while="decision == 'cross'" speed_limit="0.4" min_msec_kick="300" kick_type="cross" /> -->
