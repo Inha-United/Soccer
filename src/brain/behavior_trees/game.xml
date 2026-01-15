@@ -58,12 +58,12 @@
                             <Sequence>
                                 <SubTree ID="CamFindAndTrackBall" _autoremap="true" />
                                     <DribbleFigureEight 
-                                        vx_limit="0.01" 
+                                        vx_limit="0.1" 
                                         vy_limit="0.2" 
                                         vtheta_limit="0.5" 
                                         dist_threshold="0.5" 
-                                        min_speed="0.01" 
-                                        max_speed="0.1" 
+                                        min_speed="0.1" 
+                                        max_speed="0.2" 
                                         circle_back_dist="0.7"
                                     />
                                     <CalcKickDir />
