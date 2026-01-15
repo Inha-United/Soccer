@@ -74,7 +74,8 @@ NodeStatus StrikerDecision::tick() {
     // Fix logic: if 1 (Striker), partner 2 (Index 1). If 2 (Defender), partner 1 (Index 0).
     int partnerIdx = (myId == 1) ? 1 : 0;
     
-    bool passsignal = brain->data->tmStatus[partnerIdx].passSignal;
+    // Check isAlive to prevent stale signals
+    bool passsignal = brain->data->tmStatus[partnerIdx].isAlive && brain->data->tmStatus[partnerIdx].passSignal;
     
     // Debug Log for Signal Diagnosis
     // if (tickCount % 60 == 0) { // Log occasionally or use logToScreen

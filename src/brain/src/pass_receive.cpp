@@ -21,7 +21,8 @@ NodeStatus PassReceive::onRunning()
     // If I am 2 (Defender), partner is 1 (Index 0).
     int partnerIdx = (myId == 1) ? 1 : 0;
     
-    if (brain->data->tmStatus[partnerIdx].passSignal)
+    // Check isAlive to prevent using stale 'true' signal from disconnected partner
+    if (brain->data->tmStatus[partnerIdx].isAlive && brain->data->tmStatus[partnerIdx].passSignal)
     {
         targetX = brain->data->tmStatus[partnerIdx].passTargetX;
         targetY = brain->data->tmStatus[partnerIdx].passTargetY;
