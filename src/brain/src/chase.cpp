@@ -754,7 +754,7 @@ NodeStatus DribbleFigureEight::tick() {
     }
 
     // Visualize Waypoints and Current Target
-    std::vector<bt_robotics::Point2D> waypointPoints;
+    std::vector<rerun::components::Position2D> waypointPoints;
     for(const auto& wp : waypoints) waypointPoints.push_back({(float)wp.x, (float)wp.y});
     brain->log->log("debug/figure8_waypoints", 
         rerun::Points2D(waypointPoints)
