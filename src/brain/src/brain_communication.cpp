@@ -389,6 +389,11 @@ void BrainCommunication::unicastCommunication() {
         // 테스트용
         msg.target.x = 1.23;
         msg.target.y = 4.56;
+
+        // 지훈추가
+        msg.passSignal = brain->data->tmStatus[brain->config->playerId].passSignal;
+        msg.passTargetX = brain->data->tmStatus[brain->config->playerId].passTargetX;
+        msg.passTargetY = brain->data->tmStatus[brain->config->playerId].passTargetY;
         
         log(format("ImAlive: %d, ImLead: %d, myCost: %.1f, myCmdId: %d, myCmd: %d, (target x: %.2f, target y: %.2f)", msg.isAlive, msg.isLead, msg.cost, msg.cmdId, msg.cmd, msg.target.x, msg.target.y));
         std::lock_guard<std::mutex> lock(_teammate_addresses_mutex);
