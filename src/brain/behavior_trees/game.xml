@@ -64,12 +64,12 @@
                                 <!-- Main Sequence: Dribble -> Kick -> Wait -->
                                 <Sequence>
                                     <DribbleFigureEight 
-                                        vx_limit="0.6" 
-                                        vy_limit="0.3" 
-                                        vtheta_limit="1.0" 
+                                        vx_limit="0.01" 
+                                        vy_limit="0.2" 
+                                        vtheta_limit="0.5" 
                                         dist_threshold="0.5" 
-                                        min_speed="0.1" 
-                                        max_speed="0.6" 
+                                        min_speed="0.01" 
+                                        max_speed="0.1" 
                                         circle_back_dist="0.7"
                                     />
                                     <CalcKickDir />
