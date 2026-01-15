@@ -384,18 +384,13 @@ void BrainCommunication::unicastCommunication() {
         msg.thetaRb = brain->data->robotBallAngleToField;
         msg.cmdId = brain->data->tmMyCmdId;
         msg.cmd = brain->data->tmMyCmd;
-        msg.target = brain->data->tmtarget; //pass 목표지점 주고받기용 (추후 cmd통신을 통해 패스 요청도 확인가능) (수현 추가)
-        
-        // 테스트용
-        msg.target.x = 1.23;
-        msg.target.y = 4.56;
 
         // 지훈추가
         msg.passSignal = brain->data->tmStatus[brain->config->playerId].passSignal;
         msg.passTargetX = brain->data->tmStatus[brain->config->playerId].passTargetX;
         msg.passTargetY = brain->data->tmStatus[brain->config->playerId].passTargetY;
         
-        log(format("ImAlive: %d, ImLead: %d, myCost: %.1f, myCmdId: %d, myCmd: %d, (target x: %.2f, target y: %.2f)", msg.isAlive, msg.isLead, msg.cost, msg.cmdId, msg.cmd, msg.target.x, msg.target.y));
+        log(format("ImAlive: %d, ImLead: %d, myCost: %.1f, myCmdId: %d, myCmd: %d, (target x: %.2f, target y: %.2f)", msg.isAlive, msg.isLead, msg.cost, msg.cmdId, msg.cmd, msg.passTargetX, msg.passTargetY));
         std::lock_guard<std::mutex> lock(_teammate_addresses_mutex);
         for (auto it = _teammate_addresses.begin(); it != _teammate_addresses.end(); ++it) {
             auto ip = it->second.ip;
@@ -526,14 +521,14 @@ void BrainCommunication::spinCommunicationReceiver() {
         } 
 
 
-        // double dist = sqrt(pow(brain->data->robotPoseToField.x - msg.robotPoseToField.x, 2) + pow(brain->data->robotPoseToField.y - msg.robotPoseToField.y, 2));
-        // cout << GREEN_CODE << format(
-        //     "TMID: %d | MyPos: (%.2f, %.2f) | TmPos: (%.2f, %.2f) | Dist: %.2f", 
-        //     msg.playerId, 
-        //     brain->data->robotPoseToField.x, brain->data->robotPoseToField.y,
-        //     msg.robotPoseToField.x, msg.robotPoseToField.y,
-        //     dist
-        //     ) << RESET_CODE << endl;
+        double dist = sqrt(pow(brain->data->robotPoseToField.x - msg.robotPoseToField.x, 2) + pow(brain->data->robotPoseToField.y - msg.robotPoseToField.y, 2));
+        cout << GREEN_CODE << format(
+            "TMID: %d | MyPos: (%.2f, %.2f) | TmPos: (%.2f, %.2f) | Dist: %.2f", 
+            msg.playerId, 
+            brain->data->robotPoseToField.x, brain->data->robotPoseToField.y,
+            msg.robotPoseToField.x, msg.robotPoseToField.y,
+            dist
+            ) << RESET_CODE << endl;
         auto tmIdx = msg.playerId - 1;
 
         if (tmIdx < 0 || tmIdx >= HL_MAX_NUM_PLAYERS) { 
@@ -547,7 +542,7 @@ void BrainCommunication::spinCommunicationReceiver() {
         //     continue;
         // }
 
-        log(format("TMID: %.d, alive: %d, lead: %d, cost: %.1f, CmdId: %d, Cmd: %d, (target x: %.2f, target y: %.2f)", msg.playerId, msg.isAlive, msg.isLead, msg.cost, msg.cmdId, msg.cmd, msg.target.x, msg.target.y));
+        log(format("TMID: %.d, alive: %d, lead: %d, cost: %.1f, CmdId: %d, Cmd: %d, (target x: %.2f, target y: %.2f)", msg.playerId, msg.isAlive, msg.isLead, msg.cost, msg.cmdId, msg.cmd, msg.passTargetX, msg.passTargetY));
 
         /* ---------------- 데이터 업데이트 ---------------- */
         // 수신된 패킷 내용을 BrainData의 tmStatus에 저장 -> 이 데이터는 전략(누가 공을 찰지)과 시각화(Rerun에서 Teammate 표시)에 사용됨
@@ -568,7 +563,6 @@ void BrainCommunication::spinCommunicationReceiver() {
         tmStatus.timeLastCom = brain->get_clock()->now(); // 마지막 통신 시간 갱신
         tmStatus.cmd = msg.cmd; // 명령
         tmStatus.cmdId = msg.cmdId; // 명령 ID
-        tmStatus.target = msg.target; // pass 목표점
         
         // 추가!
         tmStatus.passSignal = msg.passSignal; // defender의 패스 신호

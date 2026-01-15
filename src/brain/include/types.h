@@ -201,7 +201,6 @@ struct TMStatus {
     double thetaRb = 0.; 
     int cmd = 0; 
     int cmdId = 0;
-    Point2D target; // pass 목표점 (수현 추가)
     rclcpp::Time timeLastCom; 
     // 지훈추가
     bool passSignal = false;
