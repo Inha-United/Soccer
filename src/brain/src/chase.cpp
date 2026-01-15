@@ -848,7 +848,7 @@ NodeStatus DribbleFigureEight::tick() {
         // 로봇 좌표계 변환
         vx = cos(robotTheta) * vX_field + sin(robotTheta) * vY_field;
         vy = -sin(robotTheta) * vX_field + cos(robotTheta) * vY_field;
-        vtheta = brain->data->ball.yawToRobot * 2.0;
+        vtheta = brain->data->ball.yawToRobot * 3.0;
         
         if (ballRange < 0.3) vx = -0.3; // Back off if too close
     } 
@@ -860,7 +860,7 @@ NodeStatus DribbleFigureEight::tick() {
         
         vx = targetSpeed * cos(pushDir);
         vy = targetSpeed * sin(pushDir);
-        vtheta = pushDir * 2.0; 
+        vtheta = pushDir * 3.0; 
         
         // if (alignmentError > deg2rad(10)) {
         //     vx *= 0.5;
