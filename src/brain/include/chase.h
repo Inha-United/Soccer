@@ -105,11 +105,11 @@ private:
     Brain *brain;
 };
 
-class DribbleFigureEight : public BT::SyncActionNode
+class DribbleFigureEight : public BT::ActionNodeBase
 {
-public:
+    public:
     DribbleFigureEight(const string &name, const BT::NodeConfig &config, Brain *brain)
-        : BT::SyncActionNode(name, config), brain(brain) {}
+        : BT::ActionNodeBase(name, config), brain(brain) {}
 
     static BT::PortsList providedPorts()
     {
@@ -125,8 +125,9 @@ public:
     }
 
     BT::NodeStatus tick() override;
+    void halt() override { setStatus(BT::NodeStatus::IDLE); }
 
-private:
+    private:
     Brain *brain;
     int currentWaypointIndex = 0;
 };
