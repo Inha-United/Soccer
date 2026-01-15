@@ -859,7 +859,7 @@ NodeStatus DribbleFigureEight::tick() {
 
     log(format("Phase:%s WP:%d Dist:%.2f", phase.c_str(), currentWaypointIndex, distToWaypoint));
 
-    return NodeStatus::SUCCESS;
+    return NodeStatus::RUNNING;
 }
 
 
