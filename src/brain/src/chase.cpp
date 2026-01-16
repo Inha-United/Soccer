@@ -438,8 +438,9 @@ NodeStatus DribbleToGoal::tick() {
         phase = "CircleBack";
 
         // 목표 : 공 뒤 circleBackDist 위치 + 골대 반대 방향
-        double targetX = ballPos.x - circleBackDist * cos(angleBallToGoal);
-        double targetY = ballPos.y - circleBackDist * sin(angleBallToGoal);
+        double tightCircleBackDist = min(circleBackDist, 0.35); 
+        double targetX = ballPos.x - tightCircleBackDist * cos(angleBallToGoal);
+        double targetY = ballPos.y - tightCircleBackDist * sin(angleBallToGoal);
         
         double errX = targetX - robotPos.x;
         double errY = targetY - robotPos.y;
@@ -453,8 +454,8 @@ NodeStatus DribbleToGoal::tick() {
         double angleDiff = toPInPI(desiredAngle - angleBallToRobot);
 
         if (fabs(angleDiff) > deg2rad(10)) {
-            double swirlDir = (angleDiff > 0) ? 1.0 : -1.0; 
-            double swirlStrength = 3.0;
+            double swirlDir = (angleDiff > 0) ? 1.0 : -1.0;
+            double swirlStrength = 1.5;
             
             double tanAngle = angleBallToRobot + swirlDir * M_PI / 2.0;
             
