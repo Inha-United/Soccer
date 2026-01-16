@@ -48,7 +48,6 @@ private:
     double smoothHeadPitch = 0.0;
 
 };
-};
 
 class CamTrackBall : public SyncActionNode{
 public:
