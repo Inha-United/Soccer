@@ -161,8 +161,8 @@ NodeStatus GoToPose::tick(){
     }
 
     // Offtheball 결과 목표
-    double targetx = bestX;
-    double targety = bestY;
+    targetx = bestX;
+    targety = bestY;
 
     // targettheta도 Offtheball과 동일한 방식으로 계산
     double angleToGoal = atan2(0.0 - robotY, goalX - robotX);
@@ -175,7 +175,7 @@ NodeStatus GoToPose::tick(){
     }
 
     double angleDiff = toPInPI(angleToGoal - angleToBall);
-    double targettheta = toPInPI(angleToBall + angleDiff * 0.5);
+    targettheta = toPInPI(angleToBall + angleDiff * 0.5);
 
     // =========================
     // 아래는 GoToPose "기존 이동 제어" 그대로 사용
