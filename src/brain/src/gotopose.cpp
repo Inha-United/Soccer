@@ -17,20 +17,6 @@ void RegisterGotoposeNodes(BT::BehaviorTreeFactory &factory, Brain* brain){
 }
 
 NodeStatus GoToPose::tick(){
-    double turn_Threshold;
-    double stop_Threshold;
-    double vLimit;
-    getInput("turn_threshold", turn_Threshold); 
-    getInput("stop_threshold", stop_Threshold); 
-    getInput("v_limit", vLimit);
-
-    // 목표지점
-    double targetx, targety, targettheta;
-    getInput("target_pos_x", targetx); 
-    getInput("target_pos_y", targety); 
-    getInput("target_pos_theta", targettheta); 
-
-NodeStatus GoToPose::tick(){
     // 안쓰는 레거시 =================
     double turn_Threshold, targetx, targety, targettheta;
     getInput("turn_threshold", turn_Threshold); 
