@@ -437,8 +437,9 @@ NodeStatus DribbleToGoal::tick() {
         // 공 뒤에 제대로 서지 못했다면 CircleBack으로 공뒤로 이동할 수 있게
         phase = "CircleBack";
 
-        // 목표 : 공 뒤 circleBackDist 위치 + 골대 반대 방향
-        double tightCircleBackDist = min(circleBackDist, 0.35); 
+        double currentDist = max(0.25, min(ballRange, 0.45)); // 0.25m ~ 0.45m 사이면 현재 거리 유지
+        double tightCircleBackDist = min(circleBackDist, currentDist); 
+
         double targetX = ballPos.x - tightCircleBackDist * cos(angleBallToGoal);
         double targetY = ballPos.y - tightCircleBackDist * sin(angleBallToGoal);
         
@@ -483,7 +484,7 @@ NodeStatus DribbleToGoal::tick() {
         vy = -sin(robotTheta) * vX_field + cos(robotTheta) * vY_field;
         vtheta = brain->data->ball.yawToRobot * 3.5; // Turn faster
         
-        if (ballRange < 0.3) vx = -0.3; // 너무 가까우면 후진
+        if (ballRange < 0.2) vx = -0.3; // 너무 가까우면 후진
     } 
     else {
         // 정렬이 잘 되었다면 Push로 공 방향으로 전진
