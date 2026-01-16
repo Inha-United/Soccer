@@ -239,10 +239,10 @@ NodeStatus DefenderDecide::tick() {
 
     auto pose = brain->data->robotPoseToField;
 
-    // 레인 설정
-    const double laneY = -2.5;
-    const double laneTol = 0.10;   // 필요시 파라미터로 빼도 됨
-    bool inLane = std::fabs(pose.y - laneY) < laneTol;
+    // 레인 설정... 오프더볼 로직 개선에 의해 불필요
+    // const double laneY = -2.5;
+    // const double laneTol = 0.10;   // 필요시 파라미터로 빼도 됨
+    // bool inLane = std::fabs(pose.y - laneY) < laneTol;
 
     // 1) 공을 모르면 -> find
     if (!(iKnowBallPos || tmBallPosReliable)) {
@@ -250,7 +250,7 @@ NodeStatus DefenderDecide::tick() {
         color = 0xFFFFFFFF;
     }
     // 2) non-lead인데 레인 밖이면 -> return (레인 복귀)
-    else if (!isLead && !inLane) {
+    else if (!isLead) {
         newDecision = "return";
         color = 0xFFFF00FF;
         
