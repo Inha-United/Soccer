@@ -50,7 +50,7 @@ NodeStatus GoToPose::tick(){
     auto fd = brain->config->fieldDimensions;
 
     // dist_from_goal은 Offtheball에선 포트로 받지만, GoToPose는 포트 추가 없이 기본값 사용
-    double distFromGoal = 2.0;
+    double distFromGoal = 4.0;
 
     double goalX = -(fd.length / 2.0);
     double baseX = goalX + distFromGoal;
@@ -89,8 +89,8 @@ NodeStatus GoToPose::tick(){
     }
 
     // 후보 지점 탐색 (Offtheball과 동일)
-    for (double x = baseX - 2.0; x <= baseX + 2.0; x += 0.05) {
-        for (double y = -maxY; y <= maxY; y += 0.05) {
+    for (double x = baseX - 2.0; x <= baseX + 2.0; x += 0.1) {
+        for (double y = -maxY; y <= maxY; y += 0.1) {
 
             double distToDefender = 0.0;
             double normalizer = (defenderIndices.size() > 0 ? defenderIndices.size() : 1.0);
@@ -105,20 +105,20 @@ NodeStatus GoToPose::tick(){
             distToDefender /= normalizer;
 
             double score = 0.0;
-            score -= (fabs(x - baseX) * 5.0);
-            score -= (fabs(y) * 5.0);
-            score -= (fabs(x - robotX) * 6.0);
-            score -= (fabs(y - robotY) * 6.0);
+            score -= (fabs(x - baseX) * 4.0);
+            score -= (fabs(y) * 4.5);
+            score -= (fabs(x - robotX) * 2.5);
+            score -= (fabs(y - robotY) * 2.5);
             score += (distToDefender * 20.0);
 
             if (!defenderIndices.empty()) {
-                score -= std::abs(y - symTargetY) * 10.0;
+                score -= std::abs(y - symTargetY) * 7.5;
             }
 
             double distXToBall = std::abs(x - brain->data->ball.posToField.x);
-            score -= std::abs(distXToBall - 2.5) * 3.0;
+            score -= std::abs(distXToBall - 2.5) * 4.5;
 
-            score += (-x) * 1.5;
+            score += (-x) * 0.5;
 
             Line passPath = {brain->data->ball.posToField.x, brain->data->ball.posToField.y, x, y};
             Line shotPath = {baseX, y, goalX, 0.0};
@@ -128,7 +128,7 @@ NodeStatus GoToPose::tick(){
 
                 rclcpp::Time now = brain->get_clock()->now();
                 double elapsed = (now - opponent.timePoint).seconds();
-                double confidenceFactor = (elapsed < 1.0) ? 1.0 : std::max(0.0, (3.0 - elapsed) / 2.0);
+                double confidenceFactor = std::max(0.0, (5.0 - elapsed) / 5.0);
                 if (confidenceFactor <= 0.0) continue;
 
                 double timeSinceBall = brain->msecsSince(brain->data->ball.timePoint);
@@ -150,7 +150,7 @@ NodeStatus GoToPose::tick(){
                 if (distRobotTarget > 0.1) {
                     double distToMovementPath = pointMinDistToLine({opponent.posToField.x, opponent.posToField.y}, movementPath);
                     if (distToMovementPath < 1.5) {
-                        score -= (1.5 - distToMovementPath) * 30.0 * confidenceFactor;
+                        score -= (1.5 - distToMovementPath) * 50.0 * confidenceFactor;
                     }
                 }
             }
