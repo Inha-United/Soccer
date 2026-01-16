@@ -50,7 +50,7 @@ NodeStatus GoToPose::tick(){
     auto fd = brain->config->fieldDimensions;
 
     // dist_from_goal은 Offtheball에선 포트로 받지만, GoToPose는 포트 추가 없이 기본값 사용
-    double distFromGoal = 4.0;
+    double distFromGoal = 3.0;
 
     double goalX = -(fd.length / 2.0);
     double baseX = goalX + distFromGoal;
