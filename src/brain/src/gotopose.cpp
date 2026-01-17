@@ -212,6 +212,16 @@ NodeStatus GoToPose::tick(){
         controly = 0;
         controltheta = 0;
     }
+    
+    auto color = 0xFFFFFFFF;
+    brain->log->setTimeNow();
+    brain->log->log(
+        "field/defender_offtheball",
+        rerun::Arrows2D::from_vectors({{(targetx - gx), -(targety - gy)}})
+            .with_origins({{gx, -gy}})
+            .with_colors({color}) // Cyan color for pass
+            .with_radii(0.01)
+    );
 
     brain->client->setVelocity(controlx, controly, controltheta);
     return NodeStatus::SUCCESS;
