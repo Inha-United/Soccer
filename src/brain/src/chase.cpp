@@ -348,7 +348,8 @@ NodeStatus DribbleToGoal::tick() {
 
         // 골대 중앙 선호 점수
         double distFromCenter = fabs(candY); // 골대 중앙(Y=0)에서 얼마나 떨어져 있는지 확인
-        double centerPenalty = distFromCenter * 0.5; // 멀어질수록 낮아짐
+        // 중앙 고집을 줄여서(0.5->0.3) 장애물이 있으면 측면으로 더 쉽게 빠지게 함
+        double centerPenalty = distFromCenter * 0.3; 
         
         // 골 유효 범위 가산점
         double goalBonus = 0.0;
@@ -363,8 +364,8 @@ NodeStatus DribbleToGoal::tick() {
             obstacleScore = -100.0 + clearance * 10.0; 
         } 
         else {
-            // 안전하다면 장애물과 멀수록 좋음
-            obstacleScore = clearance * 2.0; 
+            // 확실하게 빈 공간을 찾아가도록 유도
+            obstacleScore = clearance * 4.0; 
         }
 
         // 최종 점수 = 장애물 점수 - 중앙 이탈 감점 + 골 보너스
@@ -433,7 +434,8 @@ NodeStatus DribbleToGoal::tick() {
     // 드리블 로직
     double pushDir = 0.0;
     
-    if (alignmentError > deg2rad(30)) {
+    // 정렬 기준 (30도 -> 15도)
+    if (alignmentError > deg2rad(15)) {
         // 공 뒤에 제대로 서지 못했다면 CircleBack으로 공뒤로 이동할 수 있게
         phase = "CircleBack";
 
