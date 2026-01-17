@@ -91,6 +91,11 @@ NodeStatus Chase::tick(){
     double ballYaw = brain->data->ball.yawToRobot;
     double kickDir = brain->data->kickDir;
 
+    // robot(opponent)도 추가
+    // auto robots = brain->data->getRobots();
+    // obstacles.insert(obstacles.end(), robots.begin(), robots.end());
+    
+
     double theta_br = atan2(
         brain->data->robotPoseToField.y - brain->data->ball.posToField.y,
         brain->data->robotPoseToField.x - brain->data->ball.posToField.x
@@ -322,6 +327,9 @@ NodeStatus DribbleToGoal::tick() {
     // person도 opponent로 추가
     auto persons = brain->data->getPersons();
     obstacles.insert(obstacles.end(), persons.begin(), persons.end());
+    // robot(opponent)도 추가
+    auto robots = brain->data->getRobots();
+    obstacles.insert(obstacles.end(), robots.begin(), robots.end());
     
     // 가장 좋은 점수의 경로 찾기
     for(double candY : candidatesY) {
