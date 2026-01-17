@@ -28,7 +28,7 @@ NodeStatus PassReceive::onRunning()
         targetY = brain->data->tmStatus[partnerIdx].passTargetY;
     }
 
-    brain->log->log("field/pass_target", rerun::Points2D({{static_cast<float>(targetX), static_cast<float>(targetY)}}).with_colors({0x00FF00FF}).with_labels({"PassTarget"}).with_radii({0.1f}));
+    brain->log->log("field/pass_target", rerun::Points2D({{static_cast<float>(targetX), static_cast<float>(-targetY)}}).with_colors({0x00FF00FF}).with_labels({"PassTarget"}).with_radii({0.1f}));
 
     Pose2D targetPoint;
     targetPoint.x = targetX;

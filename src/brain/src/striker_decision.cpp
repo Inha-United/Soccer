@@ -105,7 +105,7 @@ NodeStatus StrikerDecision::tick() {
 
 
     /* ----------------------- 2. 패스 받기 ----------------------- */ 
-    else if (passsignal && !isReceiveTimeout && ballRange > 0.5){
+    else if (passsignal && !isReceiveTimeout && ballRange > 0.6){
         newDecision = "receive";
         color = 0x00FFFFFF;
     }

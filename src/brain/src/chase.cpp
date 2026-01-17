@@ -437,8 +437,10 @@ NodeStatus DribbleToGoal::tick() {
         // 공 뒤에 제대로 서지 못했다면 CircleBack으로 공뒤로 이동할 수 있게
         phase = "CircleBack";
 
-        double currentDist = max(0.25, min(ballRange, 0.45)); // 0.25m ~ 0.45m 사이면 현재 거리 유지
-        double tightCircleBackDist = min(circleBackDist, currentDist); 
+        double currentDist = max(0.25, min(ballRange, 0.45)); 
+    
+        double tightCircleBackDist = min(circleBackDist, ballRange);
+        if (tightCircleBackDist < 0.3) tightCircleBackDist = 0.3; 
 
         double targetX = ballPos.x - tightCircleBackDist * cos(angleBallToGoal);
         double targetY = ballPos.y - tightCircleBackDist * sin(angleBallToGoal);

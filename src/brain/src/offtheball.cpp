@@ -82,8 +82,8 @@ NodeStatus OfftheballPosition::tick(){
     }
 
     // Y, X 축을 따라 0.1m 간격으로 후보 지점 탐색
-    for (double x = baseX-2.0; x <= baseX+2.0; x += 0.05) {
-        for (double y = -maxY; y <= maxY; y += 0.05) {
+    for (double x = baseX-2.0; x <= baseX+2.0; x += 0.1) {
+        for (double y = -maxY; y <= maxY; y += 0.1) {
             double distToDefender = 0.0;
             double normalizer = (defenderIndices.size() > 0 ? defenderIndices.size() : 1.0);
 
@@ -96,10 +96,10 @@ NodeStatus OfftheballPosition::tick(){
             distToDefender /= normalizer;
             
             double score = 0.0;
-            score -= (fabs(x - baseX) * 5.0);   // 1. 기준 X좌표 선호 가중치 (5.0)
-            score -= (fabs(y) * 5.0);           // 2. Y축 중앙 선호 가중치 (5.0)
-            score -= (fabs(x - robotX) * 6.0);  // 3. 현재 위치 유지(X) 가중치 (3.0 -> 6.0)
-            score -= (fabs(y - robotY) * 6.0);  // 4. 현재 위치 유지(Y) 가중치 (3.0 -> 6.0)
+            score -= (fabs(x - baseX) * 6.0);   // 1. 기준 X좌표 선호 가중치 (5.0)
+            score -= (fabs(y) * 3.0);           // 2. Y축 중앙 선호 가중치 (5.0)
+            score -= (fabs(x - robotX) * 3.0);  // 3. 현재 위치 유지(X) 가중치 (3.0 -> 6.0)
+            score -= (fabs(y - robotY) * 3.0);  // 4. 현재 위치 유지(Y) 가중치 (3.0 -> 6.0)
             score += (distToDefender * 20.0);   // 5. 수비수와의 거리 확보 가중치 (20.0)
 
             if (!defenderIndices.empty()) {
