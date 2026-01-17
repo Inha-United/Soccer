@@ -273,7 +273,8 @@ NodeStatus OfftheballPosition::tick(){
         auto endTick = std::chrono::high_resolution_clock::now();
         double duration = std::chrono::duration<double, std::milli>(endTick - startTick).count();
         brain->log->log("debug/offtheball/info", 
-            rerun::TextLog(format("Score: %.2f, Time: %.2fms, v(%.2f, %.2f, %.2f)", maxScore, duration, vx_robot, vy_robot, vtheta))
+            rerun::TextLog(format("Score: %.2f, v(%.2f, %.2f, %.2f) Cur:(%.2f, %.2f) Tgt:(%.2f, %.2f)", 
+                maxScore, vx_robot, vy_robot, vtheta, robotX, robotY, targetX, targetY))
         );
     }
 
