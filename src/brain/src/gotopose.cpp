@@ -101,8 +101,8 @@ NodeStatus GoToPose::tick(){
                 score -= std::abs(y - symTargetY) * 7.5;
             }
 
-            double distXToBall = std::abs(x - brain->data->ball.posToField.x);
-            score -= std::abs(distXToBall - 2.5) * 4.5;
+            double distToBall = norm(x - brain->data->ball.posToField.x, y - brain->data->ball.posToField.y);
+            score -= std::abs(distToBall - 2.5) * 4.5;
 
             score += (-x) * 0.5;
 
@@ -212,7 +212,7 @@ NodeStatus GoToPose::tick(){
         controly = 0;
         controltheta = 0;
     }
-    
+
     auto color = 0xFFFFFFFF;
     brain->log->setTimeNow();
     brain->log->log(
