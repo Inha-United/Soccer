@@ -49,7 +49,7 @@ NodeStatus StrikerDecision::tick() {
     double kickYOffset = -0.077; 
     getInput("kick_y_offset", kickYOffset);
 
-    double setPieceGoalDist = 2.0;
+    double setPieceGoalDist = 1.0;
     getInput("set_piece_goal_dist", setPieceGoalDist);
 
     // 절대값으로 양발 -> 그냥 절대값이면 항상 양수로 들어갈테니 ball.posToRobot.y로 공이 왼쪽에 있는지 오른쪽에 있는지 판단하고 부호 변경
@@ -150,7 +150,7 @@ NodeStatus StrikerDecision::tick() {
         /* ----------------------- 7. Kick ----------------------- */
         double kickRange = 1.0;
         if (distToGoal < setPieceGoalDist){
-            kickRange = 3.0;
+            kickRange = 2.0;
         }
 
         if (

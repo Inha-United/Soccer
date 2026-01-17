@@ -434,15 +434,25 @@ NodeStatus DribbleToGoal::tick() {
     // 드리블 로직
     double pushDir = 0.0;
     
-    // 정렬 기준 (30도 -> 15도)
-    if (alignmentError > deg2rad(15)) {
+    // [Fix] Hysteresis for Stability (오실레이션 방지 핵심)
+    // 빡빡하게 검사해서 진입하고(20도), 충분히 정렬되면(10도) 나감 -> 잦은 모드 변경 방지
+    static bool isCircleBack = false;
+    double enterThresh = deg2rad(20);
+    double exitThresh = deg2rad(10);
+    
+    if (alignmentError > enterThresh) isCircleBack = true;
+    else if (alignmentError < exitThresh) isCircleBack = false;
+    
+    if (isCircleBack) {
         // 공 뒤에 제대로 서지 못했다면 CircleBack으로 공뒤로 이동할 수 있게
         phase = "CircleBack";
 
+        // [Fix] Dynamic CircleBack Distance (유동 거리 적용)
         double currentDist = max(0.25, min(ballRange, 0.45)); 
-    
+        
+        // 하지만 dribble에서는 조금 더 여유있게 잡아도 됨. 
         double tightCircleBackDist = min(circleBackDist, ballRange);
-        if (tightCircleBackDist < 0.3) tightCircleBackDist = 0.3; 
+        if (tightCircleBackDist < 0.3) tightCircleBackDist = 0.3; // 최소 30cm 확보 
 
         double targetX = ballPos.x - tightCircleBackDist * cos(angleBallToGoal);
         double targetY = ballPos.y - tightCircleBackDist * sin(angleBallToGoal);
@@ -450,17 +460,20 @@ NodeStatus DribbleToGoal::tick() {
         double errX = targetX - robotPos.x;
         double errY = targetY - robotPos.y;
         
-        // P-Control for CircleBack
-        double vX_field = errX * 2.5;
-        double vY_field = errY * 2.5;
+        // P-Control for CircleBack -> [Fix] Gain Reduction (2.5 -> 1.5) to prevent overshooting
+        double vX_field = errX * 1.5;
+        double vY_field = errY * 1.5;
 
         double angleBallToRobot = atan2(robotPos.y - ballPos.y, robotPos.x - ballPos.x); // Ball -> Robot 벡터
         double desiredAngle = angleBallToGoal + M_PI; 
         double angleDiff = toPInPI(desiredAngle - angleBallToRobot);
 
-        if (fabs(angleDiff) > deg2rad(10)) {
+        if (fabs(angleDiff) > deg2rad(5)) { // 5도 이상이면 Swirl 적용
             double swirlDir = (angleDiff > 0) ? 1.0 : -1.0;
-            double swirlStrength = 1.5;
+            // [Fix] Swirl Strength Reduction (1.5 -> 0.8) to prevent wide swinging
+            double swirlStrength = 0.8; 
+            
+            double tanAngle = angleBallToRobot + swirlDir * M_PI / 2.0;
             
             double tanAngle = angleBallToRobot + swirlDir * M_PI / 2.0;
             
