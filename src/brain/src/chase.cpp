@@ -475,7 +475,6 @@ NodeStatus DribbleToGoal::tick() {
             
             double tanAngle = angleBallToRobot + swirlDir * M_PI / 2.0;
             
-            double tanAngle = angleBallToRobot + swirlDir * M_PI / 2.0;
             
             vX_field += swirlStrength * cos(tanAngle);
             vY_field += swirlStrength * sin(tanAngle);
