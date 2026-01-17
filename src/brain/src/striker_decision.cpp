@@ -138,7 +138,7 @@ NodeStatus StrikerDecision::tick() {
         
         // 가까우면(세트피스 거리면) 여유롭게
         if (distToGoal < setPieceGoalDist) {
-            kickTolerance = 0.3; 
+            kickTolerance = 0.4; 
             yawTolerance = 0.6;
         }
 
