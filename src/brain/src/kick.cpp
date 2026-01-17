@@ -344,7 +344,10 @@ NodeStatus Kick::onStart(){
     // if(brain->tree->getEntry<string>("striker_state") != "kick") return NodeStatus::SUCCESS;
 
     _minRange = brain->data->ball.range;
-    _speed = 0.5;
+    
+    // _speed = 0.5; // 기존 하드코딩
+    if (!getInput("kick_speed", _speed)) _speed = 1.3;
+
     _startTime = brain->get_clock()->now();
 
     // 장애물 회피 로직

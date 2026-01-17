@@ -129,15 +129,17 @@ NodeStatus StrikerDecision::tick() {
     }
 
     /* ----------------------- 6. 공 슛/정렬 ----------------------- */
-    // 멀면 정밀하게
+    // 멀면 정밀하게 (0.1라디안 = 5.7도)
     else {
-        double kickTolerance = 0.3; // 로봇이 골대를 얼마나 정확히 보고있나
-        double yawTolerance = 0.5;  // 공이 내 발 앞에 있는가? 
+        double kickTolerance = 0.3; 
+        double yawTolerance = 0.5;
+        getInput("kick_tolerance", kickTolerance); // xml에서 수정 가능하도록
+        getInput("yaw_tolerance", yawTolerance);
         
         // 가까우면(세트피스 거리면) 여유롭게
         if (distToGoal < setPieceGoalDist) {
-            kickTolerance = 0.3; 
-            yawTolerance = 0.5;
+            kickTolerance = 0.2; 
+            yawTolerance = 0.3;
         }
 
         auto now = brain->get_clock()->now();
