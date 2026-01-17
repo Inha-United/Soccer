@@ -19,7 +19,7 @@ public:
             InputPort<double>("chase_threshold", 1.0, "이 거리보다 멀어지면 공을 추격하는 동작을 수행"),
             InputPort<string>("decision_in", "", "이전 틱에서의 decision 값을 읽기 위해 사용"),
             InputPort<string>("position", "offense", "offense | defense, 공을 어느 방향으로 찰지 결정"),
-            InputPort<double>("kick_y_offset", -0.077, "킥 시 공을 로봇 중심에서 y축으로 얼마나 오프셋 시킬지 결정"),
+            // InputPort<double>("kick_y_offset", -0.077, "킥 시 공을 로봇 중심에서 y축으로 얼마나 오프셋 시킬지 결정"),
             InputPort<double>("set_piece_goal_dist", 3.0, "이 거리 이내에서는 정렬 생략하고 One Touch 슛 시도"),
             InputPort<double>("kick_tolerance", 0.3, "킥 결정을 위한 각도 허용 오차 (rad)"),
             InputPort<double>("yaw_tolerance", 0.5, "킥 결정을 위한 ball yaw 허용 오차 (rad)"),

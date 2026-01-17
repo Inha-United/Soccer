@@ -287,7 +287,8 @@ tuple<double, double, double> Kick::_calcSpeed() {
 
 
     double kickYOffset;
-    getInput("kick_y_offset", kickYOffset);
+    // getInput("kick_y_offset", kickYOffset);
+    kickYOffset = 0.0; // 당분간 사용 안 함
     if (kickYOffset > 0) {
         if (brain->data->ball.posToRobot.y > 0) kickYOffset = fabs(kickYOffset);
         else kickYOffset = -fabs(kickYOffset);
@@ -474,7 +475,8 @@ NodeStatus Kick::onRunning(){
          /*
          // 공을 보지 말고, 골대(KickDir)를 봐야 함 -> Bias 적용 (Adjust와 동일)
          double kickYOffset;
-         getInput("kick_y_offset", kickYOffset);
+         // getInput("kick_y_offset", kickYOffset);
+         kickYOffset = 0.0; // 당분간 사용 안 함
          if (kickYOffset > 0) {
             if (brain->data->ball.posToRobot.y > 0) kickYOffset = fabs(kickYOffset);
             else kickYOffset = -fabs(kickYOffset);

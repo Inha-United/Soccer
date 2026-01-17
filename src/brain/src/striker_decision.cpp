@@ -46,8 +46,8 @@ NodeStatus StrikerDecision::tick() {
 
 
     // 변수 로드
-    double kickYOffset = -0.077; 
-    getInput("kick_y_offset", kickYOffset);
+    double kickYOffset = 0.0; // -0.077; 
+    // getInput("kick_y_offset", kickYOffset); // 당분간 사용 안 함
 
     double setPieceGoalDist = 3.0;
     getInput("set_piece_goal_dist", setPieceGoalDist);

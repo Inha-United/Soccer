@@ -82,7 +82,7 @@ public:
             InputPort<string>("kick_type", "kick", "킥 종류 (로그용)"),
             InputPort<double>("vx_limit", 1.0, "X축 속도 제한"),
             InputPort<double>("vy_limit", 0.4, "Y축 속도 제한"),
-            InputPort<double>("kick_y_offset", -0.077, "킥 시 Y 오프셋"),
+            // InputPort<double>("kick_y_offset", -0.077, "킥 시 Y 오프셋"),
         };
     }
 
