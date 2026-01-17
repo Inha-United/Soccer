@@ -138,8 +138,8 @@ NodeStatus StrikerDecision::tick() {
         
         // 가까우면(세트피스 거리면) 여유롭게
         if (distToGoal < setPieceGoalDist) {
-            kickTolerance = 0.2; 
-            yawTolerance = 0.3;
+            kickTolerance = 0.3; 
+            yawTolerance = 0.6;
         }
 
         auto now = brain->get_clock()->now();
