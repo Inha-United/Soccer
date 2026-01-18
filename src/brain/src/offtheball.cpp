@@ -27,6 +27,7 @@ NodeStatus OffTheBall::tick(){
     // =========================
     // Offtheball "위치 선정" 로직 이식 (targetx, targety, targettheta 계산)
     // =========================
+    double targetx, targety, targettheta;
     auto fd = brain->config->fieldDimensions;
 
     double goalX = -(fd.length / 2.0);

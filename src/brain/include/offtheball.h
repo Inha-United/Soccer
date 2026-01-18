@@ -12,10 +12,10 @@ using namespace std;
 
 void RegisterOfftheballNodes(BT::BehaviorTreeFactory &factory, Brain* brain);
 
-class OfftheballPosition : public SyncActionNode
+class OffTheBall : public SyncActionNode
 {
 public:
-    OfftheballPosition(const string &name, const NodeConfig &config, Brain *_brain) : SyncActionNode(name, config), brain(_brain) {}
+    OffTheBall(const string &name, const NodeConfig &config, Brain *_brain) : SyncActionNode(name, config), brain(_brain) {}
 
     static PortsList providedPorts()
     {
