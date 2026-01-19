@@ -397,10 +397,9 @@ NodeStatus DribbleToGoal::tick() {
          .with_radii({0.2f})
     );
 
-    // [Fix] Invert Vector for Rerun Visualization (User reported opposite direction)
-    // 원래 (goal - ball)이 맞지만, Rerun 상에서 반대로 그려지는 문제 해결 위해 부호 반전
+
     brain->log->log("debug/dribble_arrow", 
-        rerun::Arrows2D::from_vectors({{(float)-(goalX - ballPos.x), (float)-(goalY - ballPos.y)}})
+        rerun::Arrows2D::from_vectors({{(float)(goalX - ballPos.x), (float)(goalY - ballPos.y)}})
             .with_origins({{(float)ballPos.x, (float)ballPos.y}})
             .with_colors({0x00FFFF00}) // Cyan/Yellowish
             .with_labels({"Dribble Path"})
@@ -471,9 +470,9 @@ NodeStatus DribbleToGoal::tick() {
         double errX = targetX - robotPos.x;
         double errY = targetY - robotPos.y;
         
-        // P-Control for CircleBack -> [Fix] Gain Reduction (2.5 -> 1.5) to prevent overshooting
-        double vX_field = errX * 1.5;
-        double vY_field = errY * 1.5;
+        // P-Control for CircleBack (Gently)
+        double vX_field = errX * 1.0; // Gain reduced 1.5 -> 1.0
+        double vY_field = errY * 1.0;
 
         double angleBallToRobot = atan2(robotPos.y - ballPos.y, robotPos.x - ballPos.x); // Ball -> Robot 벡터
         double desiredAngle = angleBallToGoal + M_PI; 
@@ -498,12 +497,12 @@ NodeStatus DribbleToGoal::tick() {
         double distToBall = hypot(ballPos.x - robotPos.x, ballPos.y - robotPos.y);
         double safeDist = 0.25; 
         if (distToBall < safeDist) {
-            double repulsionStrength = 4.0 * (safeDist - distToBall); // 가까울수록 강하게 밈
+            double repulsionStrength = 2.0 * (safeDist - distToBall);
             vX_field += repulsionStrength * cos(angleBallToRobot);
             vY_field += repulsionStrength * sin(angleBallToRobot);
         }
         
-        // 속도 제한 (CircleBack은 빠르게)
+        // 속도 제한 (CircleBack은 빠르게 -> 천천히)
         double speed = hypot(vX_field, vY_field);
         if (speed > maxSpeed) {
              vX_field *= (maxSpeed / speed);
@@ -512,9 +511,9 @@ NodeStatus DribbleToGoal::tick() {
 
         vx = cos(robotTheta) * vX_field + sin(robotTheta) * vY_field;
         vy = -sin(robotTheta) * vX_field + cos(robotTheta) * vY_field;
-        vtheta = brain->data->ball.yawToRobot * 5.0; // Turn faster
+        vtheta = brain->data->ball.yawToRobot * 3.0; // Turn slightly slower
         
-        if (ballRange < 0.2) vx = -0.3; // 너무 가까우면 후진
+        if (ballRange < 0.22) vx = -0.15; // 너무 가까우면 천천히 후진
     } 
     else {
         // 정렬이 잘 되었다면 Push로 공 방향으로 전진
@@ -540,7 +539,8 @@ NodeStatus DribbleToGoal::tick() {
     brain->client->setVelocity(vx, vy, vtheta);
 
     // 디버깅
-    log(format("Phase:%s DistToGoal:%.2f AlignErr:%.1f", phase.c_str(), ballDistToGoal, rad2deg(alignmentError)));
+    if (vx < 0 && phase == "CircleBack") phase += "(Backing)";
+    log(format("Phase:%s DistToGoal:%.2f AlignErr:%.1f BallRange:%.2f", phase.c_str(), ballDistToGoal, rad2deg(alignmentError), ballRange));
     brain->log->log("debug/dribble_goal", rerun::Points2D({{(float)goalX, (float)goalY}}).with_colors({0x00FF00FF}).with_labels({"GoalTarget"}));
     
     // 드리블 방향 시각화
