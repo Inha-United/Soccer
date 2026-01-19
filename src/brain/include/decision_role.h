@@ -39,6 +39,7 @@ public:
     {
         return {
             InputPort<double>("chase_threshold", 1.0, "이 거리보다 멀면 공 추격(Chase) 동작을 실행"),
+            InputPort<double>("clearing_threshold", 0.5, "이 거리 미만일 시 shouldClearing으로 간주"),
             InputPort<double>("adjust_angle_tolerance", 0.1, "이 각도보다 작으면 adjust 동작을 실행"), //
             InputPort<double>("adjust_y_tolerance", 0.1, "y 방향偏移이 이 값보다 작으면 adjust 동작을 실행"),  //
             InputPort<string>("decision_in", "", "이전 틱에서의 decision 값을 읽기 위해 사용"),

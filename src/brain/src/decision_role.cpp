@@ -194,6 +194,8 @@ NodeStatus DefenderDecide::tick() {
     getInput("chase_threshold", chaseRangeThreshold);
     string lastDecision;
     getInput("decision_in", lastDecision);
+    double clearingThreshold;
+    getInput("clearing_threshold", clearingThreshold);
 
     double kickDir = brain->data->kickDir;
     double dir_rb_f = brain->data->robotBallAngleToField; 
@@ -244,6 +246,18 @@ NodeStatus DefenderDecide::tick() {
     // const double laneTol = 0.10;   // 필요시 파라미터로 빼도 됨
     // bool inLane = std::fabs(pose.y - laneY) < laneTol;
 
+    // ===clearing condition===
+    bool shouldClearing = false;
+    auto Opponents = brain->data->getRobots(); 
+    double OpponentBallDist = 999999.0;
+    for (const auto& opponent : Opponents){
+        if (opponent.label != "Opponent") continue; // 상대팀이 아니면 스킵
+        double dist = norm(opponent.posToField.x - ball.posToField.x, opponent.posToField.y - ball.posToField.y);
+        if(dist<OpponentBallDist) OpponentBallDist = dist;
+    } // calculate nearest ball-opponent distance
+    shouldClearing = (OpponentBallDist < clearingThreshold) ? true : false;
+    // =========================
+
     // 1) 공을 모르면 -> find
     if (!(iKnowBallPos || tmBallPosReliable)) {
         newDecision = "find";
@@ -266,7 +280,8 @@ NodeStatus DefenderDecide::tick() {
         );
         }
     }
-    // 3) lead이면 -> (기존대로) chase / pass / adjust
+    // 3) lead인데 opponent가 너무 가까우면 clearing
+    // 4) clearing 할 상황은 아닌데 lead이면 -> (기존대로) chase / pass / adjust
     else if (isLead) {
         // 멀면 chase
         bool wasChasing = (lastDecision == "chase");
@@ -294,7 +309,7 @@ NodeStatus DefenderDecide::tick() {
             color = 0xFFFF00FF;
         }
     }
-    // 4) non-lead면서 레인 안이면 -> side_chase (항상)
+    // 5) non-lead면서 레인 안이면 -> side_chase (항상)
     else {
         newDecision = "side_chase";
         color = 0x00FFFFFF;
