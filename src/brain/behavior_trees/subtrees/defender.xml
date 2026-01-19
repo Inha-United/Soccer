@@ -41,7 +41,13 @@
                      
                      <ReactiveSequence>
                         <DefenderDecide decision_out="{decision}" decision_in="{decision}" chase_threshold="1.0" />
-                        
+                        <CalcClearingDir _while="decision == 'clearing'" />
+                        <DefenderClearingDecide
+                           _while="decision == 'clearing'"
+                           clearing_decision_out="{clearing_decision}"
+                           clearing_decision_in="{clearing_decision}"
+                           chase_threshold="1.0" />
+
                         <!-- 공 찾기 -->
                         <SubTree ID="FindBall" _while="decision=='find'" _autoremap="true" />
                      </ReactiveSequence>
@@ -49,6 +55,19 @@
                      <!-- 행동 실행 -->
                      <ReactiveSequence>
                         <!--위치로 돌아가기-->
+                        <ReactiveSequence _while="decision == 'clearing'">
+                           <Chase  _while="decision == 'clearing' && clearing_decision == 'chase'"
+                                    vx_limit="0.9" vy_limit="0.5" vtheta_limit="1.0" dist="0.5" safe_dist="0.7" />
+                           <Adjust _while="decision == 'clearing' && clearing_decision == 'adjust'"
+                                    no_turn_threshold="0.01" turn_threshold="0.5" turn_first_threshold="0.5"
+                                    range="0.6" vx_limit="0.5" vy_limit="0.5" vtheta_limit="1.0"
+                                    vtheta_factor="1.5" tangential_speed_far="0.5" tangential_speed_near="0.02"
+                                    near_threshold="0.3" kick_y_offset="0.0" />
+                           <Kick   _while="decision == 'clearing' && clearing_decision == 'kick'"
+                                    speed_limit="1.2" vx_limit="1.2" vy_limit="0.3"
+                                    min_msec_kick="1000" msecs_stablize="1000" kick_type="clearing" />
+                        </ReactiveSequence>
+
                         <OffTheBall _while="decision == 'return'" stop_threshold="0.15" v_limit="0.6"/>
                         
                         <SetVelocity _while="decision == 'wait'"/>

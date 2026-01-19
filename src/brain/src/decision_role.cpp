@@ -15,6 +15,7 @@ void RegisterDecisionRoleNodes(BT::BehaviorTreeFactory &factory, Brain* brain){
     REGISTER_DECISION_ROLE_BUILDER(StrikerDecide)
     REGISTER_DECISION_ROLE_BUILDER(GoalieDecide)
     REGISTER_DECISION_ROLE_BUILDER(DefenderDecide)
+    REGISTER_DECISION_ROLE_BUILDER(DefenderClearingDecide)
 }
 
 NodeStatus StrikerDecide::tick() {
@@ -392,6 +393,59 @@ NodeStatus DefenderDecide::tick() {
             "Decision: %s ballrange: %.2f ballyaw: %.2f kickDir: %.2f rbDir: %.2f lead: %d", 
             newDecision.c_str(), ballRange, ballYaw, kickDir, dir_rb_f, brain->data->tmImLead
         ),
+        color
+    );
+    return NodeStatus::SUCCESS;
+}
+
+NodeStatus DefenderClearingDecide::tick() {
+    double chaseRangeThreshold;
+    getInput("chase_threshold", chaseRangeThreshold);
+    string lastDecision;
+    getInput("clearing_decision_in", lastDecision);
+
+    auto ball = brain->data->ball;
+    double ballRange = ball.range;
+    double ballYaw = ball.yawToRobot;
+    double kickDir = brain->data->kickDir;
+    double dir_rb_f = brain->data->robotBallAngleToField;
+
+    double deltaDir = toPInPI(kickDir - dir_rb_f);
+    auto now = brain->get_clock()->now();
+    auto dt = brain->msecsSince(timeLastTick);
+    bool reachedKickDir =
+        deltaDir * lastDeltaDir <= 0 &&
+        fabs(deltaDir) < 0.1 &&
+        dt < 100;
+    reachedKickDir = reachedKickDir || fabs(deltaDir) < 0.1;
+    timeLastTick = now;
+    lastDeltaDir = deltaDir;
+
+    bool iKnowBallPos = brain->tree->getEntry<bool>("ball_location_known");
+    bool tmBallPosReliable = brain->tree->getEntry<bool>("tm_ball_pos_reliable");
+
+    string newDecision;
+    auto color = 0xFFFFFFFF;
+
+    if (ballRange > chaseRangeThreshold * (lastDecision == "chase" ? 0.9 : 1.0)) {
+        newDecision = "chase";
+        color = 0x0000FFFF;
+    } else if (reachedKickDir &&
+               brain->data->ballDetected &&
+               fabs(ballYaw) < 0.1 &&
+               ball.range < 1.5) {
+        newDecision = "kick";
+        color = 0x00FF00FF;
+    } else {
+        newDecision = "adjust";
+        color = 0xFFFF00FF;
+    }
+
+    setOutput("clearing_decision_out", newDecision);
+    brain->log->logToScreen(
+        "tree/Clearing",
+        format("ClearingDecision: %s ballrange: %.2f ballyaw: %.2f kickDir: %.2f rbDir: %.2f",
+               newDecision.c_str(), ballRange, ballYaw, kickDir, dir_rb_f),
         color
     );
     return NodeStatus::SUCCESS;

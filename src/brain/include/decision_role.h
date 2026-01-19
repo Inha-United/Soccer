@@ -78,3 +78,24 @@ private:
     double lastDeltaDir = 0.0; 
     rclcpp::Time timeLastTick; 
 };
+
+class DefenderClearingDecide : public SyncActionNode
+{
+public: 
+    DefenderClearingDecide(const string &name, const NodeConfig &config, Brain *_brain) : SyncActionNode(name, config), brain(_brain) {}
+
+    static PortsList providedPorts()
+    {
+        return {
+            InputPort<double>("chase_threshold", 1.0, "이 거리보다 멀어지면 공을 추격하는 동작을 수행"),
+            InputPort<string>("clearing_decision_in", "", "이전 틱에서의 decision 값을 읽기 위해 사용"),
+            OutputPort<string>("clearing_decision_out")};
+    }
+
+    NodeStatus tick() override;
+
+private:
+    Brain *brain;
+    double lastDeltaDir = 0.0; 
+    rclcpp::Time timeLastTick; 
+};
