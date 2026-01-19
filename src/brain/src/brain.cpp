@@ -937,14 +937,15 @@ void Brain::updateBallMemory(){
         ballColor = 0xFF8800FF; // Orange (Memory)
     }
 
-    log->logBall(
+    // [User Request] Simplify Ball Visualization (Dot only)
+    log->log(
         "field/ball", 
-        data->ball.posToField, 
-        // data->ballDetected ? 0x00FF00FF : 0x006600FF,
-        ballColor,
-        data->ballDetected,
-        tree->getEntry<bool>("ball_location_known")
-        );
+        rerun::Points2D({{(float)data->ball.posToField.x, (float)-data->ball.posToField.y}})
+        .with_colors({ballColor})
+        .with_radii({0.05f})
+        .with_labels({"Ball"})
+    );
+    
     // log->logBall(
     //     "field/tmBall", 
     //     data->tmBall.posToField, 
