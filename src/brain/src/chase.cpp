@@ -204,7 +204,6 @@ NodeStatus DribbleChase::tick() {
         brain->log->log("debug/DribbleChase", rerun::TextLog(msg));
     };
     log("ticked");
-
     double minSpeed, maxSpeed, slowDistFar, slowDistNear;
     double vxLimit, vyLimit, vthetaLimit;
     
