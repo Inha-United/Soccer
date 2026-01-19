@@ -12,6 +12,7 @@
 void RegisterKickNodes(BT::BehaviorTreeFactory &factory, Brain* brain){
     REGISTER_KICK_BUILDER(CalcKickDir)
     REGISTER_KICK_BUILDER(CalcKickDirWithGoalkeeper)
+    REGISTER_KICK_BUILDER(CalcClearingDir)
     REGISTER_KICK_BUILDER(CalcPassDir)
     REGISTER_KICK_BUILDER(Kick)
 }
@@ -190,6 +191,56 @@ NodeStatus CalcKickDirWithGoalkeeper::tick(){
 
     return NodeStatus::SUCCESS;
 }
+
+NodeStatus CalcClearingDir::tick() {
+    double OffsetDegree;
+    getInput("offset_degree", OffsetDegree);
+    
+    auto ballPos = brain->data->ball.posToField;
+    auto opponents = brain->data->getRobots();
+
+    int nearestIdx = -1;
+    double minDist = 1e9;
+
+    for (size_t i = 0; i < opponents.size(); ++i) {
+        const auto& opponent = opponents[i];
+        if (opponent.label != "Opponent") continue;
+        double dist = norm(opponent.posToField.x - ballPos.x,
+                           opponent.posToField.y - ballPos.y);
+        if (dist < minDist) {
+            minDist = dist;
+            nearestIdx = static_cast<int>(i);
+        }
+    }
+
+    double clearingDir = 0.0; // 기본은 +x 방향
+    if (nearestIdx >= 0) {
+        const auto& nearestOpponent = opponents[nearestIdx];
+        double angleToOpponent = atan2(
+            nearestOpponent.posToField.y - ballPos.y,
+            nearestOpponent.posToField.x - ballPos.x
+        );
+        const double offset = deg2rad(30.0);
+        // 상대 각도에서 +x 방향(0rad) 쪽으로 30도 꺾기
+        clearingDir = angleToOpponent + (angleToOpponent > 0.0 ? -offset : offset);
+        clearingDir = toPInPI(clearingDir);
+    }
+
+    brain->data->kickDir = clearingDir;
+
+    brain->log->setTimeNow();
+    brain->log->log(
+        "field/clearing_dir",
+        rerun::Arrows2D::from_vectors({{10 * cos(brain->data->kickDir), -10 * sin(brain->data->kickDir)}})
+            .with_origins({{brain->data->ball.posToField.x, -brain->data->ball.posToField.y}})
+            .with_colors({0x00FF00FF})
+            .with_radii(0.01)
+            .with_draw_order(31)
+    );
+
+    return NodeStatus::SUCCESS;
+}
+
 
 NodeStatus CalcPassDir::tick(){
     double maxpassThreshold;

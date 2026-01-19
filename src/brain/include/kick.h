@@ -48,6 +48,22 @@ private:
     Brain *brain;
 };
 
+class CalcClearingDir : public SyncActionNode {
+public:
+    CalcClearingDir(const string &name, const NodeConfig &config, Brain *_brain) : SyncActionNode(name, config), brain(_brain) {}
+
+    static PortsList providedPorts(){
+        return {
+            InputPort<double>("offset_degree", 30.0, "볼-opponent 각도에서 추가로 꺾어차는 각도"),
+        };
+    }
+
+    NodeStatus tick() override;
+
+private:
+    Brain *brain;
+};
+
 class CalcPassDir : public SyncActionNode {
 public:
     CalcPassDir(const string &name, const NodeConfig &config, Brain *_brain) : SyncActionNode(name, config), brain(_brain) {}

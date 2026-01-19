@@ -281,6 +281,10 @@ NodeStatus DefenderDecide::tick() {
         }
     }
     // 3) lead인데 opponent가 너무 가까우면 clearing
+    else if (shouldClearing) {
+        newDecision = "clearing";
+        color = 0xFFFF00FF;
+    }
     // 4) clearing 할 상황은 아닌데 lead이면 -> (기존대로) chase / pass / adjust
     else if (isLead) {
         // 멀면 chase
