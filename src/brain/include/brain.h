@@ -48,6 +48,9 @@
 #include "defender_decision.h"
 #include "striker_decision.h"
 #include "pass_receive.h"
+#include "striker_decision.h"
+#include "defender_decision.h"
+#include "checkandstandup.h"
 
 // Forward declaration to avoid circular dependency
 class BrainCommunication;
@@ -100,6 +103,8 @@ public:
     void registerStrikerDecisionNodes(BT::BehaviorTreeFactory &factory){RegisterStrikerDecisionNodes(factory, this);}
     void registerPassReceiveNodes(BT::BehaviorTreeFactory &factory){RegisterPassReceiveNodes(factory, this);}
     
+    void registerCheckAndStandUpNodes(BT::BehaviorTreeFactory &factory){RegisterCheckAndStandUpNodes(factory, this);}
+
     // ROS callback 함수
     void gameControlCallback(const game_controller_interface::msg::GameControlData &msg);
     void detectionsCallback(const vision_interface::msg::Detections &msg);
@@ -117,7 +122,9 @@ public:
 
     /* ----------------------------- role 결정을 위한 함수 ----------------------------- */
     bool isAngleGood(double goalPostMargin = 0.3, string type = "kick");
-    
+    void registerDefenderDecisionNodes(BT::BehaviorTreeFactory &factory){RegisterDefenderDecisionNodes(factory, this);}
+    void registerStrikerDecisionNodes(BT::BehaviorTreeFactory &factory){RegisterStrikerDecisionNodes(factory, this);}
+     
 
 
 
