@@ -50,6 +50,7 @@ struct BrainData {
 
     // ball
     GameObject ball;
+    GameObject emaball; // 시간에 따른 공의 위치의 EMA... 0120 지훈추가 
     GameObject tmBall; 
     bool ballDetected = false; // 공 감지 플래그
     double robotBallAngleToField;

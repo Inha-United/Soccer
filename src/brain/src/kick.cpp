@@ -196,7 +196,8 @@ NodeStatus CalcClearingDir::tick() {
     double OffsetDegree;
     getInput("offset_degree", OffsetDegree);
     
-    auto ballPos = brain->data->ball.posToField;
+    // auto ballPos = brain->data->ball.posToField;
+    auto ballPos = brain->data->emaball.posToField; // using EMA ball pos
     auto opponents = brain->data->getRobots();
 
     int nearestIdx = -1;
@@ -220,7 +221,7 @@ NodeStatus CalcClearingDir::tick() {
             nearestOpponent.posToField.y - ballPos.y,
             nearestOpponent.posToField.x - ballPos.x
         );
-        const double offset = deg2rad(30.0);
+        const double offset = deg2rad(OffsetDegree);
         // 상대 각도에서 +x 방향(0rad) 쪽으로 30도 꺾기
         clearingDir = angleToOpponent + (angleToOpponent > 0.0 ? -offset : offset);
         clearingDir = toPInPI(clearingDir);
@@ -232,7 +233,7 @@ NodeStatus CalcClearingDir::tick() {
     brain->log->log(
         "field/clearing_dir",
         rerun::Arrows2D::from_vectors({{10 * cos(brain->data->kickDir), -10 * sin(brain->data->kickDir)}})
-            .with_origins({{brain->data->ball.posToField.x, -brain->data->ball.posToField.y}})
+            .with_origins({{ballPos.x, -ballPos.y}})
             .with_colors({0x00FF00FF})
             .with_radii(0.01)
             .with_draw_order(31)

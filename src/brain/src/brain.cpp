@@ -876,6 +876,29 @@ void Brain::updateBallMemory(){
     
     static Point lastBallPos = data->ball.posToField;
     static rclcpp::Time lastBallTime = data->ball.timePoint;
+
+    // === EMA 업데이트 ===
+    static bool emaInit = false;
+    const double emaAlpha = 0.3; // 필요하면 상수/파라미터로 조정
+
+    if (!emaInit) {
+        data->emaball.posToField = lastBallPos; // 초기값은 기존 lastBallPos로 시드
+        emaInit = true;
+    }
+
+    bool haveOwnBall = data->ballDetected && tree->getEntry<bool>("ball_location_known");
+    bool haveTmBall = tree->getEntry<bool>("tm_ball_pos_reliable");
+
+    if (haveOwnBall || haveTmBall) {
+        const auto& src = haveOwnBall ? data->ball.posToField : data->tmBall.posToField;
+
+        data->emaball.posToField.x = emaAlpha * src.x + (1.0 - emaAlpha) * data->emaball.posToField.x;
+        data->emaball.posToField.y = emaAlpha * src.y + (1.0 - emaAlpha) * data->emaball.posToField.y;
+
+        data->emaball.timePoint = get_clock()->now();
+        updateRelativePos(data->emaball);
+    }
+    // ==================
     
     // Calculate ball speed
     double dt = msecsSince(lastBallTime) / 1000.0;
