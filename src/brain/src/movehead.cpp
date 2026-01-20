@@ -159,7 +159,7 @@ NodeStatus CamTrackBall::tick(){
             return NodeStatus::SUCCESS;
         }
 
-        double smoother = 1.5; // 머리를 스무스하게 움직이기 위한 스무스 계수
+        double smoother = 3.0;
         double deltaYaw = deltaX / brain->config->camPixX * brain->config->camAngleX / smoother; // 공의 x 좌표와 시야 중심의 x 좌표의 차이를 이용하여 머리의 yaw를 계산
         double deltaPitch = deltaY / brain->config->camPixY * brain->config->camAngleY / smoother; // 공의 y 좌표와 시야 중심의 y 좌표의 차이를 이용하여 머리의 pitch를 계산
 
@@ -167,7 +167,7 @@ NodeStatus CamTrackBall::tick(){
         yaw = brain->data->headYaw - deltaYaw; // 머리의 yaw를 공의 yaw와 뺌
         
         // EMA Smoothing
-        double alpha = 0.4; // 0.6 -> 0.4 Stabilize
+        double alpha = 0.2;
         if (smoothHeadYaw == 0.0 && smoothHeadPitch == 0.0) {
             smoothHeadYaw = yaw;
             smoothHeadPitch = pitch;
