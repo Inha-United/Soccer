@@ -33,7 +33,7 @@ NodeStatus StrikerDecision::tick() {
     double ballY = ball.posToRobot.y;
     double distToGoal = 0.0;
     
-    distToGoal = norm(ball.posToField.x - (-brain->config->fieldDimensions.length/2), ball.posToField.y);
+    distToGoal = norm(ball.posToField.x - (brain->config->fieldDimensions.length/2), ball.posToField.y);
 
     // 장애물 회피 로직 -> 드리블이나 오프더볼 등
     // bool avoidPushing;
@@ -46,13 +46,13 @@ NodeStatus StrikerDecision::tick() {
 
 
     // 변수 로드
-    double kickYOffset = -0.077; 
-    getInput("kick_y_offset", kickYOffset);
+    double kickYOffset = 0.0; // -0.077; 
+    // getInput("kick_y_offset", kickYOffset); // 당분간 사용 안 함
 
-    double setPieceGoalDist = 2.0;
+    double setPieceGoalDist = 3.0;
     getInput("set_piece_goal_dist", setPieceGoalDist);
 
-    // 절대값으로 양발
+    // 절대값으로 양발 -> 그냥 절대값이면 항상 양수로 들어갈테니 ball.posToRobot.y로 공이 왼쪽에 있는지 오른쪽에 있는지 판단하고 부호 변경
     if (kickYOffset > 0) {
         if (brain->data->ball.posToRobot.y > 0) kickYOffset = fabs(kickYOffset);
         else kickYOffset = -fabs(kickYOffset);
@@ -60,49 +60,86 @@ NodeStatus StrikerDecision::tick() {
 
     // 정렬 오차 계산
     double deltaDir = toPInPI(kickDir - dir_rb_f);                              // 로봇이 공 뒤에 일직선으로 서있으면 0이라 생각할 수 있음
-    double targetAngleOffset = atan2(kickYOffset, ballRange);                    // 오른 발로 차야하니까 공보다 약간 왼쪽에 있어야함 - 그 왼쪽에 해당하는 각도
-    double errorDir = toPInPI(deltaDir + targetAngleOffset);                     // 공을 차기 위한 위치인가 - 최종 위치 오차
-    double headingError = toPInPI(kickDir - brain->data->robotPoseToField.theta); // 로봇이 골대를 정확히 보고있나 - 최종 각도 오차
+    double targetAngleOffset = atan2(kickYOffset, ballRange);                    // 오른 발로 차야하니까 공보다 약간 왼쪽에 있어야함 -> 그 왼쪽에 해당하는 각도
+    double errorDir = toPInPI(deltaDir + targetAngleOffset);                     // 공을 차기 위한 위치인가 -> 최종 위치 오차
+    double headingError = toPInPI(kickDir - brain->data->robotPoseToField.theta); // 로봇이 골대를 정확히 보고있나 -> 최종 각도 오차
 
     bool iKnowBallPos = brain->tree->getEntry<bool>("ball_location_known");
     bool tmBallPosReliable = brain->tree->getEntry<bool>("tm_ball_pos_reliable");
     string newDecision;
     auto color = 0xFFFFFFFF; 
 
+    // 팀원 패스 신호 받기
+    int myId = brain->config->playerId;
+    // Fix logic: if 1 (Striker), partner 2 (Index 1). If 2 (Defender), partner 1 (Index 0).
+    int partnerIdx = (myId == 1) ? 1 : 0;
+    
+    // Check isAlive to prevent stale signals
+    bool passsignal = brain->data->tmStatus[partnerIdx].isAlive && brain->data->tmStatus[partnerIdx].passSignal;
+    
+    // Debug Log for Signal Diagnosis
+    // if (tickCount % 60 == 0) { // Log occasionally or use logToScreen
+        brain->log->log("debug/striker_decision_signal", rerun::TextLog(format("PartnerIdx: %d (MyID:%d), Signal: %d", partnerIdx, myId, passsignal)));
+    // }
 
+    // 패스 신호 타임 카운트
+    bool isReceiveTimeout = false;
+    if (passsignal) {
+        if (receiveStartTime.nanoseconds() == 0) {
+            receiveStartTime = brain->get_clock()->now();
+        } 
+        else if (brain->msecsSince(receiveStartTime) > 5000) {
+            isReceiveTimeout = true;
+        }
+    } 
+    else {
+        receiveStartTime = rclcpp::Time(0, 0, RCL_ROS_TIME);
+    }
+    
+    
     /* ----------------------- 1. 공 찾기 ----------------------- */ 
     if (!(iKnowBallPos || tmBallPosReliable)) {
         newDecision = "find";
         color = 0xFFFFFFFF;
     }
+
+
+    /* ----------------------- 2. 패스 받기 ----------------------- */ 
+    else if (passsignal && !isReceiveTimeout && ballRange > 0.6){
+        newDecision = "receive";
+        color = 0x00FFFFFF;
+    }
     
-    /* ----------------------- 2. OffTheBall ----------------------- */
+    /* ----------------------- 3. OffTheBall ----------------------- */
     else if (!brain->data->tmImLead && ballRange >= 1.0) {
         newDecision = "offtheball";
         color = 0x00FFFFFF;
     } 
 
-    /* ----------------------- 3. 공 chase ----------------------- */
+    /* ----------------------- 4. 공 chase ----------------------- */
     else if (ballRange > chaseRangeThreshold) {
         newDecision = "chase";
         color = 0x0000FFFF;
     } 
 
-    /* ----------------------- 4. 공 드리블 ----------------------- */
-    else if (distToGoal > 3.0) {
+    /* ----------------------- 5. 공 드리블 ----------------------- */
+    else if (distToGoal > 2.0) {
         newDecision = "dribble";
         color = 0x00FFFF00; 
     }
 
-    /* ----------------------- 5. 공 슛/정렬 ----------------------- */
+    /* ----------------------- 6. 공 슛/정렬 ----------------------- */
+    // 멀면 정밀하게 (0.1라디안 = 5.7도)
     else {
-        // 세트피스 상황이면 더 여유롭게 (0.1라디안은 5.7도)
-        double kickTolerance = 0.1; // 멀면 정밀하게
-        double yawTolerance = 0.1;  
+        double kickTolerance = 0.3; 
+        double yawTolerance = 0.5;
+        getInput("kick_tolerance", kickTolerance); // xml에서 수정 가능하도록
+        getInput("yaw_tolerance", yawTolerance);
         
+        // 가까우면(세트피스 거리면) 여유롭게
         if (distToGoal < setPieceGoalDist) {
-            kickTolerance = 0.3; // 가까우면 여유롭게
-            yawTolerance = 0.5;
+            kickTolerance = 0.4; 
+            yawTolerance = 0.6;
         }
 
         auto now = brain->get_clock()->now();
@@ -112,20 +149,27 @@ NodeStatus StrikerDecision::tick() {
         timeLastTick = now;
 
 
-        /* ----------------------- 6. Kick ----------------------- */
-        double kickRange = 1.0;
-        if (distToGoal < setPieceGoalDist){
-            kickRange = 3.0;
+        /* ----------------------- 7. Kick Lock Logic ----------------------- */
+        static rclcpp::Time kickLockEndTime(0, 0, RCL_ROS_TIME);
+        bool isLocked = (now < kickLockEndTime);
+        
+        // Lock 해제 조건: 공이 너무 멀어지면 즉시 해제
+        if (isLocked && ballRange > 0.6) {
+            isLocked = false; 
+            kickLockEndTime = rclcpp::Time(0, 0, RCL_ROS_TIME);
         }
 
+        double kickRange = 1.0;
+        if (distToGoal < setPieceGoalDist){
+            kickRange = 2.0;
+        }
+
+        // Kick 진입 조건
         if (
-            (reachedKickDir) 
+            (reachedKickDir || isLocked) // 정렬됐거나 이미 락이 걸려있으면
             && brain->data->ballDetected
-
-            && fabs(brain->data->ball.yawToRobot) < yawTolerance 
-
+            && (fabs(brain->data->ball.yawToRobot) < yawTolerance || isLocked) // 락 걸려있으면 각도 무시
             // && !avoidKick
-
             && ball.range < kickRange
         ) {
             // 골대 거리에 따라 Quick vs Normal Kick 결정
@@ -136,11 +180,16 @@ NodeStatus StrikerDecision::tick() {
                 newDecision = "kick";      
             }
             
+            // 처음 락을 거는 순간 시간 설정
+            if (!isLocked) {
+                kickLockEndTime = now + rclcpp::Duration::from_seconds(3.0);
+            }
+            
             color = 0x00FF00FF;
             brain->data->isFreekickKickingOff = false; 
         }
         
-        /* ----------------------- 7. Adjust ----------------------- */
+        /* ----------------------- 8. Adjust ----------------------- */
         else {
             // 골대 거리에 따라 Quick vs Normal Adjust 결정
             if (distToGoal < setPieceGoalDist) newDecision = "adjust_quick";

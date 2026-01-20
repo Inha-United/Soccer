@@ -45,6 +45,9 @@
 #include "adjust.h"
 #include "speak.h"
 #include "offtheball.h"
+#include "defender_decision.h"
+#include "striker_decision.h"
+#include "pass_receive.h"
 #include "striker_decision.h"
 #include "defender_decision.h"
 #include "checkandstandup.h"
@@ -96,6 +99,10 @@ public:
     void registerAdjustNodes(BT::BehaviorTreeFactory &factory){RegisterAdjustNodes(factory, this);}
     void registerSpeakNodes(BT::BehaviorTreeFactory &factory){RegisterSpeakNodes(factory, this);}
     void registerOfftheballNodes(BT::BehaviorTreeFactory &factory){RegisterOfftheballNodes(factory, this);}
+    void registerDefenderDecisionNodes(BT::BehaviorTreeFactory &factory){RegisterDefenderDecisionNodes(factory, this);}
+    void registerStrikerDecisionNodes(BT::BehaviorTreeFactory &factory){RegisterStrikerDecisionNodes(factory, this);}
+    void registerPassReceiveNodes(BT::BehaviorTreeFactory &factory){RegisterPassReceiveNodes(factory, this);}
+    
     void registerCheckAndStandUpNodes(BT::BehaviorTreeFactory &factory){RegisterCheckAndStandUpNodes(factory, this);}
 
     // ROS callback 함수
@@ -110,6 +117,7 @@ public:
     void imageCallback(const sensor_msgs::msg::Image &msg);
 
     void logObstacles();
+    void logVisionBox(rclcpp::Time timestamp);
     void logDepth(int grid_x_count, int grid_y_count, vector<vector<int>> &grid_occupied, vector<rerun::Vec3D> &points_robot);
 
     /* ----------------------------- role 결정을 위한 함수 ----------------------------- */

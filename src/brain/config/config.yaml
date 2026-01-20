@@ -5,8 +5,8 @@ brain_node:
       player_id: 1 # 1 | 2 | 3 | 4 | 5
       field_type: "inha_size" # kid_size | adult_size | inha_size
       player_role: "striker" # striker | defender | goal_keeper
-      treat_person_as_robot: true 
-      number_of_players: 4
+      treat_person_as_robot: false
+      number_of_players: 2
      
     robot: # 로봇 제어할 때 clapping 등 동작을 위한 파라미터 -> robot_client.cpp 에서 사용
       robot_height: 0.9 
@@ -37,7 +37,7 @@ brain_node:
       near_ball_range: 3.0 # 분명 m 기준일텐데 3m면 너무 큰거 아닌가?
     
     obstacle_avoidance:
-      occupancy_threshold: 2000 # 2000은 너무 높아서 수정 (sample_step 16일 때 약 952포인트 최대)
+      occupancy_threshold: 500 # 2000은 너무 높아서 수정 (max ~952, set to 500)
       collision_threshold: 0.7 # 충돌 회피 거리 임계값 (로봇 반경 고려) 
       # 밑에 2개 변수를 chase에 뺄지 고민중 
       avoid_during_chase: true # chase 중에 장애물을 회피할 지 여부
@@ -83,10 +83,10 @@ brain_node:
     rerunLog:
       enable_tcp: true # 리런에 연결 할 지
 
-      server_ip: "192.168.50.67:9876" 
+      server_ip: "192.168.50.38:9876" # "192.168.50.8:9876" 
       enable_file: true  # 리런 로그 파일을 만들지
       log_dir: "/home/booster/Workspace/rrlog" # 리런 로그 파일 저장 경로
       max_log_file_mins: 5.0 # 리런 로그 파일 최대 길이 (분)
       img_interval: 1 # 리런 로그 파일 이미지 저장 간격
       
-    game_control_ip: "192.168.50.167" # 게임 컨트롤러 IP 주소 -> gamecontroller launch 파일도 수정 필요
+    game_control_ip: "192.168.50.221" # 게임 컨트롤러 IP 주소 -> gamecontroller launch 파일도 수정 필요

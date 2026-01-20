@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 #include <ctime>
+#include <cmath>
 
 // BehaviorTree Factory에 Test 노드를 생성하는 함수를 등록하는 역할 -> 코드 양 줄일 수 있음
 #define REGISTER_MOVEHEAD_BUILDER(Name)     \
@@ -54,18 +55,41 @@ CamFindBall::CamFindBall(const string &name, const NodeConfig &config, Brain *_b
 NodeStatus CamFindBall::tick(){
     if (brain->data->ballDetected){ return NodeStatus::SUCCESS; }
 
-    auto curTime = brain->get_clock()->now();
-    auto timeSinceLastCmd = (curTime - _timeLastCmd).nanoseconds() / 1e6;
+    auto sec = brain->get_clock()->now().seconds();
+    auto msec = static_cast<unsigned long long>(sec * 1000);
+    int msecCycle = 4000; // 4초 주기
 
-    // 아직 움직이기엔 이름
-    if (timeSinceLastCmd < _cmdIntervalMSec){ return NodeStatus::SUCCESS; }
-    // 너무 오래 됐으면(50초) 다시 처음으로
-    else if (timeSinceLastCmd > _cmdRestartIntervalMSec){ _cmdIndex = 0; }
-    // 다음 명령어(시퀀스)로
-    else{ _cmdIndex = (_cmdIndex + 1) % (sizeof(_cmdSequence) / sizeof(_cmdSequence[0])); }
+    int cycleTime = msec % msecCycle;
+    double t = (double)cycleTime / (double)msecCycle;
+    
+    // Yaw: Sin 함수 (중앙에서 시작해서 왼쪽으로 갔다가 오른쪽으로)
+    double leftYaw = 1.1;
+    double rightYaw = -1.1;
+    double yawAmp = (leftYaw - rightYaw) / 2.0;
+    double yawCenter = (leftYaw + rightYaw) / 2.0;
+    double targetYaw = yawCenter + yawAmp * sin(2.0 * M_PI * t);
 
-    brain->client->moveHead(_cmdSequence[_cmdIndex][0], _cmdSequence[_cmdIndex][1]);
-    _timeLastCmd = brain->get_clock()->now();
+    // Pitch: Cos 함수 중앙(아래)에서 시작해서 위로 갔다가 아래로
+    double lowPitch = 1.0;
+    double highPitch = 0.45;
+    double pitchAmp = (lowPitch - highPitch) / 2.0;
+    double pitchCenter = (lowPitch + highPitch) / 2.0;
+    // t=0일때 lowPitch가 되도록 아래부터 시작
+    double targetPitch = pitchCenter + pitchAmp * cos(2.0 * M_PI * t);
+
+    // EMA Smoothing
+    double alpha = 0.4; // 0.6 -> 0.4 Stabilize 
+    
+    // 만약 초기화가 안되어 있다면 (0.0), 현재 타겟으로 바로 설정
+    if (smoothHeadYaw == 0.0 && smoothHeadPitch == 0.0) {
+        smoothHeadYaw = targetYaw;
+        smoothHeadPitch = targetPitch;
+    }
+    
+    smoothHeadYaw = smoothHeadYaw * (1.0 - alpha) + targetYaw * alpha;
+    smoothHeadPitch = smoothHeadPitch * (1.0 - alpha) + targetPitch * alpha;
+
+    brain->client->moveHead(smoothHeadPitch, smoothHeadYaw);
     return NodeStatus::SUCCESS;
 }
 
@@ -135,12 +159,25 @@ NodeStatus CamTrackBall::tick(){
             return NodeStatus::SUCCESS;
         }
 
-        double smoother = 1.5; // 머리를 스무스하게 움직이기 위한 스무스 계수
+        double smoother = 3.0;
         double deltaYaw = deltaX / brain->config->camPixX * brain->config->camAngleX / smoother; // 공의 x 좌표와 시야 중심의 x 좌표의 차이를 이용하여 머리의 yaw를 계산
         double deltaPitch = deltaY / brain->config->camPixY * brain->config->camAngleY / smoother; // 공의 y 좌표와 시야 중심의 y 좌표의 차이를 이용하여 머리의 pitch를 계산
 
         pitch = brain->data->headPitch + deltaPitch; // 머리의 pitch를 공의 pitch와 더함
         yaw = brain->data->headYaw - deltaYaw; // 머리의 yaw를 공의 yaw와 뺌
+        
+        // EMA Smoothing
+        double alpha = 0.2;
+        if (smoothHeadYaw == 0.0 && smoothHeadPitch == 0.0) {
+            smoothHeadYaw = yaw;
+            smoothHeadPitch = pitch;
+        }
+        smoothHeadYaw = smoothHeadYaw * (1.0 - alpha) + yaw * alpha;
+        smoothHeadPitch = smoothHeadPitch * (1.0 - alpha) + pitch * alpha;
+        
+        pitch = smoothHeadPitch;
+        yaw = smoothHeadYaw;
+
         auto label = format("ballX: %.1f, ballY: %.1f, deltaX: %.1f, deltaY: %.1f, pitch: %.1f, yaw: %.1f", ballX, ballY, deltaX, deltaY, pitch, yaw);
         logTrackingBox(0xFF0000FF, label);  // 초록색 박스로 바뀜
     }
@@ -185,10 +222,32 @@ NodeStatus CamScanField::tick()
     getInput("msec_cycle", msecCycle);
 
     int cycleTime = msec % msecCycle;
-    double pitch = cycleTime > (msecCycle / 2.0) ? lowPitch : highPitch;
-    double yaw = cycleTime < (msecCycle / 2.0) ? (leftYaw - rightYaw) * (2.0 * cycleTime / msecCycle) + rightYaw : (leftYaw - rightYaw) * (2.0 * (msecCycle - cycleTime) / msecCycle) + rightYaw;
+    double t = (double)cycleTime / (double)msecCycle;
+    
+    // Yaw: Sin 함수 (중앙에서 시작해서 왼쪽으로 갔다가 오른쪽으로)
+    double yawAmp = (leftYaw - rightYaw) / 2.0;
+    double yawCenter = (leftYaw + rightYaw) / 2.0;
+    double targetYaw = yawCenter + yawAmp * sin(2.0 * M_PI * t);
 
-    brain->client->moveHead(pitch, yaw);
+    // Pitch: Cos 함수 중앙(아래)에서 시작해서 위로 갔다가 아래로
+    double pitchAmp = (lowPitch - highPitch) / 2.0;
+    double pitchCenter = (lowPitch + highPitch) / 2.0;
+    // t=0일때 lowPitch가 되도록 아래부터 시작
+    double targetPitch = pitchCenter + pitchAmp * cos(2.0 * M_PI * t);
+
+    // EMA Smoothing
+    double alpha = 0.4; 
+    
+    // 만약 초기화가 안되어 있다면 (0.0), 현재 타겟으로 바로 설정
+    if (smoothHeadYaw == 0.0 && smoothHeadPitch == 0.0) {
+        smoothHeadYaw = targetYaw;
+        smoothHeadPitch = targetPitch;
+    }
+    
+    smoothHeadYaw = smoothHeadYaw * (1.0 - alpha) + targetYaw * alpha;
+    smoothHeadPitch = smoothHeadPitch * (1.0 - alpha) + targetPitch * alpha;
+
+    brain->client->moveHead(smoothHeadPitch, smoothHeadYaw);
     return NodeStatus::SUCCESS;
 }
 

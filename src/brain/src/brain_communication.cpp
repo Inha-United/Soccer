@@ -384,6 +384,9 @@ void BrainCommunication::unicastCommunication() {
         msg.thetaRb = brain->data->robotBallAngleToField;
         msg.cmdId = brain->data->tmMyCmdId;
         msg.cmd = brain->data->tmMyCmd;
+        msg.passSignal = brain->data->tmStatus[brain->config->playerId].passSignal;
+        msg.passTargetX = brain->data->tmStatus[brain->config->playerId].passTargetX;
+        msg.passTargetY = brain->data->tmStatus[brain->config->playerId].passTargetY;
         log(format("ImAlive: %d, ImLead: %d, myCost: %.1f, myCmdId: %d, myCmd: %d", msg.isAlive, msg.isLead, msg.cost, msg.cmdId, msg.cmd));
 
         std::lock_guard<std::mutex> lock(_teammate_addresses_mutex);
@@ -558,6 +561,10 @@ void BrainCommunication::spinCommunicationReceiver() {
         tmStatus.timeLastCom = brain->get_clock()->now(); // 마지막 통신 시간 갱신
         tmStatus.cmd = msg.cmd; // 명령
         tmStatus.cmdId = msg.cmdId; // 명령 ID
+
+        tmStatus.passSignal = msg.passSignal; // defender의 패스 신호
+        tmStatus.passTargetX = msg.passTargetX; // defender의 패스 위치 X
+        tmStatus.passTargetY = msg.passTargetY; // defender의 패스 위치 Y
 
         // 새로운 명령 수신 확인
         if (msg.cmdId > brain->data->tmCmdId) {

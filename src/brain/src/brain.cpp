@@ -480,8 +480,12 @@ void Brain::detectionsCallback(const vision_interface::msg::Detections &msg){
 
     // 시야 정보 처리 및 로깅
     detection_utils::detectProcessVisionBox(msg, data);
+    logVisionBox(detection_utils::timePointFromHeader(msg.header));
 
     // 로그 기록
+    auto tp = detection_utils::timePointFromHeader(msg.header);
+    log->setTimeSeconds(tp.seconds());
+    log->logToScreen("debug/DetCheck", format("Det count: %zu, Time: %.2f", gameObjects.size(), tp.seconds()), 0xFF00FFFF);
     logDetection(gameObjects);
 }
 
@@ -929,13 +933,22 @@ void Brain::updateBallMemory(){
 
     // 로그 기록
     log->setTimeNow();
-    log->logBall(
+    
+    // 공이 보이지 않지만 위치를 알고 있다면 주황색으로 표시
+    uint32_t ballColor = 0x00FF00FF; // Green (Detected)
+    if (!data->ballDetected) {
+        ballColor = 0xFF8800FF; // Orange (Memory)
+    }
+
+    // [User Request] Simplify Ball Visualization (Dot only)
+    log->log(
         "field/ball", 
-        data->ball.posToField, 
-        data->ballDetected ? 0x00FF00FF : 0x006600FF,
-        data->ballDetected,
-        tree->getEntry<bool>("ball_location_known")
-        );
+        rerun::Points2D({{(float)data->ball.posToField.x, (float)-data->ball.posToField.y}})
+        .with_colors({ballColor})
+        .with_radii({0.05f})
+        .with_labels({"Ball"})
+    );
+    
     // log->logBall(
     //     "field/tmBall", 
     //     data->tmBall.posToField, 
@@ -1074,8 +1087,8 @@ void Brain::logDetection(const vector<GameObject> &gameObjects, bool logBounding
     }
     
     // else 
-    rclcpp::Time timePoint = gameObjects[0].timePoint;
-    log->setTimeSeconds(timePoint.seconds());
+    // else 
+
 
     map<std::string, rerun::Color> detectColorMap = {
         {"LCross", rerun::Color(0xFFFF00FF)},
@@ -1347,6 +1360,28 @@ void Brain::logObstacles() {
     );
 }
 
+
+void Brain::logVisionBox(rclcpp::Time timestamp) {
+    auto vbox = data->visionBox;
+    log->setTimeSeconds(timestamp.seconds());
+
+    vector<rerun::Vec3D> points;
+    // vbox points are in pairs (x, y) relative to robot
+    for (size_t i = 0; i < vbox.posToRobot.size() / 2; ++i) {
+        points.push_back(rerun::Vec3D{vbox.posToRobot[2*i], -vbox.posToRobot[2*i+1], 0.0});
+    }
+    // Close the loop
+    if (!points.empty()) {
+        points.push_back(points[0]);
+    }
+
+    log->log("robotframe/vision_box", 
+        rerun::LineStrips3D(rerun::Collection<rerun::components::LineStrip3D>(points))
+        .with_colors(0x00FF00FF)
+        .with_radii(0.02)
+    );
+}
+
 void Brain::logDepth(int grid_x_count, int grid_y_count, vector<vector<int>> &grid_occupied, vector<rerun::Vec3D> &points_robot) {
     // time is set on the outside
     const double grid_size = get_parameter("depth_obstacle_preprocessing.grid_size").as_double();  // 网格 크기
@@ -1608,7 +1643,7 @@ void Brain::handleCooperation() {
 
     if (tmMinCost < BALL_CONTROL_COST_THRESHOLD && data->tmMyCost > tmMinCost) {
     // [TEST] 강제로 리더가 아님(False)으로 고정하여 Offtheball 테스트
-    //if (true || (tmMinCost < BALL_CONTROL_COST_THRESHOLD && data->tmMyCost > tmMinCost)) {
+    // if (true || (tmMinCost < BALL_CONTROL_COST_THRESHOLD && data->tmMyCost > tmMinCost)) {
 
         data->tmImLead = false;
         tree->setEntry<bool>("is_lead", false);
@@ -1807,7 +1842,7 @@ void Brain::updateRobotMemory() {
         auto r = robots[i];
 
 
-        if (msecsSince(r.timePoint) > 1000)  continue;
+        if (msecsSince(r.timePoint) > 5000)  continue;
 
 
         updateRelativePos(r);
@@ -1859,37 +1894,22 @@ void Brain::logMemRobots() {
     auto rbts = data->getRobots();
     // prtDebug(format("logMemRobots called, robotsize = %d", rbts.size()), RED_CODE);
 
+    // 먼저 기존 로봇 로그를 모두 지웁니다 (Recursive)
+    // 이렇게 하면 이전 프레임의 로봇들이 남아서 중복되어 보이는 문제를 해결할 수 있습니다.
+    log->log("field/robots", rerun::Clear::RECURSIVE);
+
     if (rbts.size() == 0) {
-        log->log("field/mem_robots", rerun::Clear::FLAT);
-        // log->log("robotframe/mem_robots", rerun::Clear::FLAT);
         return;
     }
     
     // else 
     log->setTimeNow();
-    // vector<rerun::Vec2D> points;
-    vector<rerun::LineStrip2D> circles;
-    vector<rerun::Vec2D> points_r; // robot frame
     for (int i = 0; i < rbts.size(); i++)
     {
         auto rbt = rbts[i];
-        log->logRobot("field/robots", Pose2D({rbt.posToField.x, rbt.posToField.y, -M_PI}), 0xFF0000FF);
-        // circles.push_back(log->circle(rbt.posToField.x, -rbt.posToField.y, 0.5)); // y 取反是因为 rerun Viewer 的坐标系是左手系。转一下看起来更方便。
-        // points_r.push_back(rerun::Vec2D{rbt.posToRobot.x, -rbt.posToRobot.y});
+        // 각 로봇마다 고유한 경로 사용 (field/robots/0, field/robots/1, ...)
+        log->logRobot(format("field/robots/%d", i), Pose2D({rbt.posToField.x, rbt.posToField.y, -M_PI}), 0xFF0000FF);
     }
-
-    // log->log("field/mem_robots",
-    //          rerun::LineStrips2D(circles)
-    //              .with_colors(0xFF0000AA)
-    //              .with_radii(0.01)
-    //          // .with_labels(labels)
-    // );
-    // log->log("robotframe/mem_robots",
-    //          rerun::Points2D(points_r)
-    //              .with_colors(0xFF0000AA)
-    //              .with_radii(0.5)
-    //          // .with_labels(labels)
-    // );
 }
 
 /* ----------------------------- speak ----------------------------- */

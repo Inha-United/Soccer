@@ -44,6 +44,8 @@ private:
     long _cmdRestartIntervalMSec; 
 
     Brain *brain;
+    double smoothHeadYaw = 0.0;
+    double smoothHeadPitch = 0.0;
 
 };
 
@@ -56,6 +58,8 @@ public:
 
 private:
     Brain *brain;
+    double smoothHeadYaw = 0.0;
+    double smoothHeadPitch = 0.0;
 };
 
 class CamFastScan : public StatefulActionNode
@@ -111,6 +115,8 @@ public:
 
 private:
     Brain *brain;
+    double smoothHeadYaw = 0.0;
+    double smoothHeadPitch = 0.0;
 };
 
 

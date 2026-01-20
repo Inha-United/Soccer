@@ -46,8 +46,8 @@ void Locator::calcFieldMarkers(FieldDimensions fd)
     fieldMarkers.push_back(FieldMarker{'X', 0.0, -fd.circleRadius, 0.0});
     fieldMarkers.push_back(FieldMarker{'X', 0.0, fd.circleRadius, 0.0});
 
-    fieldMarkers.push_back(FieldMarker{'P', fd.length / 2 - fd.penaltyDist, 0.0, 0.0});
-    fieldMarkers.push_back(FieldMarker{'P', -fd.length / 2 + fd.penaltyDist, 0.0, 0.0});
+    fieldMarkers.push_back(FieldMarker{'X', fd.length / 2 - fd.penaltyDist, 0.0, 0.0});
+    fieldMarkers.push_back(FieldMarker{'X', -fd.length / 2 + fd.penaltyDist, 0.0, 0.0});
 
     fieldMarkers.push_back(FieldMarker{'T', 0.0, fd.width / 2, 0.0});
     fieldMarkers.push_back(FieldMarker{'T', 0.0, -fd.width / 2, 0.0});
@@ -130,6 +130,7 @@ int Locator::genParticles()
             if (old_hypos(j, 5) >= rand)
                 break;
         }
+        if (j >= old_hypos.rows()) j = old_hypos.rows() - 1; // 뭔진 모르겠지만 오류나서 추가
         hypos.row(i).head(3) = old_hypos.row(j).head(3);
     }
 

@@ -59,26 +59,23 @@ NodeStatus CalcKickDir::tick(){
     //     if (brain->data->ball.posToField.x > brain->config->fieldDimensions.length / 2) brain->data->kickDir = 0; 
     // }
 
-    // 반코트용 슛 방향 계산 ( 상대 골대가 음수라고 가정)
-    // 추가해야 될 것 -> 수비 상황 판단
-    // 그리고 항상 왼쪽이 양수일까?도 고민해보기
-    if (thetal - thetar < crossThreshold) {
+    if (false) { // cross 우선 안쓰니까 계산에도 안들어가게
         brain->data->kickType = "cross";
         color = 0xFF00FFFF;
         // atan2( 목표Y - 공Y , 목표X - 공X )
         // 반코트는 우리팀 진영을 상대팀으로 인식해야하므로 - 값이 들어감
         brain->data->kickDir = atan2( 
             0 - bPos.y, 
-            - (fd.length/2 - fd.penaltyDist/2) - bPos.x); // 앞에 - 붙였음
+            (fd.length/2 - fd.penaltyDist/2) - bPos.x); 
     }
     else { 
         brain->data->kickType = "shoot";
         color = 0x00FF00FF;
         brain->data->kickDir = atan2(
             0 - bPos.y,
-            - fd.length/2 - bPos.x 
+            fd.length/2 - bPos.x 
         );
-        if (brain->data->ball.posToField.x < - (brain->config->fieldDimensions.length / 2)) brain->data->kickDir = M_PI; 
+    }    if (brain->data->ball.posToField.x < - (brain->config->fieldDimensions.length / 2)) brain->data->kickDir = M_PI; 
     }
 
     brain->log->setTimeNow();
@@ -287,7 +284,8 @@ tuple<double, double, double> Kick::_calcSpeed() {
 
 
     double kickYOffset;
-    getInput("kick_y_offset", kickYOffset);
+    // getInput("kick_y_offset", kickYOffset);
+    kickYOffset = 0.0; // 당분간 사용 안 함
     if (kickYOffset > 0) {
         if (brain->data->ball.posToRobot.y > 0) kickYOffset = fabs(kickYOffset);
         else kickYOffset = -fabs(kickYOffset);
@@ -319,16 +317,16 @@ tuple<double, double, double> Kick::_calcSpeed() {
 
     } else {
         // 기존 로직 (직선 경로 유지)
-        if (fabs(ty) < 0.01 && fabs(adjustedYaw) < 0.01){ 
+        if (fabs(ty) < 0.15 && fabs(adjustedYaw) < 0.15){ 
             vx = vxLimit;
             vy = 0.0;
         } else {
             vy = ty > 0 ? vyLimit : -vyLimit;
-            vx = vy / ty * tx * vxFactor;
-            if (fabs(vx) > vxLimit){
-                vy *= vxLimit / vx;
-                vx = vxLimit;
+            vx = vxLimit; 
+            if (fabs(adjustedYaw) > 0.5) {
+                 vx = vx * 0.5; 
             }
+            if (fabs(vx) > vxLimit) vx = vxLimit;
         }
     }
 
@@ -344,7 +342,10 @@ NodeStatus Kick::onStart(){
     // if(brain->tree->getEntry<string>("striker_state") != "kick") return NodeStatus::SUCCESS;
 
     _minRange = brain->data->ball.range;
-    _speed = 0.5;
+    
+    // _speed = 0.5; // 기존 하드코딩
+    if (!getInput("kick_speed", _speed)) _speed = 1.3;
+
     _startTime = brain->get_clock()->now();
 
     // 장애물 회피 로직
@@ -467,9 +468,12 @@ NodeStatus Kick::onRunning(){
     if(brain->data->ballDetected){
          auto [vx, vy, _] = _calcSpeed();
          
+         // [User Request] Disable re-alignment during kick to maximize forward power
+         /*
          // 공을 보지 말고, 골대(KickDir)를 봐야 함 -> Bias 적용 (Adjust와 동일)
          double kickYOffset;
-         getInput("kick_y_offset", kickYOffset);
+         // getInput("kick_y_offset", kickYOffset);
+         kickYOffset = 0.0; // 당분간 사용 안 함
          if (kickYOffset > 0) {
             if (brain->data->ball.posToRobot.y > 0) kickYOffset = fabs(kickYOffset);
             else kickYOffset = -fabs(kickYOffset);
@@ -484,6 +488,8 @@ NodeStatus Kick::onRunning(){
          
          // Adjust와 동일하게 미세한 오차는 무시 (0.01 rad = 약 0.57도)
          if(fabs(headingError) < 0.01) vtheta = 0.0;
+         */
+         double vtheta = 0.0;
          
          brain->client->setVelocity(vx, vy, vtheta);
     }

@@ -2,9 +2,12 @@
 
 #include <behaviortree_cpp/behavior_tree.h>
 #include <behaviortree_cpp/bt_factory.h>
+#include <chrono>
+#include <string>
 
 class Brain; 
 using namespace BT;
+using namespace std;
 
 
 void RegisterOfftheballNodes(BT::BehaviorTreeFactory &factory, Brain* brain);
@@ -26,4 +29,6 @@ public:
 
 private:
     Brain *brain;
+    std::chrono::steady_clock::time_point scanStartTime = std::chrono::steady_clock::time_point::min();
+    double smoothHeadYaw = 0.0;
 };

@@ -75,13 +75,14 @@ public:
     static PortsList providedPorts()
     {
         return {
+            InputPort<double>("kick_speed", 1.3, "킥 동작 속도 (Power)"),
             InputPort<double>("min_msec_kick", 500, "킥 동작을 최소한 이 시간(ms) 동안 실행"),
             InputPort<double>("msecs_stablize", 1000, "동작 안정화를 위해 정지 상태로 유지하는 시간(ms)"),
             InputPort<double>("speed_limit", 0.8, "속도의 최대값"),
             InputPort<string>("kick_type", "kick", "킥 종류 (로그용)"),
             InputPort<double>("vx_limit", 1.0, "X축 속도 제한"),
             InputPort<double>("vy_limit", 0.4, "Y축 속도 제한"),
-            InputPort<double>("kick_y_offset", -0.077, "킥 시 Y 오프셋"),
+            // InputPort<double>("kick_y_offset", -0.077, "킥 시 Y 오프셋"),
         };
     }
 

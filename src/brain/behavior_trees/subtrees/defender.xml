@@ -39,7 +39,7 @@
                   <Sequence>
                      
                      <ReactiveSequence>
-                        <DefenderDecide decision_out="{decision}" decision_in="{decision}" chase_threshold="0.6" />
+                        <DefenderDecision decision_out="{decision}" decision_in="{decision}" chase_threshold="0.6" />
                         
                         <!-- 공 찾기 -->
                         <SubTree ID="FindBall" _while="decision=='find'" _autoremap="true" />
