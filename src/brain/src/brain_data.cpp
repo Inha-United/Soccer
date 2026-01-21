@@ -66,6 +66,8 @@ Pose2D BrainData::field2robot(const Pose2D &poseToField){
 // 1.10 - 로봇 메모리 업데이트
 void BrainData::updateRobots(const vector<GameObject>& newObservations, double retentionTime) {
     std::lock_guard<std::mutex> lock(_robotsMutex);
+
+    const double alpha = 0.3; // EMA 계수
     
     // 현재 시간 (가장 최신 관측값의 시간 사용, 없으면 시스템 시간)
     rclcpp::Time now;
@@ -87,7 +89,24 @@ void BrainData::updateRobots(const vector<GameObject>& newObservations, double r
             double dist = norm(newObj.posToField.x - _robots[i].posToField.x, 
                                newObj.posToField.y - _robots[i].posToField.y);
             if (dist < minDistance) {
-                _robots[i] = newObj;
+                // _robots[i] = newObj;
+                // matched = true;
+
+                double emaX = alpha * newObj.posToField.x + (1.0 - alpha) * _robots[i].posToField.x;
+                double emaY = alpha * newObj.posToField.y + (1.0 - alpha) * _robots[i].posToField.y;
+
+                _robots[i] = newObj; // 최신 정보 유지
+                _robots[i].posToField.x = emaX;
+                _robots[i].posToField.y = emaY;
+
+                Pose2D pf{emaX, emaY, 0};
+                Pose2D pr = field2robot(pf);
+                _robots[i].posToRobot.x = pr.x;
+                _robots[i].posToRobot.y = pr.y;
+                _robots[i].range = norm(pr.x, pr.y);
+                _robots[i].yawToRobot = atan2(pr.y, pr.x);
+                // pitchToRobot은 newObj 값 유지
+
                 matched = true;
             }
         }
